@@ -157,7 +157,10 @@ public struct CleanupEngine: Sendable {
                 outcome.failures.append(CleanFailure(
                     path: spec.displayCommand,
                     message: stderrText.flatMap { $0.isEmpty ? nil : $0 }
-                        ?? "Exited with status \(process.terminationStatus)."
+                        ?? localized(
+                            "engine.commandExitStatus",
+                            defaultValue: "Exited with status \(process.terminationStatus)."
+                        )
                 ))
             }
         } catch {

@@ -15,7 +15,10 @@ public struct UnreadableRootError: Error, LocalizedError {
     public let path: String
 
     public var errorDescription: String? {
-        "\"\(path)\" exists but could not be read."
+        localized(
+            "sizer.unreadableRoot",
+            defaultValue: "“\(path)” exists but could not be read."
+        )
     }
 }
 

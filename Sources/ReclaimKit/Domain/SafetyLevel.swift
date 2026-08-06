@@ -26,9 +26,12 @@ public enum SafetyLevel: Int, CaseIterable, Comparable, Sendable {
     /// Short label shown in badges.
     public var title: String {
         switch self {
-        case .safe: "Safe"
-        case .caution: "Caution"
-        case .destructive: "Destructive"
+        case .safe:
+            localized("safety.safe.title", defaultValue: "Safe")
+        case .caution:
+            localized("safety.caution.title", defaultValue: "Caution")
+        case .destructive:
+            localized("safety.destructive.title", defaultValue: "Destructive")
         }
     }
 
@@ -36,11 +39,20 @@ public enum SafetyLevel: Int, CaseIterable, Comparable, Sendable {
     public var explanation: String {
         switch self {
         case .safe:
-            "Regenerated automatically the next time the tool runs."
+            localized(
+                "safety.safe.explanation",
+                defaultValue: "Regenerated automatically the next time the tool runs."
+            )
         case .caution:
-            "Restorable, but re-downloading or losing history costs time."
+            localized(
+                "safety.caution.explanation",
+                defaultValue: "Restorable, but re-downloading or losing history costs time."
+            )
         case .destructive:
-            "Removes things you created or configured. Review carefully."
+            localized(
+                "safety.destructive.explanation",
+                defaultValue: "Removes things you created or configured. Review carefully."
+            )
         }
     }
 

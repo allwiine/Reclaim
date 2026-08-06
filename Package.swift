@@ -40,6 +40,7 @@ let sharedSwiftSettings: [SwiftSetting] = [
 
 let package = Package(
     name: "Reclaim",
+    defaultLocalization: "en",
     platforms: [
         .macOS(.v15),
     ],
@@ -51,6 +52,7 @@ let package = Package(
     targets: [
         .target(
             name: "ReclaimKit",
+            resources: [.process("Resources")],
             swiftSettings: sharedSwiftSettings
         ),
         .target(

@@ -22,12 +22,18 @@ public enum ToolCategory: String, CaseIterable, Identifiable, Sendable {
     /// Human-readable name shown in the sidebar.
     public var title: String {
         switch self {
-        case .xcode: "Xcode & Simulators"
-        case .android: "Android Studio"
-        case .dotNet: ".NET & Visual Studio"
-        case .aiTools: "Claude & AI Tools"
-        case .packageManagers: "Package Managers"
-        case .otherTools: "Other Dev Tools"
+        case .xcode:
+            localized("category.xcode.title", defaultValue: "Xcode & Simulators")
+        case .android:
+            localized("category.android.title", defaultValue: "Android Studio")
+        case .dotNet:
+            localized("category.dotNet.title", defaultValue: ".NET & Visual Studio")
+        case .aiTools:
+            localized("category.aiTools.title", defaultValue: "Claude & AI Tools")
+        case .packageManagers:
+            localized("category.packageManagers.title", defaultValue: "Package Managers")
+        case .otherTools:
+            localized("category.otherTools.title", defaultValue: "Other Dev Tools")
         }
     }
 
