@@ -76,7 +76,11 @@ struct RootView: View {
         .task {
             let arguments = ProcessInfo.processInfo.arguments
             if arguments.contains("--order-front") {
-                NSApp.windows.first?.orderFrontRegardless()
+                // windows.first can be a MenuBarExtra status window (its
+                // position in NSApp.windows varies with launch conditions,
+                // e.g. an -AppleLanguages override); pick the real one.
+                let main = NSApp.windows.first { $0.canBecomeMain } ?? NSApp.windows.first
+                main?.orderFrontRegardless()
                 NSApp.activate()
             }
             if arguments.contains("--scan-on-launch") {
