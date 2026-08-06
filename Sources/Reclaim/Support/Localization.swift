@@ -16,10 +16,17 @@ import Foundation
 
 /// Resolves a semantic key against this module's string catalogues.
 func localized(_ key: StaticString, defaultValue: String.LocalizationValue) -> String {
-    String(localized: key, defaultValue: defaultValue, bundle: .module)
+    String(localized: key, defaultValue: defaultValue, bundle: LocalizationResources.bundle)
 }
 
 /// Test hook: the resource bundle holding this module's catalogues.
 enum LocalizationResources {
+    // `Bundle.module` is synthesized only by SwiftPM. When the XcodeGen
+    // app target compiles these sources directly, the lproj tables land
+    // in the app bundle itself.
+    #if SWIFT_PACKAGE
     static let bundle = Bundle.module
+    #else
+    static let bundle = Bundle.main
+    #endif
 }
