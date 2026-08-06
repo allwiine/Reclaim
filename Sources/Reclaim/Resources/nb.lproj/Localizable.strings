@@ -81,15 +81,17 @@
 "progress.finishingUp" = "Avslutter …";
 "scanning.foundSoFar" = "%@ funnet så langt";
 "scanning.stopButton" = "Stopp";
+"scanning.stoppingButton" = "Stopper …";
 "scanning.stopHelp" = "Behold det som er målt så langt";
 
 /* Rydding */
 "cleaning.stopButton" = "Stopp etter dette elementet";
+"cleaning.stoppingButton" = "Stopper etter dette elementet …";
 "cleaning.stopHelp" = "Elementet som ryddes, fullføres; resten hoppes over";
 
 /* Oversikt */
 "overview.partialScanNotice" = "Skanningen ble stoppet tidlig. Størrelsene nedenfor dekker bare det som ble målt før stopp.";
-"overview.reclaimableNow" = "Kan frigjøres nå";
+"overview.foundOnThisMac" = "Funnet på denne Macen";
 "overview.safeToRemove" = "%@ trygt å fjerne";
 "overview.nothingSafeLeft" = "Ingenting trygt igjen å fjerne";
 "overview.nothingSafeLeftSubtitle" = "Alt merket Trygt er allerede ryddet. Skann på nytt for å måle igjen.";

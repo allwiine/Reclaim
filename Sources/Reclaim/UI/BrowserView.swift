@@ -112,10 +112,10 @@ struct BrowserView: View {
         guard picked > 0 else {
             return localized("browser.noItemsSelected", defaultValue: "No items selected")
         }
-        let measured = model.targets.count { model.bytes(of: $0) > 0 }
+        let selectable = model.selectableItemCount
         return localized(
             "browser.selectionSummary",
-            defaultValue: "\(picked) of \(measured) items selected · \(model.selectedBytes.formattedBytesCompact)"
+            defaultValue: "\(picked) of \(selectable) items selected · \(model.selectedBytes.formattedBytesCompact)"
         )
     }
 

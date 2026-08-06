@@ -78,15 +78,17 @@
 "progress.finishingUp" = "Finishing up…";
 "scanning.foundSoFar" = "%@ found so far";
 "scanning.stopButton" = "Stop";
+"scanning.stoppingButton" = "Stopping…";
 "scanning.stopHelp" = "Keep what has been measured so far";
 
 /* Cleaning */
 "cleaning.stopButton" = "Stop after this item";
+"cleaning.stoppingButton" = "Stopping after this item…";
 "cleaning.stopHelp" = "The item being cleaned finishes; the rest are skipped";
 
 /* Overview */
 "overview.partialScanNotice" = "Scan stopped early — the sizes below cover only what was measured before stopping.";
-"overview.reclaimableNow" = "Reclaimable now";
+"overview.foundOnThisMac" = "Found on this Mac";
 "overview.safeToRemove" = "%@ safe to remove";
 "overview.nothingSafeLeft" = "Nothing safe left to remove";
 "overview.nothingSafeLeftSubtitle" = "Everything rated Safe is already clean — scan again to re-measure.";

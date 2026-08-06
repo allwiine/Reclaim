@@ -49,10 +49,14 @@ struct CleaningView: View {
                 .animation(Theme.smooth, value: progress.index)
             }
 
-            Button(localized("cleaning.stopButton", defaultValue: "Stop after this item")) {
+            Button(model.isCancellingClean
+                ? localized("cleaning.stoppingButton", defaultValue: "Stopping after this item…")
+                : localized("cleaning.stopButton", defaultValue: "Stop after this item")
+            ) {
                 model.cancelClean()
             }
             .buttonStyle(.rcSecondary)
+            .disabled(model.isCancellingClean)
             .padding(.top, 30)
             .help(localized(
                 "cleaning.stopHelp",

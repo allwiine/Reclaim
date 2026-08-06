@@ -97,7 +97,9 @@ struct OverviewView: View {
             ring
 
             VStack(alignment: .leading, spacing: 0) {
-                SectionLabel(localized("overview.reclaimableNow", defaultValue: "Reclaimable now"))
+                // "Found", not "reclaimable": the ring's total includes
+                // tool-managed items Reclaim measures but never deletes.
+                SectionLabel(localized("overview.foundOnThisMac", defaultValue: "Found on this Mac"))
 
                 VStack(alignment: .leading, spacing: 9) {
                     // After a clean pass the safe bucket is often empty;
