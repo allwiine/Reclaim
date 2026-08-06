@@ -22,8 +22,16 @@ public struct TargetScanner: Sendable {
 
     /// Scan one target. Blocking; run off the main actor.
     public func scan(_ target: CleanupTarget) -> TargetStatus {
-        // Command-only targets have nothing to measure up front.
-        guard !target.pathPatterns.isEmpty else { return .unmeasurable }
+        // Command-only targets have nothing to measure up front, but
+        // may declare a probe path that gates their availability.
+        guard !target.pathPatterns.isEmpty else {
+            if case .command(let spec) = target.strategy,
+               let probe = spec.availabilityProbePattern,
+               resolver.resolve(probe).isEmpty {
+                return .notInstalled
+            }
+            return .unmeasurable
+        }
 
         let roots = resolver.resolveAll(target.pathPatterns)
         guard !roots.isEmpty else { return .notInstalled }

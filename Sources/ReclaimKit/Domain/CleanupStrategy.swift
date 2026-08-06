@@ -19,11 +19,23 @@ public struct CommandSpec: Sendable, Equatable {
     /// Human-readable description shown in the UI, e.g.
     /// "Runs `xcrun simctl delete unavailable`".
     public let displayCommand: String
+    /// Optional path pattern that must resolve for the command's tool
+    /// to be considered installed (e.g. `~/Library/Developer/CoreSimulator`
+    /// for simctl — `/usr/bin/xcrun` exists on every Mac and proves
+    /// nothing). When it resolves to nothing the target scans as
+    /// `.notInstalled` instead of `.unmeasurable`.
+    public let availabilityProbePattern: String?
 
-    public init(executablePath: String, arguments: [String], displayCommand: String) {
+    public init(
+        executablePath: String,
+        arguments: [String],
+        displayCommand: String,
+        availabilityProbePattern: String? = nil
+    ) {
         self.executablePath = executablePath
         self.arguments = arguments
         self.displayCommand = displayCommand
+        self.availabilityProbePattern = availabilityProbePattern
     }
 }
 

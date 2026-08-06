@@ -42,6 +42,28 @@ struct TargetScannerTests {
         #expect(scanner.scan(makeTarget(patterns: [], strategy: .command(spec))) == .unmeasurable)
     }
 
+    @Test("A command target with a missing availability probe is not installed")
+    func commandAvailabilityProbe() throws {
+        try withTemporaryDirectory { home in
+            let spec = CommandSpec(
+                executablePath: "/usr/bin/true",
+                arguments: [],
+                displayCommand: "true",
+                availabilityProbePattern: "~/Library/Developer/CoreSimulator"
+            )
+            let scanner = TargetScanner(resolver: PathResolver(home: home))
+            let target = makeTarget(patterns: [], strategy: .command(spec))
+
+            #expect(scanner.scan(target) == .notInstalled)
+
+            try FileManager.default.createDirectory(
+                at: home.appending(path: "Library/Developer/CoreSimulator"),
+                withIntermediateDirectories: true
+            )
+            #expect(scanner.scan(target) == .unmeasurable)
+        }
+    }
+
     @Test("removeContents targets snapshot the directory's children at scan time")
     func removeContentsSnapshotsChildren() throws {
         try withTemporaryDirectory { home in

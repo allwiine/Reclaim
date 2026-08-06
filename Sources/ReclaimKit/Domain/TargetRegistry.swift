@@ -115,7 +115,8 @@ public enum TargetRegistry {
             strategy: .command(CommandSpec(
                 executablePath: "/usr/bin/xcrun",
                 arguments: ["simctl", "delete", "unavailable"],
-                displayCommand: "xcrun simctl delete unavailable"
+                displayCommand: "xcrun simctl delete unavailable",
+                availabilityProbePattern: "~/Library/Developer/CoreSimulator"
             )),
             note: "Size is only known after cleaning — simctl decides what qualifies."
         ),
