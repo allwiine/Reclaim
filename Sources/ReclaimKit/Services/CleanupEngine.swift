@@ -163,12 +163,15 @@ public struct CleanupEngine: Sendable {
 
         do {
             try process.run()
+            // Drain stderr to EOF *before* waiting: a child that writes
+            // more than the pipe buffer (~64 KB) would otherwise block on
+            // write while we block in waitUntilExit — a deadlock.
+            let stderrData = stderrPipe.fileHandleForReading.readDataToEndOfFile()
             process.waitUntilExit()
 
             if process.terminationStatus == 0 {
                 outcome.removedItems += 1
             } else {
-                let stderrData = stderrPipe.fileHandleForReading.readDataToEndOfFile()
                 let stderrText = String(data: stderrData, encoding: .utf8)?
                     .trimmingCharacters(in: .whitespacesAndNewlines)
                 outcome.failures.append(CleanFailure(

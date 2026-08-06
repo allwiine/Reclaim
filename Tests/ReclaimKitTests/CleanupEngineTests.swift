@@ -176,3 +176,53 @@ struct CleanupEngineTests {
         #expect(outcome.failures.count == 1)
     }
 }
+
+// MARK: - Command execution
+
+@Suite("Command execution")
+struct CommandExecutionTests {
+    @Test("A failing command that floods stderr completes and reports the error")
+    func stderrFloodDoesNotDeadlock() {
+        // ~330 KB of stderr — far beyond the 64 KB pipe buffer. If the
+        // engine waits for exit before draining the pipe, the child
+        // blocks on write and this test hangs forever.
+        let spec = CommandSpec(
+            executablePath: "/bin/sh",
+            arguments: [
+                "-c",
+                "i=0; while [ $i -lt 8000 ]; do echo stderr-flood-0123456789012345678901234567 1>&2; i=$((i+1)); done; exit 3",
+            ],
+            displayCommand: "sh -c 'flood stderr'"
+        )
+        let engine = CleanupEngine(remover: MockRemover())
+
+        let outcome = engine.clean(
+            makeTarget(strategy: .command(spec)),
+            resolvedPaths: [],
+            disposal: .trash
+        )
+
+        #expect(outcome.removedItems == 0)
+        #expect(outcome.failures.count == 1)
+        #expect(outcome.failures.first?.message.contains("stderr-flood") == true)
+    }
+
+    @Test("A successful command counts as one removal")
+    func successfulCommand() {
+        let spec = CommandSpec(
+            executablePath: "/usr/bin/true",
+            arguments: [],
+            displayCommand: "true"
+        )
+        let engine = CleanupEngine(remover: MockRemover())
+
+        let outcome = engine.clean(
+            makeTarget(strategy: .command(spec)),
+            resolvedPaths: [],
+            disposal: .trash
+        )
+
+        #expect(outcome.removedItems == 1)
+        #expect(outcome.failures.isEmpty)
+    }
+}
