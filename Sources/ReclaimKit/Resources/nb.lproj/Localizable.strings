@@ -20,6 +20,7 @@
 
 /* Tjenester */
 "engine.commandExitStatus" = "Avsluttet med status %lld.";
+"engine.toolReported" = "Verktøyet meldte: «%@»";
 "sizer.unreadableRoot" = "«%@» finnes, men kunne ikke leses.";
 
 /* Mål — Xcode og Apple-verktøykjeden */

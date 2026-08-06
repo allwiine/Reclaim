@@ -102,7 +102,13 @@ struct KitLocalizationTests {
                 #expect(try defines("safety.\(level).title", in: locale))
                 #expect(try defines("safety.\(level).explanation", in: locale))
             }
-            for key in ["engine.commandExitStatus", "sizer.unreadableRoot", "breakdown.moreItems"] {
+            let serviceKeys = [
+                "engine.commandExitStatus",
+                "engine.toolReported",
+                "sizer.unreadableRoot",
+                "breakdown.moreItems",
+            ]
+            for key in serviceKeys {
                 #expect(try defines(key, in: locale), "\(locale): missing \(key)")
             }
         }

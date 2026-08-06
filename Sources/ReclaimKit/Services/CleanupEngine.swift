@@ -154,13 +154,23 @@ public struct CleanupEngine: Sendable {
             } else {
                 let stderrText = String(data: stderrData, encoding: .utf8)?
                     .trimmingCharacters(in: .whitespacesAndNewlines)
+                // Tool output is quoted verbatim (it may be in any
+                // language), but framed by a localized label so mixed-
+                // language failure lines read as intentional quoting.
+                let message = stderrText.flatMap { $0.isEmpty ? nil : $0 }
+                    .map {
+                        localized(
+                            "engine.toolReported",
+                            defaultValue: "The tool reported: “\($0)”"
+                        )
+                    }
+                    ?? localized(
+                        "engine.commandExitStatus",
+                        defaultValue: "Exited with status \(process.terminationStatus)."
+                    )
                 outcome.failures.append(CleanFailure(
                     path: spec.displayCommand,
-                    message: stderrText.flatMap { $0.isEmpty ? nil : $0 }
-                        ?? localized(
-                            "engine.commandExitStatus",
-                            defaultValue: "Exited with status \(process.terminationStatus)."
-                        )
+                    message: message
                 ))
             }
         } catch {
