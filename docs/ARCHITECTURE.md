@@ -8,11 +8,17 @@ Reclaim is deliberately small and layered. The core insight is that a storage cl
 
 ```
 ┌──────────────────────────────────────────────────────────┐
-│ Reclaim (executable target — SwiftUI, @MainActor)        │
+│ Reclaim (executable target — SwiftUI views only)         │
 │                                                          │
 │  ReclaimApp ── RootView ── Sidebar / Overview / Category │
-│                    │                                     │
-│                AppModel  (@Observable, owns all state)   │
+└────────────────────┼─────────────────────────────────────┘
+                     │ observes
+┌────────────────────▼─────────────────────────────────────┐
+│ ReclaimAppCore (library target — no UI imports)          │
+│                                                          │
+│  AppModel (@MainActor @Observable, owns all state,       │
+│            injectable Scan/CleanExecutor seams)          │
+│  CleanSummary                                            │
 └────────────────────┼─────────────────────────────────────┘
                      │ calls into (off the main actor)
 ┌────────────────────▼─────────────────────────────────────┐
@@ -22,20 +28,21 @@ Reclaim is deliberately small and layered. The core insight is that a storage cl
 │            CleanupStrategy · TargetStatus                │
 │  Services  PathResolver → DiskSizer → TargetScanner      │
 │            CleanupEngine (FileRemoving protocol)         │
+│            FullDiskAccessProbe                           │
 │  Support   Log (os.Logger)                               │
 └──────────────────────────────────────────────────────────┘
 ```
 
-**Dependency rule:** `Reclaim` imports `ReclaimKit`; never the reverse. `ReclaimKit` imports only Foundation and os — it compiles without AppKit/SwiftUI, which is what makes it fast to unit-test.
+**Dependency rule:** `Reclaim` imports `ReclaimAppCore` imports `ReclaimKit`; never the reverse. `ReclaimKit` imports only Foundation and os; `ReclaimAppCore` adds Observation. Both compile without AppKit/SwiftUI, which is what makes the entire non-view codebase fast to unit-test.
 
 ## Data flow
 
-1. **Scan.** `AppModel.scanAll()` marks every target `.scanning` and fans work out through a `withTaskGroup` bounded to 4 concurrent walks. Each child task runs `TargetScanner.scan(_:)`:
-   `pathPatterns` → `PathResolver` (tilde + glob expansion, drops non-existent paths) → `DiskSizer` (allocated-size walk) → a `TargetStatus`.
-2. **Display.** Statuses land in `AppModel.statuses`; every view derives from that dictionary plus the registry. There is no duplicated state.
-3. **Select.** The user ticks targets. Selectability is computed (`isSelectable`): only cleanable strategies with a non-zero measurement (or command targets) can be ticked.
-4. **Clean.** After an explicit confirmation, `cleanSelected()` runs the `CleanupEngine` per target — sequentially, for predictability — passing **the exact URLs the scan resolved**. The engine disposes via Trash or permanent delete depending on Settings.
-5. **Verify.** Each cleaned target is immediately re-scanned; reclaimed space is reported as *measured before − measured after*, never assumed.
+1. **Scan.** `AppModel.scanAll()` marks every target `.scanning`, evaluates the `FullDiskAccessProbe`, and fans work out through a `withTaskGroup` bounded to 4 concurrent walks. Each child task runs `TargetScanner.scan(_:)`:
+   `pathPatterns` → `PathResolver` (tilde + glob expansion, drops non-existent paths) → a **cleanup-path snapshot** (for `.removeContents`, the directories' children at this moment) → `DiskSizer` (allocated-size walk of the snapshot; unreadable entries are counted, an unreadable root fails the target) → a `TargetStatus`.
+2. **Display.** Statuses land in `AppModel.statuses`; every view derives from that dictionary plus the registry. There is no duplicated state. A scan stopped early is flagged (`lastScanWasComplete == false`) and the Overview says so; missing Full Disk Access surfaces as a banner.
+3. **Select.** The user ticks targets. Selectability is computed (`isSelectable`): only cleanable strategies with a non-zero measurement (or command targets whose availability probe passes) can be ticked.
+4. **Clean.** After an explicit confirmation (which also warns if a related app is running), `cleanSelected()` runs the `CleanupEngine` per target — sequentially, cancellable between targets — passing **the scan-time cleanup snapshot**. The engine never lists directories itself, so nothing created after the scan can be deleted. Disposal is Trash or permanent delete depending on Settings.
+5. **Verify.** Each cleaned target is immediately re-scanned; reclaimed space is reported as *measured before − measured after*, never assumed. The summary reports items actually removed, and counts a target as cleaned only when at least one removal succeeded.
 
 ## Concurrency model
 
@@ -44,26 +51,33 @@ The package compiles in Swift 6 language mode (strict data-race safety). Isolati
 - `AppModel` is `@MainActor @Observable`. All UI-visible state lives there.
 - Everything in `ReclaimKit` is nonisolated, `Sendable`, and synchronous. Services are stateless structs — cheap to create per call, trivially thread-safe.
 - Blocking filesystem work reaches the background two ways:
-  - scan fan-out: `group.addTask { … TargetScanner().scan(target) }` — child tasks run nonisolated on the global executor;
-  - single operations: `nonisolated static func` async helpers in `AppModel`.
+  - scan fan-out: `group.addTask { … scan(target) }` — child tasks run nonisolated on the global executor;
+  - single operations: the `nonisolated static func offMain` trampoline in `AppModel`.
 - The scan group is **width-limited** (4) because directory walking is disk-bound: more parallelism gains nothing and would occupy cooperative-pool threads with blocking I/O.
-- Cancellation is cooperative: `DiskSizer` calls `Task.checkCancellation()` every 512 entries, so the Stop button reacts promptly even mid-walk.
+- Cancellation is cooperative: `DiskSizer` calls `Task.checkCancellation()` every 512 entries, so the Stop button reacts promptly even mid-walk. A cancelled scan keeps completed measurements but is flagged partial. A clean pass checks cancellation between targets — the in-flight target always finishes, so nothing is left half-cleaned.
 
 **Why not `.defaultIsolation(MainActor.self)`?** Swift 6.2's "single-threaded by default" mode is great for apps that are mostly UI. Reclaim has a genuine concurrency boundary at its heart — scans must never touch the main thread — and annotating that boundary explicitly (`@MainActor` above it, plain `Sendable` code below it) documents the design better than a module-wide default plus scattered opt-outs. If the default is ever adopted, the background helpers in `AppModel` should gain `@concurrent` to preserve their off-main execution.
 
 ## Error handling
 
-- **Scanning** never throws to the UI: failures become `TargetStatus.failed(message:)`, rendered inline per row with a Full-Disk-Access hint. Unreadable entries inside a walk are skipped (enumerator error handler) rather than failing the whole target.
-- **Cleaning** is best-effort per item: `CleanOutcome` accumulates `CleanFailure`s so one locked file doesn't abort a pass. Failures surface in the summary alert.
+- **Scanning** never throws to the UI: failures become `TargetStatus.failed(message:)`, rendered inline per row with a Full-Disk-Access hint. Unreadable entries inside a walk are skipped but **counted** (`DiskMeasurement.inaccessibleItems`, shown as "N unreadable"); an unreadable root fails the target instead of measuring zero. A global `FullDiskAccessProbe` verdict drives an Overview banner.
+- **Cleaning** is best-effort per item: `CleanOutcome` accumulates `CleanFailure`s so one locked file doesn't abort a pass. Failures surface in the summary alert, which distinguishes cleaned targets (≥1 removal) from failed ones.
 - **Manual strategies** are triple-guarded: not selectable in the UI, refused by the engine, and covered by tests.
 
 ## Testing strategy
 
-`ReclaimKitTests` (Swift Testing, `swift test`):
+Swift Testing (`swift test`), two suites:
 
-- **RegistryTests** — the catalogue's contract: unique ids, pattern shape, pathless ⇒ command, and the guarantee that Claude Code auth/settings/plugins can never be registered. This is what makes "just add a struct" safe.
-- **PathResolverTests / DiskSizerTests** — behavior against real temporary directories via a `withTemporaryDirectory` fixture.
-- **CleanupEngineTests** — engine logic against a `Mutex`-protected mock `FileRemoving`, so no test can ever touch the real Trash. The protocol seam exists precisely for this.
+`Tests/ReclaimKitTests`:
+
+- **RegistryTests** — the catalogue's contract: unique ids, pattern shape, pathless ⇒ command, related-app declarations, and the guarantee that Claude Code auth/settings/plugins can never be registered. This is what makes "just add a struct" safe.
+- **PathResolverTests / DiskSizerTests / TargetScannerTests / FullDiskAccessProbeTests** — behavior against real temporary directories via a `withTemporaryDirectory` fixture, including chmod-based permission fixtures.
+- **CleanupEngineTests** — engine logic against a `Mutex`-protected mock `FileRemoving`, so no test can ever touch the real Trash. The protocol seam exists precisely for this. Command execution runs real (harmless) processes, including a stderr-flood regression test.
+
+`Tests/ReclaimAppCoreTests`:
+
+- **AppModelTests** — scan lifecycle (including cancellation → partial), selection rules, cleanup-path plumbing, summary math, disposal snapshotting — all against stubbed `ScanExecutor`/`CleanExecutor` closures.
+- **CleanSummaryTests** — alert wording, including inflection and the stopped/nothing-cleaned cases.
 
 UI is kept logic-free (views derive everything from `AppModel`), so model-level tests give high coverage without UI tests; add XCUITest via the XcodeGen project if flows grow.
 
@@ -72,6 +86,8 @@ UI is kept logic-free (views derive everything from `AppModel`), so model-level 
 | To add… | Touch… |
 | --- | --- |
 | A new cleanable tool | One `CleanupTarget` in `TargetRegistry` |
+| A running-app warning for it | `relatedAppBundleIDs` on the target |
+| A command tool whose presence needs proving | `availabilityProbePattern` on its `CommandSpec` |
 | A new category | One case in `ToolCategory` (title + SF Symbol) |
 | A new cleanup mechanism | One case in `CleanupStrategy` + one `switch` arm in `CleanupEngine` |
 | A different disposal (e.g. secure erase) | One case in `Disposal` + `CleanupEngine.dispose` |
@@ -80,7 +96,7 @@ UI is kept logic-free (views derive everything from `AppModel`), so model-level 
 ## Deliberate decisions
 
 - **Trash-first disposal.** A cleaner's worst failure mode is deleting something needed. `FileManager.trashItem` gives free undo; permanent deletion is a Settings opt-in.
-- **Clean scan-time paths, not re-resolved ones.** Globs could match new items between scan and clean; the user must only ever lose what they saw.
+- **Clean the scan-time snapshot, not re-resolved or re-listed paths.** Globs could match new items between scan and clean, and a directory listed at clean time could contain children created after the scan. The scanner therefore snapshots the exact deletion set (children for `.removeContents`), measures that snapshot, and the engine disposes only those URLs — the user must only ever lose what they saw.
 - **`removeContents` over `removePaths` for caches.** Many tools assume their cache root exists; emptying it is the polite operation.
 - **Allocated size, not logical size.** Sparse files and APFS clones make logical size a lie; allocated size is what deletion actually frees.
 - **No sandbox.** The product's job is reading arbitrary cache locations under `$HOME`; sandboxing would reduce it to a folder-picker ritual. Consequence: no App Store, hardened runtime + notarization for direct distribution.
