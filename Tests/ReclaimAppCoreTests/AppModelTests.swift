@@ -513,6 +513,184 @@ struct AppModelTests {
         await model.scanTask?.value
     }
 
+    @Test("The background scan defers while a confirmation is open")
+    func backgroundScanDefersWhileReviewing() async {
+        let store = TemporaryDefaults()
+        let model = AppModel(
+            targets: [target("cache")],
+            defaults: store.defaults,
+            scanExecutor: { _ in measured(100) },
+            historyStore: temporaryHistoryStore()
+        )
+
+        model.scanAll()
+        await model.scanTask?.value
+        let overdue = model.nextBackgroundScanDate!.addingTimeInterval(60)
+
+        model.isReviewingSelection = true
+        model.runBackgroundScanIfDue(now: overdue)
+        #expect(!model.isScanning, "a background scan must never clear a selection under review")
+
+        model.isReviewingSelection = false
+        model.runBackgroundScanIfDue(now: overdue)
+        #expect(model.isScanning)
+        await model.scanTask?.value
+    }
+
+    @Test("Auto-select exclusions are honored, revocable and persistent")
+    func autoSelectExclusions() async {
+        let store = TemporaryDefaults()
+        let kept = target("kept", safety: .safe)
+        let excluded = target("excluded", safety: .safe)
+        let model = AppModel(
+            targets: [kept, excluded],
+            defaults: store.defaults,
+            scanExecutor: { _ in measured(100) },
+            historyStore: temporaryHistoryStore()
+        )
+
+        model.setExcludedFromAutoSelect(excluded, true)
+        model.scanAll()
+        await model.scanTask?.value
+
+        #expect(model.isSelected(kept))
+        #expect(!model.isSelected(excluded), "post-scan preselection must skip exclusions")
+
+        model.clearSelection()
+        model.selectAllSafe()
+        #expect(!model.isSelected(excluded), "selectAllSafe must skip exclusions")
+
+        model.setSelected(excluded, true)
+        #expect(model.isSelected(excluded), "manual ticking still works")
+
+        model.setExcludedFromAutoSelect(excluded, true)
+        #expect(!model.isSelected(excluded), "excluding a ticked target unticks it")
+
+        let second = AppModel(
+            targets: [kept, excluded],
+            defaults: store.defaults,
+            scanExecutor: { _ in measured(100) },
+            historyStore: temporaryHistoryStore()
+        )
+        #expect(second.isExcludedFromAutoSelect(excluded), "exclusions survive a relaunch")
+
+        model.setExcludedFromAutoSelect(excluded, false)
+        model.selectAllSafe()
+        #expect(model.isSelected(excluded), "revoking the exclusion restores auto-selection")
+    }
+
+    @Test("Freed space is only claimed when the rescan can measure it")
+    func freedSpaceHonesty() async {
+        let store = TemporaryDefaults()
+        let command = commandTarget("command")
+        let broken = target("broken")
+        let scanCount = Mutex(0)
+
+        let model = AppModel(
+            targets: [command, broken],
+            defaults: store.defaults,
+            scanExecutor: { t in
+                if t.id == "command" { return .unmeasurable }
+                // First scan measures; the post-clean rescan fails.
+                let calls = scanCount.withLock { $0 += 1; return $0 }
+                return calls == 1 ? measured(100) : .failed(message: "denied")
+            },
+            cleanExecutor: { _, _, _ in CleanOutcome(removedItems: 1) },
+            historyStore: temporaryHistoryStore()
+        )
+
+        model.scanAll()
+        await model.scanTask?.value
+        model.setSelected(command, true)
+        model.cleanSelected()
+        await model.cleanTask?.value
+
+        let summary = model.lastCleanSummary
+        #expect(summary?.reclaimedBytes == 0, "an unmeasurable result must not be guessed")
+        #expect(summary?.cleaned.first?.bytesFreed == nil, "command targets report unknown, not zero")
+
+        let second = AppModel(
+            targets: [broken],
+            defaults: store.defaults,
+            scanExecutor: { _ in
+                let calls = scanCount.withLock { $0 += 1; return $0 }
+                return calls == 1 ? measured(100) : .failed(message: "denied")
+            },
+            cleanExecutor: { _, _, _ in CleanOutcome(removedItems: 1) },
+            historyStore: temporaryHistoryStore()
+        )
+        scanCount.withLock { $0 = 0 }
+        second.scanAll()
+        await second.scanTask?.value
+        second.setSelected(broken, true)
+        second.cleanSelected()
+        await second.cleanTask?.value
+
+        #expect(
+            second.lastCleanSummary?.reclaimedBytes == 0,
+            "a failed rescan must not claim the full size as freed"
+        )
+        #expect(second.lastCleanSummary?.cleaned.first?.bytesFreed == nil)
+    }
+
+    @Test("Clearing history empties memory and the persistent store")
+    func clearHistory() async {
+        let store = TemporaryDefaults()
+        let historyStore = temporaryHistoryStore()
+        let scanCount = Mutex(0)
+        let model = AppModel(
+            targets: [target("cache")],
+            defaults: store.defaults,
+            scanExecutor: { _ in
+                let calls = scanCount.withLock { $0 += 1; return $0 }
+                return calls == 1 ? measured(100) : measured(0)
+            },
+            cleanExecutor: { _, _, _ in CleanOutcome(removedItems: 1) },
+            historyStore: historyStore
+        )
+
+        model.scanAll()
+        await model.scanTask?.value
+        model.cleanSelected()
+        await model.cleanTask?.value
+        #expect(model.history.count == 1)
+
+        // Clearing immediately after the pass must win against the
+        // pass's own save still in flight.
+        model.clearHistory()
+        #expect(model.history.isEmpty)
+        #expect(model.reclaimedAllTimeBytes == 0)
+
+        for _ in 0..<10_000 where !historyStore.load().isEmpty {
+            await Task.yield()
+        }
+        #expect(historyStore.load().isEmpty, "the cleared state must be what persists")
+    }
+
+    @Test("Cancellation state is visible while a scan unwinds")
+    func cancellingScanState() async {
+        let store = TemporaryDefaults()
+        let gate = DispatchSemaphore(value: 0)
+        let model = AppModel(
+            targets: [target("slow")],
+            defaults: store.defaults,
+            scanExecutor: { _ in
+                gate.wait()
+                return .idle
+            },
+            historyStore: temporaryHistoryStore()
+        )
+        #expect(!model.isCancellingScan)
+
+        model.scanAll()
+        model.cancelScan()
+        #expect(model.isCancellingScan, "the Stop button needs to show 'Stopping…'")
+
+        gate.signal()
+        await model.scanTask?.value
+        #expect(!model.isCancellingScan, "the flag resets once the pass unwinds")
+    }
+
     @Test("The disposal chosen in Settings reaches the clean executor")
     func disposalSnapshot() async {
         let store = TemporaryDefaults()

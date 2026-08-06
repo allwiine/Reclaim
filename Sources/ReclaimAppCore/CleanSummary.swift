@@ -15,11 +15,12 @@ public struct CleanSummary: Equatable, Sendable {
         public let id: String
         public let name: String
         public let category: ToolCategory
-        /// Measurably freed space (post-clean rescan), or the size that
-        /// would be freed on a dry run.
-        public let bytesFreed: Int64
+        /// Measurably freed space (post-clean rescan), the projected
+        /// size on a dry run, or `nil` when it cannot be known —
+        /// command targets, or a rescan that could not measure.
+        public let bytesFreed: Int64?
 
-        public init(id: String, name: String, category: ToolCategory, bytesFreed: Int64) {
+        public init(id: String, name: String, category: ToolCategory, bytesFreed: Int64?) {
             self.id = id
             self.name = name
             self.category = category

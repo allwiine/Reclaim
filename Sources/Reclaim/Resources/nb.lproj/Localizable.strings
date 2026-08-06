@@ -168,6 +168,8 @@
 "done.emptyTrashMessage" = "Dette tømmer alt i papirkurven, også elementer Reclaim ikke la der. Dette kan ikke angres.";
 "done.unitReclaimed" = "%@ frigjort";
 "done.unitWouldBeReclaimed" = "%@ ville blitt frigjort";
+"done.nothingCleanedTitle" = "Ingenting ble ryddet";
+"done.noteNothingCleaned" = "Ingen elementer kunne fjernes. Feilene nedenfor forklarer hvorfor.";
 "done.noteDryRun" = "Dry run: ingenting ble rørt. Slå av Dry run i Innstillinger for å rydde på ordentlig.";
 "done.noteStopped" = "Stoppet tidlig. Ikke alle valgte elementer ble behandlet.";
 "done.noteTrashEmptied" = "Papirkurven er tømt. Plassen er tilgjengelig nå.";
@@ -178,8 +180,10 @@
 "done.fullDiskAccessHint" = "Hvis tilgang ble nektet, gi Reclaim full disktilgang i Systeminnstillinger → Personvern og sikkerhet.";
 "done.backToOverview" = "Tilbake til oversikten";
 "done.emptyTrashFailed" = "Kunne ikke tømme papirkurven: %@";
+"done.emptyTrashAutomationHint" = "Reclaim trenger tillatelse til å styre Finder. Sjekk Systeminnstillinger → Personvern og sikkerhet → Automatisering.";
 "done.trashEmptied" = "Papirkurven er tømt";
 "done.tryAgain" = "Prøv igjen";
+"trash.unknownError" = "Finder tømte ikke papirkurven.";
 
 /* Historikk */
 "history.emptyTitle" = "Ingen ryddinger ennå";

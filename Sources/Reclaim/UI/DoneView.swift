@@ -27,6 +27,12 @@ struct DoneView: View {
         case failed(String)
     }
 
+    /// A pass that removed nothing is a failure, not a success — the
+    /// screen must not celebrate it with a checkmark and "0 MB".
+    private var nothingCleaned: Bool {
+        summary.itemsRemoved == 0 && !summary.isDryRun
+    }
+
     var body: some View {
         ScrollView {
             VStack(spacing: 0) {
@@ -37,9 +43,11 @@ struct DoneView: View {
                         .padding(.top, 36)
                         .entrance(appeared, delay: 0.25)
                 }
-                cleanedList
-                    .padding(.top, 30)
-                    .entrance(appeared, delay: 0.32)
+                if !summary.cleaned.isEmpty {
+                    cleanedList
+                        .padding(.top, 30)
+                        .entrance(appeared, delay: 0.32)
+                }
                 if !summary.failures.isEmpty {
                     failuresCard
                         .padding(.top, 14)
@@ -82,13 +90,16 @@ struct DoneView: View {
     // MARK: - Pieces
 
     private var checkmark: some View {
-        Image(systemName: summary.isDryRun ? "eye" : "checkmark")
+        let tint = nothingCleaned ? Theme.caution : Theme.safe
+        return Image(systemName: summary.isDryRun
+            ? "eye"
+            : (nothingCleaned ? "exclamationmark.triangle" : "checkmark"))
             .font(.system(size: 24, weight: .semibold))
-            .foregroundStyle(Theme.accentSoft)
+            .foregroundStyle(nothingCleaned ? Theme.cautionTitle : Theme.accentSoft)
             .frame(width: 58, height: 58)
-            .background(Theme.safe.opacity(0.16), in: Circle())
+            .background(tint.opacity(0.16), in: Circle())
             .overlay {
-                Circle().strokeBorder(Theme.safe.opacity(0.4), lineWidth: 1)
+                Circle().strokeBorder(tint.opacity(0.4), lineWidth: 1)
             }
             .scaleEffect(appeared ? 1 : 0.4)
             .opacity(appeared ? 1 : 0)
@@ -98,23 +109,29 @@ struct DoneView: View {
 
     private var headline: some View {
         VStack(spacing: 8) {
-            HStack(alignment: .firstTextBaseline, spacing: 7) {
-                Text(shownBytes.byteParts.value)
-                    .font(Theme.heroNumber(44))
-                    .monospacedDigit()
+            if nothingCleaned {
+                Text(localized("done.nothingCleanedTitle", defaultValue: "Nothing was cleaned"))
+                    .font(.system(size: 28, weight: .bold))
                     .foregroundStyle(Theme.textPrimary)
-                    .contentTransition(.numericText(value: Double(shownBytes)))
-                Text(summary.isDryRun
-                    ? localized(
-                        "done.unitWouldBeReclaimed",
-                        defaultValue: "\(summary.reclaimedBytes.byteParts.unit) would be reclaimed"
-                    )
-                    : localized(
-                        "done.unitReclaimed",
-                        defaultValue: "\(summary.reclaimedBytes.byteParts.unit) reclaimed"
-                    ))
-                    .font(.system(size: 19, weight: .medium))
-                    .foregroundStyle(Theme.textSecondary)
+            } else {
+                HStack(alignment: .firstTextBaseline, spacing: 7) {
+                    Text(shownBytes.byteParts.value)
+                        .font(Theme.heroNumber(44))
+                        .monospacedDigit()
+                        .foregroundStyle(Theme.textPrimary)
+                        .contentTransition(.numericText(value: Double(shownBytes)))
+                    Text(summary.isDryRun
+                        ? localized(
+                            "done.unitWouldBeReclaimed",
+                            defaultValue: "\(summary.reclaimedBytes.byteParts.unit) would be reclaimed"
+                        )
+                        : localized(
+                            "done.unitReclaimed",
+                            defaultValue: "\(summary.reclaimedBytes.byteParts.unit) reclaimed"
+                        ))
+                        .font(.system(size: 19, weight: .medium))
+                        .foregroundStyle(Theme.textSecondary)
+                }
             }
             Text(note)
                 .font(Theme.cardTitle)
@@ -138,6 +155,12 @@ struct DoneView: View {
             return localized(
                 "done.noteStopped",
                 defaultValue: "Stopped early — not every selected item was processed."
+            )
+        }
+        if nothingCleaned {
+            return localized(
+                "done.noteNothingCleaned",
+                defaultValue: "No items could be removed — the failures below explain why."
             )
         }
         switch summary.disposal {
@@ -196,7 +219,8 @@ struct DoneView: View {
                         .font(.system(size: 13))
                         .foregroundStyle(Theme.textPrimary)
                     Spacer(minLength: 10)
-                    Text(item.bytesFreed.formattedBytesCompact)
+                    Text(item.bytesFreed.map(\.formattedBytesCompact)
+                        ?? localized("confirm.sizeUnknown", defaultValue: "size unknown"))
                         .font(.system(size: 12.5))
                         .monospacedDigit()
                         .foregroundStyle(Color(hex: 0x8E8E95))
@@ -277,14 +301,21 @@ struct DoneView: View {
         }
         .overlay(alignment: .bottom) {
             if case .failed(let message) = trashState {
-                Text(localized(
-                    "done.emptyTrashFailed",
-                    defaultValue: "Couldn't empty the Trash: \(message)"
-                ))
+                VStack(spacing: 3) {
+                    Text(localized(
+                        "done.emptyTrashFailed",
+                        defaultValue: "Couldn't empty the Trash: \(message)"
+                    ))
+                    .foregroundStyle(Theme.dangerWarn)
+                    Text(localized(
+                        "done.emptyTrashAutomationHint",
+                        defaultValue: "Reclaim needs permission to control Finder — check System Settings → Privacy & Security → Automation."
+                    ))
+                    .foregroundStyle(Theme.textTertiary)
+                }
                 .font(Theme.caption)
-                .foregroundStyle(Theme.dangerWarn)
                 .fixedSize()
-                .offset(y: 24)
+                .offset(y: 44)
             }
         }
     }
@@ -300,7 +331,7 @@ struct DoneView: View {
     private func emptyTrash() {
         isEmptyingTrash = true
         Task {
-            let outcome = TrashService.emptyTrash()
+            let outcome = await TrashService.emptyTrash()
             isEmptyingTrash = false
             withAnimation(Theme.quick) {
                 switch outcome {

@@ -165,6 +165,8 @@
 "done.emptyTrashMessage" = "This empties everything in the Trash — including items Reclaim didn't put there. This cannot be undone.";
 "done.unitReclaimed" = "%@ reclaimed";
 "done.unitWouldBeReclaimed" = "%@ would be reclaimed";
+"done.nothingCleanedTitle" = "Nothing was cleaned";
+"done.noteNothingCleaned" = "No items could be removed — the failures below explain why.";
 "done.noteDryRun" = "Dry run — nothing was touched. Turn off Dry run in Settings to clean for real.";
 "done.noteStopped" = "Stopped early — not every selected item was processed.";
 "done.noteTrashEmptied" = "Trash emptied. The space is available now.";
@@ -175,8 +177,10 @@
 "done.fullDiskAccessHint" = "If access was denied, grant Reclaim Full Disk Access in System Settings → Privacy & Security.";
 "done.backToOverview" = "Back to overview";
 "done.emptyTrashFailed" = "Couldn't empty the Trash: %@";
+"done.emptyTrashAutomationHint" = "Reclaim needs permission to control Finder — check System Settings → Privacy & Security → Automation.";
 "done.trashEmptied" = "Trash emptied";
 "done.tryAgain" = "Try again";
+"trash.unknownError" = "Finder did not empty the Trash.";
 
 /* History */
 "history.emptyTitle" = "No cleans yet";
