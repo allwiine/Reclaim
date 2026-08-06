@@ -35,7 +35,7 @@ struct RootView: View {
 
     var body: some View {
         HStack(spacing: 0) {
-            SidebarView(destination: $destination)
+            SidebarView(destination: sidebarDestination)
                 .frame(width: Theme.sidebarWidth)
 
             Rectangle()
@@ -76,7 +76,11 @@ struct RootView: View {
         .task {
             let arguments = ProcessInfo.processInfo.arguments
             if arguments.contains("--order-front") {
-                NSApp.windows.first?.orderFrontRegardless()
+                // windows.first can be a MenuBarExtra status window (its
+                // position in NSApp.windows varies with launch conditions,
+                // e.g. an -AppleLanguages override); pick the real one.
+                let main = NSApp.windows.first { $0.canBecomeMain } ?? NSApp.windows.first
+                main?.orderFrontRegardless()
                 NSApp.activate()
             }
             if arguments.contains("--scan-on-launch") {
@@ -104,6 +108,24 @@ struct RootView: View {
         case .history, .settings: .overview
         default: destination
         }
+    }
+
+    /// The sidebar's route: a user click also leaves the post-clean
+    /// result screen, which otherwise occupies the content area for
+    /// overview/category destinations until dismissed. Only sidebar
+    /// sets travel through here — the programmatic destination change
+    /// when a pass finishes must not dismiss the screen it just showed.
+    private var sidebarDestination: Binding<Destination> {
+        Binding(
+            get: { destination },
+            set: { newValue in
+                destination = newValue
+                if isShowingDone {
+                    isShowingDone = false
+                    model.lastCleanSummary = nil
+                }
+            }
+        )
     }
 
     // MARK: - Content column

@@ -37,7 +37,7 @@ struct ReclaimApp: App {
         .commands { commands }
 
         MenuBarExtra(
-            "Reclaim",
+            localized("app.name", defaultValue: "Reclaim"),
             systemImage: "internaldrive",
             isInserted: Binding(
                 get: { model.menuBarExtraEnabled },
@@ -62,7 +62,7 @@ struct ReclaimApp: App {
         // Deliberately static: reading observable state here would
         // rebuild the main menu on every model change.
         CommandGroup(after: .newItem) {
-            Button("Scan This Mac") {
+            Button(localized("menu.scanThisMac", defaultValue: "Scan This Mac")) {
                 if !model.isScanning, !model.isCleaning {
                     model.scanAll()
                 }
@@ -81,27 +81,36 @@ private struct MenuBarSummary: View {
     var body: some View {
         Group {
             if model.lastScan != nil {
-                Text("Reclaimable: \(model.totalFoundBytes.formattedBytesCompact)")
-                Text("Safe to remove: \(model.safeReclaimableBytes.formattedBytesCompact)")
+                Text(localized(
+                    "menu.reclaimable",
+                    defaultValue: "Reclaimable: \(model.totalFoundBytes.formattedBytesCompact)"
+                ))
+                Text(localized(
+                    "menu.safeToRemove",
+                    defaultValue: "Safe to remove: \(model.safeReclaimableBytes.formattedBytesCompact)"
+                ))
             } else {
-                Text("No scan yet")
+                Text(localized("toolbar.noScanYet", defaultValue: "No scan yet"))
             }
 
             Divider()
 
-            Button(model.isScanning ? "Scanning…" : "Scan Now") {
+            Button(model.isScanning
+                ? localized("menu.scanning", defaultValue: "Scanning…")
+                : localized("menu.scanNow", defaultValue: "Scan Now")
+            ) {
                 model.scanAll()
             }
             .disabled(model.isScanning || model.isCleaning)
 
-            Button("Review in Reclaim…") {
+            Button(localized("menu.reviewInReclaim", defaultValue: "Review in Reclaim…")) {
                 NSApp.activate()
                 openWindow(id: "main")
             }
 
             Divider()
 
-            Button("Quit Reclaim") {
+            Button(localized("menu.quit", defaultValue: "Quit Reclaim")) {
                 NSApp.terminate(nil)
             }
         }

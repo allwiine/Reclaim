@@ -61,15 +61,21 @@ struct DoneView: View {
             }
         }
         .confirmationDialog(
-            "Empty the Trash?",
+            localized("done.emptyTrashTitle", defaultValue: "Empty the Trash?"),
             isPresented: $isConfirmingEmptyTrash,
             titleVisibility: .visible
         ) {
-            Button("Empty Trash", role: .destructive) {
+            Button(
+                localized("done.emptyTrashButton", defaultValue: "Empty Trash"),
+                role: .destructive
+            ) {
                 emptyTrash()
             }
         } message: {
-            Text("This empties everything in the Trash — including items Reclaim didn't put there. This cannot be undone.")
+            Text(localized(
+                "done.emptyTrashMessage",
+                defaultValue: "This empties everything in the Trash — including items Reclaim didn't put there. This cannot be undone."
+            ))
         }
     }
 
@@ -98,7 +104,15 @@ struct DoneView: View {
                     .monospacedDigit()
                     .foregroundStyle(Theme.textPrimary)
                     .contentTransition(.numericText(value: Double(shownBytes)))
-                Text("\(summary.reclaimedBytes.byteParts.unit) \(summary.isDryRun ? "would be reclaimed" : "reclaimed")")
+                Text(summary.isDryRun
+                    ? localized(
+                        "done.unitWouldBeReclaimed",
+                        defaultValue: "\(summary.reclaimedBytes.byteParts.unit) would be reclaimed"
+                    )
+                    : localized(
+                        "done.unitReclaimed",
+                        defaultValue: "\(summary.reclaimedBytes.byteParts.unit) reclaimed"
+                    ))
                     .font(.system(size: 19, weight: .medium))
                     .foregroundStyle(Theme.textSecondary)
             }
@@ -115,32 +129,50 @@ struct DoneView: View {
 
     private var note: String {
         if summary.isDryRun {
-            return "Dry run — nothing was touched. Turn off Dry run in Settings to clean for real."
+            return localized(
+                "done.noteDryRun",
+                defaultValue: "Dry run — nothing was touched. Turn off Dry run in Settings to clean for real."
+            )
         }
         if summary.wasStopped {
-            return "Stopped early — not every selected item was processed."
+            return localized(
+                "done.noteStopped",
+                defaultValue: "Stopped early — not every selected item was processed."
+            )
         }
         switch summary.disposal {
         case .trash:
             return trashState == .emptied
-                ? "Trash emptied. The space is available now."
-                : "Moved to the Trash. Empty it to release the space for good."
+                ? localized(
+                    "done.noteTrashEmptied",
+                    defaultValue: "Trash emptied. The space is available now."
+                )
+                : localized(
+                    "done.noteMovedToTrash",
+                    defaultValue: "Moved to the Trash. Empty it to release the space for good."
+                )
         case .delete:
-            return "Deleted permanently. The space is available now."
+            return localized(
+                "done.noteDeleted",
+                defaultValue: "Deleted permanently. The space is available now."
+            )
         }
     }
 
     private func diskAfter(_ space: VolumeSpace) -> some View {
         VStack(spacing: 7) {
             HStack {
-                Text("Macintosh HD")
+                Text(model.volumeDisplayName)
                     .font(Theme.caption)
                     .foregroundStyle(Theme.textLabel)
                 Spacer()
-                Text("\(space.availableBytes.wholeGB) free of \(space.totalBytes.wholeGB)")
-                    .font(Theme.caption)
-                    .monospacedDigit()
-                    .foregroundStyle(Theme.textLabel)
+                Text(localized(
+                    "disk.freeOfTotal",
+                    defaultValue: "\(space.availableBytes.wholeGB) free of \(space.totalBytes.wholeGB)"
+                ))
+                .font(Theme.caption)
+                .monospacedDigit()
+                .foregroundStyle(Theme.textLabel)
             }
             SegmentedBar(segments: [
                 MeterSegment(
@@ -184,9 +216,12 @@ struct DoneView: View {
 
     private var failuresCard: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Label("Some items could not be cleaned", systemImage: "exclamationmark.triangle")
-                .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(Theme.cautionTitle)
+            Label(
+                localized("done.failuresTitle", defaultValue: "Some items could not be cleaned"),
+                systemImage: "exclamationmark.triangle"
+            )
+            .font(.system(size: 12, weight: .semibold))
+            .foregroundStyle(Theme.cautionTitle)
             ForEach(summary.failures.prefix(4), id: \.self) { failure in
                 Text(failure)
                     .font(Theme.caption)
@@ -194,14 +229,20 @@ struct DoneView: View {
                     .lineLimit(2)
             }
             if summary.failures.count > 4 {
-                Text("…and \(summary.failures.count - 4) more.")
-                    .font(Theme.caption)
-                    .foregroundStyle(Theme.textTertiary)
+                Text(localized(
+                    "done.failuresMore",
+                    defaultValue: "…and \(summary.failures.count - 4) more."
+                ))
+                .font(Theme.caption)
+                .foregroundStyle(Theme.textTertiary)
             }
             if model.hasFullDiskAccess == false {
-                Text("If access was denied, grant Reclaim Full Disk Access in System Settings → Privacy & Security.")
-                    .font(Theme.caption)
-                    .foregroundStyle(Theme.textTertiary)
+                Text(localized(
+                    "done.fullDiskAccessHint",
+                    defaultValue: "If access was denied, grant Reclaim Full Disk Access in System Settings → Privacy & Security."
+                ))
+                .font(Theme.caption)
+                .foregroundStyle(Theme.textTertiary)
             }
         }
         .padding(12)
@@ -215,7 +256,7 @@ struct DoneView: View {
 
     private var buttons: some View {
         HStack(spacing: 10) {
-            Button("Back to overview", action: dismiss)
+            Button(localized("done.backToOverview", defaultValue: "Back to overview"), action: dismiss)
                 .buttonStyle(.rcSecondary)
                 .keyboardShortcut(.cancelAction)
 
@@ -236,20 +277,23 @@ struct DoneView: View {
         }
         .overlay(alignment: .bottom) {
             if case .failed(let message) = trashState {
-                Text("Couldn't empty the Trash: \(message)")
-                    .font(Theme.caption)
-                    .foregroundStyle(Theme.dangerWarn)
-                    .fixedSize()
-                    .offset(y: 24)
+                Text(localized(
+                    "done.emptyTrashFailed",
+                    defaultValue: "Couldn't empty the Trash: \(message)"
+                ))
+                .font(Theme.caption)
+                .foregroundStyle(Theme.dangerWarn)
+                .fixedSize()
+                .offset(y: 24)
             }
         }
     }
 
     private var trashButtonTitle: String {
         switch trashState {
-        case .emptied: "Trash emptied"
-        case .failed: "Try again"
-        case .ready: "Empty Trash"
+        case .emptied: localized("done.trashEmptied", defaultValue: "Trash emptied")
+        case .failed: localized("done.tryAgain", defaultValue: "Try again")
+        case .ready: localized("done.emptyTrashButton", defaultValue: "Empty Trash")
         }
     }
 

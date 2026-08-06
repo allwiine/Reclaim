@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>count.items</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@items@</string>
+		<key>items</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>one</key>
+			<string>%lld element</string>
+			<key>other</key>
+			<string>%lld elementer</string>
+		</dict>
+	</dict>
+	<key>count.locations</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@locations@</string>
+		<key>locations</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>one</key>
+			<string>%lld plassering</string>
+			<key>other</key>
+			<string>%lld plasseringer</string>
+		</dict>
+	</dict>
+	<key>toolbar.scannedSubtitle</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>Skannet %1$@ · %2$#@locations@</string>
+		<key>locations</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>one</key>
+			<string>%lld plassering</string>
+			<key>other</key>
+			<string>%lld plasseringer</string>
+		</dict>
+	</dict>
+	<key>toolbar.categorySubtitle</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%1$#@items@ · %2$@</string>
+		<key>items</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>one</key>
+			<string>%lld element</string>
+			<key>other</key>
+			<string>%lld elementer</string>
+		</dict>
+	</dict>
+	<key>toolbar.historySubtitle</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@cleans@ registrert</string>
+		<key>cleans</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>one</key>
+			<string>%lld rydding</string>
+			<key>other</key>
+			<string>%lld ryddinger</string>
+		</dict>
+	</dict>
+	<key>overview.safeItemsSubtitle</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@items@, gjenopprettes automatisk</string>
+		<key>items</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>one</key>
+			<string>%lld trygt element</string>
+			<key>other</key>
+			<string>%lld trygge elementer</string>
+		</dict>
+	</dict>
+	<key>overview.reviewItemsSubtitle</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@items@ verdt en titt først</string>
+		<key>items</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>one</key>
+			<string>%lld element</string>
+			<key>other</key>
+			<string>%lld elementer</string>
+		</dict>
+	</dict>
+	<key>overview.acrossCleans</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>over %#@cleans@</string>
+		<key>cleans</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>one</key>
+			<string>%lld rydding</string>
+			<key>other</key>
+			<string>%lld ryddinger</string>
+		</dict>
+	</dict>
+	<key>cleaning.progress</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%1$lld av %2$#@locations@</string>
+		<key>locations</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>one</key>
+			<string>%lld plassering</string>
+			<key>other</key>
+			<string>%lld plasseringer</string>
+		</dict>
+	</dict>
+	<key>confirm.title</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>Frigjøre %1$@ fra %2$#@locations@?</string>
+		<key>locations</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>one</key>
+			<string>%lld plassering</string>
+			<key>other</key>
+			<string>%lld plasseringer</string>
+		</dict>
+	</dict>
+	<key>confirm.titleDryRun</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>Tørrkjøring: frigjøre %1$@ fra %2$#@locations@?</string>
+		<key>locations</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>one</key>
+			<string>%lld plassering</string>
+			<key>other</key>
+			<string>%lld plasseringer</string>
+		</dict>
+	</dict>
+	<key>browser.selectionSummary</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%1$lld av %2$#@items@ valgt · %3$@</string>
+		<key>items</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>one</key>
+			<string>%lld element</string>
+			<key>other</key>
+			<string>%lld elementer</string>
+		</dict>
+	</dict>
+	<key>browser.unreadableEntriesHelp</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@entries@ kunne ikke leses, så størrelsen er en nedre grense.</string>
+		<key>entries</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>one</key>
+			<string>%lld oppføring</string>
+			<key>other</key>
+			<string>%lld oppføringer</string>
+		</dict>
+	</dict>
+	<key>browser.copyPaths</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@paths@</string>
+		<key>paths</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>one</key>
+			<string>Kopier filbane</string>
+			<key>other</key>
+			<string>Kopier filbaner</string>
+		</dict>
+	</dict>
+	<key>inspector.footer</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%1$#@files@ fordelt på %2$#@locations@.</string>
+		<key>files</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>one</key>
+			<string>%lld fil</string>
+			<key>other</key>
+			<string>%lld filer</string>
+		</dict>
+		<key>locations</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>one</key>
+			<string>%lld plassering</string>
+			<key>other</key>
+			<string>%lld plasseringer</string>
+		</dict>
+	</dict>
+	<key>inspector.footerUnreadable</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@entries@ kunne ikke leses, så størrelser er en nedre grense.</string>
+		<key>entries</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>one</key>
+			<string>%lld oppføring</string>
+			<key>other</key>
+			<string>%lld oppføringer</string>
+		</dict>
+	</dict>
+</dict>
+</plist>

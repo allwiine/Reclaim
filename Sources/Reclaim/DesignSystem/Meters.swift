@@ -152,7 +152,7 @@ struct ArcSpinner: View {
                 }
         }
         .frame(width: size, height: size)
-        .accessibilityLabel("In progress")
+        .accessibilityLabel(localized("accessibility.inProgress", defaultValue: "In progress"))
     }
 }
 

@@ -1,0 +1,14 @@
+/*
+  Localizable.strings (English) — ReclaimAppCore
+  Mirrors the defaultValue fallbacks in code; keep both in sync.
+  Plural-bearing keys (summary.movedToTrash, summary.deletedPermanently)
+  live in Localizable.stringsdict.
+*/
+
+"summary.dryRun" = "Dry run — nothing was touched. Cleaning this selection would free about %@.";
+"summary.stoppedEarly" = "Cleaning was stopped early — not every selected item was processed.";
+"summary.nothingCleaned" = "Nothing was cleaned.";
+"summary.failuresHeading" = "Some items could not be cleaned:";
+"summary.failuresMore" = "…and %lld more.";
+"summary.fullDiskAccessHint" = "If access was denied, grant Reclaim Full Disk Access in System Settings → Privacy & Security.";
+"clean.failureLine" = "%1$@ — %2$@";

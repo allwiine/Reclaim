@@ -83,12 +83,12 @@ struct BrowserView: View {
 
     private var selectionStrip: some View {
         HStack(spacing: 10) {
-            Button("Select all safe") {
+            Button(localized("browser.selectAllSafe", defaultValue: "Select all safe")) {
                 model.selectAllSafe()
             }
             .buttonStyle(StripChipButtonStyle())
 
-            Button("Clear") {
+            Button(localized("browser.clear", defaultValue: "Clear")) {
                 model.clearSelection()
             }
             .buttonStyle(StripChipButtonStyle(plain: true))
@@ -109,9 +109,14 @@ struct BrowserView: View {
 
     private var selectionSummary: String {
         let picked = model.selection.count
-        guard picked > 0 else { return "No items selected" }
+        guard picked > 0 else {
+            return localized("browser.noItemsSelected", defaultValue: "No items selected")
+        }
         let measured = model.targets.count { model.bytes(of: $0) > 0 }
-        return "\(picked) of \(measured) items selected · \(model.selectedBytes.formattedBytesCompact)"
+        return localized(
+            "browser.selectionSummary",
+            defaultValue: "\(picked) of \(measured) items selected · \(model.selectedBytes.formattedBytesCompact)"
+        )
     }
 
     // MARK: - List
@@ -158,16 +163,24 @@ struct BrowserView: View {
     }
 
     private var emptyTitle: String {
-        if case .search = mode { return "No matches" }
-        return "Nothing found"
+        if case .search = mode {
+            return localized("browser.noMatches", defaultValue: "No matches")
+        }
+        return localized("browser.nothingFound", defaultValue: "Nothing found")
     }
 
     private var emptyDetail: String {
         switch mode {
         case .search:
-            "No catalogue entry matches that search — try a tool name or a path fragment."
+            localized(
+                "browser.emptySearchDetail",
+                defaultValue: "No catalogue entry matches that search — try a tool name or a path fragment."
+            )
         case .category:
-            "None of these tools were found on this Mac. Enable “Show tools that are not installed” in Settings to list them anyway."
+            localized(
+                "browser.emptyCategoryDetail",
+                defaultValue: "None of these tools were found on this Mac. Enable “Show tools that are not installed” in Settings to list them anyway."
+            )
         }
     }
 }
@@ -229,7 +242,7 @@ private struct TargetRow: View {
 
     private var checkbox: some View {
         Toggle(
-            "Select \(target.name)",
+            localized("browser.selectAccessibility", defaultValue: "Select \(target.name)"),
             isOn: Binding(
                 get: { model.isSelected(target) },
                 set: { model.setSelected(target, $0) }
@@ -246,7 +259,7 @@ private struct TargetRow: View {
         switch status {
         case .measured(let measurement, _, _):
             if measurement.bytes == 0 && measurement.inaccessibleItems == 0 {
-                statusText("Empty")
+                statusText(localized("status.empty", defaultValue: "Empty"))
             } else {
                 VStack(alignment: .trailing, spacing: 5) {
                     HStack(spacing: 4) {
@@ -254,7 +267,10 @@ private struct TargetRow: View {
                             Image(systemName: "lock")
                                 .font(.system(size: 9))
                                 .foregroundStyle(Theme.caution)
-                                .help("^[\(measurement.inaccessibleItems) entry](inflect: true) could not be read — the size is a lower bound.")
+                                .help(localized(
+                                    "browser.unreadableEntriesHelp",
+                                    defaultValue: "\(measurement.inaccessibleItems) entries could not be read — the size is a lower bound."
+                                ))
                         }
                         Text(measurement.bytes.formattedBytesCompact)
                             .font(.system(size: 13, weight: .medium))
@@ -275,14 +291,20 @@ private struct TargetRow: View {
         case .scanning:
             ProgressView().controlSize(.small)
         case .notInstalled:
-            statusText("Not installed")
+            statusText(localized("status.notInstalled", defaultValue: "Not installed"))
         case .unmeasurable:
-            statusText("Size unknown")
-                .help("The reclaimable size is only known after cleaning.")
+            statusText(localized("status.sizeUnknown", defaultValue: "Size unknown"))
+                .help(localized(
+                    "status.sizeUnknownHelp",
+                    defaultValue: "The reclaimable size is only known after cleaning."
+                ))
         case .failed:
-            Label("Couldn't scan", systemImage: "exclamationmark.triangle")
-                .font(Theme.caption)
-                .foregroundStyle(Theme.dangerWarn)
+            Label(
+                localized("status.scanFailed", defaultValue: "Couldn't scan"),
+                systemImage: "exclamationmark.triangle"
+            )
+            .font(Theme.caption)
+            .foregroundStyle(Theme.dangerWarn)
         }
     }
 
@@ -296,10 +318,10 @@ private struct TargetRow: View {
     private var contextMenu: some View {
         let paths = status.resolvedPaths
         if let first = paths.first {
-            Button("Reveal in Finder") {
+            Button(localized("action.revealInFinder", defaultValue: "Reveal in Finder")) {
                 NSWorkspace.shared.activateFileViewerSelecting([first])
             }
-            Button("Copy Path\(paths.count > 1 ? "s" : "")") {
+            Button(localized("browser.copyPaths", defaultValue: "Copy \(paths.count) Paths")) {
                 NSPasteboard.general.clearContents()
                 NSPasteboard.general.setString(
                     paths.map(\.path).joined(separator: "\n"),

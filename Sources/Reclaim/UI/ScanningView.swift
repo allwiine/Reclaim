@@ -17,12 +17,13 @@ struct ScanningView: View {
         VStack(spacing: 0) {
             ArcSpinner()
 
-            Text("Scanning")
+            Text(localized("title.scanning", defaultValue: "Scanning"))
                 .font(.system(size: 20, weight: .semibold))
                 .foregroundStyle(Theme.textPrimary)
                 .padding(.top, 26)
 
-            Text(model.scanProgress?.currentPath ?? "Finishing up…")
+            Text(model.scanProgress?.currentPath
+                ?? localized("progress.finishingUp", defaultValue: "Finishing up…"))
                 .font(Theme.mono(11.5))
                 .foregroundStyle(Color(hex: 0x7E7E85))
                 .lineLimit(1)
@@ -42,9 +43,12 @@ struct ScanningView: View {
                     .foregroundStyle(Theme.textPrimary)
                     .contentTransition(.numericText())
                     .animation(Theme.smooth, value: model.totalFoundBytes)
-                Text("\(model.totalFoundBytes.byteParts.unit) found so far")
-                    .font(.system(size: 15))
-                    .foregroundStyle(Theme.textSecondary)
+                Text(localized(
+                    "scanning.foundSoFar",
+                    defaultValue: "\(model.totalFoundBytes.byteParts.unit) found so far"
+                ))
+                .font(.system(size: 15))
+                .foregroundStyle(Theme.textSecondary)
             }
             .padding(.top, 26)
 
@@ -56,12 +60,15 @@ struct ScanningView: View {
             .frame(width: 420)
             .padding(.top, 28)
 
-            Button("Stop") {
+            Button(localized("scanning.stopButton", defaultValue: "Stop")) {
                 model.cancelScan()
             }
             .buttonStyle(.rcSecondary)
             .padding(.top, 30)
-            .help("Keep what has been measured so far")
+            .help(localized(
+                "scanning.stopHelp",
+                defaultValue: "Keep what has been measured so far"
+            ))
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(40)

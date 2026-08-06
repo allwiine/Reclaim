@@ -184,6 +184,28 @@ struct CommandExecutionTests {
         #expect(outcome.failures.first?.message.contains("stderr-flood") == true)
     }
 
+    @Test("Tool stderr is quoted inside a localized frame")
+    func stderrIsFramed() {
+        let spec = CommandSpec(
+            executablePath: "/bin/sh",
+            arguments: ["-c", "echo boom 1>&2; exit 1"],
+            displayCommand: "sh -c 'boom'"
+        )
+        let engine = CleanupEngine(remover: MockRemover())
+
+        let outcome = engine.clean(
+            makeTarget(strategy: .command(spec)),
+            resolvedPaths: [],
+            disposal: .trash
+        )
+
+        let message = outcome.failures.first?.message
+        // Verbatim tool output, but never bare: the localized
+        // "The tool reported:" frame marks it as a quote.
+        #expect(message?.contains("boom") == true)
+        #expect(message != "boom")
+    }
+
     @Test("A successful command counts as one removal")
     func successfulCommand() {
         let spec = CommandSpec(

@@ -51,3 +51,14 @@ targets:
       path: Reclaim.entitlements
       properties:
         com.apple.security.automation.apple-events: true
+    # Localization: the string tables live in the SPM targets' resource
+    # bundles ({en,nb}.lproj). The app-level Info.plist must still declare
+    # the supported languages so macOS offers per-app language selection,
+    # and allow mixed localizations so the nested SPM bundles resolve
+    # against the user's preferred language.
+    info:
+      path: Reclaim-Info.plist
+      properties:
+        CFBundleDevelopmentRegion: en
+        CFBundleLocalizations: [en, nb]
+        CFBundleAllowMixedLocalizations: true

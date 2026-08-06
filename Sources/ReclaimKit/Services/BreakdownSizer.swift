@@ -74,7 +74,10 @@ public struct BreakdownSizer: Sendable {
         let shown = measured.prefix(limit - 1)
         let tail = measured.dropFirst(limit - 1)
         let aggregate = BreakdownEntry(
-            name: "+ \(tail.count) more items",
+            name: localized(
+                "breakdown.moreItems",
+                defaultValue: "+ \(tail.count) more items"
+            ),
             bytes: tail.reduce(0) { $0 + $1.bytes },
             itemCount: tail.count
         )

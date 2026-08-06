@@ -43,14 +43,14 @@ struct IdleView: View {
 
     private var pitch: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text("Reclaim \(appVersion)")
+            Text(localized("idle.versionBadge", defaultValue: "Reclaim \(appVersion)"))
                 .font(.system(size: 11, weight: .bold))
                 .tracking(1.5)
                 .textCase(.uppercase)
                 .foregroundStyle(Theme.accentLabel)
                 .entrance(appeared, delay: 0)
 
-            Text("Reclaim the space your tools quietly keep.")
+            Text(localized("idle.headline", defaultValue: "Reclaim the space your tools quietly keep."))
                 .font(.system(size: 40, weight: .bold))
                 .lineSpacing(2)
                 .foregroundStyle(Theme.textPrimary)
@@ -58,24 +58,30 @@ struct IdleView: View {
                 .padding(.top, 16)
                 .entrance(appeared, delay: 0.05)
 
-            Text("Reclaim checks a curated catalogue of known cache and scratch locations, tells you what each one is and what it costs to lose, then cleans only what you select.")
-                .font(.system(size: 14.5))
-                .lineSpacing(4)
-                .foregroundStyle(Theme.textBody)
-                .frame(maxWidth: 430, alignment: .leading)
-                .padding(.top, 16)
-                .entrance(appeared, delay: 0.1)
+            Text(localized(
+                "idle.pitch",
+                defaultValue: "Reclaim checks a curated catalogue of known cache and scratch locations, tells you what each one is and what it costs to lose, then cleans only what you select."
+            ))
+            .font(.system(size: 14.5))
+            .lineSpacing(4)
+            .foregroundStyle(Theme.textBody)
+            .frame(maxWidth: 430, alignment: .leading)
+            .padding(.top, 16)
+            .entrance(appeared, delay: 0.1)
 
             HStack(spacing: 14) {
-                Button("Scan this Mac") {
+                Button(localized("idle.scanButton", defaultValue: "Scan this Mac")) {
                     model.scanAll()
                 }
                 .buttonStyle(.rcPrimaryProminent)
                 .keyboardShortcut(.defaultAction)
 
-                Text("Read-only — nothing is removed by scanning")
-                    .font(.system(size: 12.5))
-                    .foregroundStyle(Theme.textTertiary)
+                Text(localized(
+                    "idle.readOnlyNote",
+                    defaultValue: "Read-only — nothing is removed by scanning"
+                ))
+                .font(.system(size: 12.5))
+                .foregroundStyle(Theme.textTertiary)
             }
             .padding(.top, 30)
             .entrance(appeared, delay: 0.16)
@@ -93,9 +99,18 @@ struct IdleView: View {
 
     private var safetyNotes: some View {
         VStack(alignment: .leading, spacing: 11) {
-            safetyNote(.safe, "Regenerated automatically. Build caches, indexes, logs.")
-            safetyNote(.caution, "Restorable, but re-downloading or losing history costs something.")
-            safetyNote(.destructive, "Removes things you made, like emulators. Never preselected.")
+            safetyNote(.safe, localized(
+                "idle.safetyNote.safe",
+                defaultValue: "Regenerated automatically. Build caches, indexes, logs."
+            ))
+            safetyNote(.caution, localized(
+                "idle.safetyNote.caution",
+                defaultValue: "Restorable, but re-downloading or losing history costs something."
+            ))
+            safetyNote(.destructive, localized(
+                "idle.safetyNote.destructive",
+                defaultValue: "Removes things you made, like emulators. Never preselected."
+            ))
         }
     }
 
@@ -105,7 +120,9 @@ struct IdleView: View {
                 .fill(level.color)
                 .frame(width: 7, height: 7)
                 .alignmentGuide(.firstTextBaseline) { $0[VerticalAlignment.center] + 2.5 }
-            Text("\(Text(level.title).fontWeight(.semibold).foregroundStyle(Theme.textPrimary)) — \(text)")
+            (Text(level.title).fontWeight(.semibold).foregroundStyle(Theme.textPrimary)
+                + Text(verbatim: ": ")
+                + Text(text))
                 .font(Theme.body)
                 .foregroundStyle(Color(hex: 0x8E8E95))
                 .fixedSize(horizontal: false, vertical: true)
@@ -123,16 +140,19 @@ struct IdleView: View {
             catalogueCard
                 .entrance(appeared, delay: 0.12)
 
-            HStack(alignment: .firstTextBaseline, spacing: 9) {
-                Image(systemName: "checkmark")
-                    .font(.system(size: 8, weight: .bold))
-                    .foregroundStyle(Theme.textBody)
-                    .frame(width: 16, height: 16)
-                    .background(Theme.controlFill, in: RoundedRectangle(cornerRadius: 5))
-                Text("Nothing is removed without your confirmation, and everything goes to the Trash by default. Credentials, settings and plugins are never in the catalogue.")
-                    .font(Theme.footnote)
-                    .lineSpacing(2.5)
-                    .foregroundStyle(Theme.textTertiary)
+            HStack(alignment: .center, spacing: 10) {
+                // A trust statement, not a setting: a sealed checkmark in
+                // the accent color, never anything that reads as a checkbox.
+                Image(systemName: "checkmark.seal.fill")
+                    .font(.system(size: 17))
+                    .foregroundStyle(Theme.accent)
+                Text(localized(
+                    "idle.trustNote",
+                    defaultValue: "Nothing is removed without your confirmation, and everything goes to the Trash by default. Credentials, settings and plugins are never in the catalogue."
+                ))
+                .font(Theme.footnote)
+                .lineSpacing(2.5)
+                .foregroundStyle(Theme.textTertiary)
             }
             .padding(.horizontal, 4)
             .entrance(appeared, delay: 0.2)
@@ -143,9 +163,9 @@ struct IdleView: View {
     private var catalogueCard: some View {
         VStack(spacing: 0) {
             HStack {
-                SectionLabel("What Reclaim looks at")
+                SectionLabel(localized("idle.catalogueTitle", defaultValue: "What Reclaim looks at"))
                 Spacer()
-                Text("Not measured yet")
+                Text(localized("accessibility.notMeasuredYet", defaultValue: "Not measured yet"))
                     .font(Theme.caption)
                     .foregroundStyle(Theme.textQuaternary)
             }
@@ -183,7 +203,7 @@ struct IdleView: View {
                     .lineLimit(1)
             }
             Spacer(minLength: 10)
-            Text("\(targets.count) locations")
+            Text(localized("count.locations", defaultValue: "\(targets.count) locations"))
                 .font(Theme.caption)
                 .foregroundStyle(Theme.textQuaternary)
             StripedPlaceholder()
@@ -199,7 +219,7 @@ struct IdleView: View {
     private var diskFooter: some View {
         VStack(spacing: 8) {
             HStack {
-                Text("Macintosh HD")
+                Text(model.volumeDisplayName)
                     .font(Theme.footnote)
                     .foregroundStyle(Color(hex: 0x98989F))
                 Spacer()
@@ -214,7 +234,10 @@ struct IdleView: View {
 
     private var diskLabel: String {
         guard let space = model.volumeSpace else { return "—" }
-        return "\(space.usedBytes.wholeGB) used of \(space.totalBytes.wholeGB)"
+        return localized(
+            "disk.usedOfTotal",
+            defaultValue: "\(space.usedBytes.wholeGB) used of \(space.totalBytes.wholeGB)"
+        )
     }
 
     private var diskSegments: [MeterSegment] {

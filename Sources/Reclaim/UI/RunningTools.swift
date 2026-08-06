@@ -41,6 +41,9 @@ enum RunningTools {
         let names = runningRelatedApps(for: targets)
         guard !names.isEmpty else { return nil }
         let list = names.formatted(.list(type: .and))
-        return "\(list) appears to be running — cleaning its data now may break builds or work in progress. Consider quitting first."
+        return localized(
+            "confirm.runningAppsWarning",
+            defaultValue: "\(list) appears to be running — cleaning its data now may break builds or work in progress. Consider quitting first."
+        )
     }
 }

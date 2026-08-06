@@ -40,6 +40,7 @@ let sharedSwiftSettings: [SwiftSetting] = [
 
 let package = Package(
     name: "Reclaim",
+    defaultLocalization: "en",
     platforms: [
         .macOS(.v15),
     ],
@@ -51,16 +52,19 @@ let package = Package(
     targets: [
         .target(
             name: "ReclaimKit",
+            resources: [.process("Resources")],
             swiftSettings: sharedSwiftSettings
         ),
         .target(
             name: "ReclaimAppCore",
             dependencies: ["ReclaimKit"],
+            resources: [.process("Resources")],
             swiftSettings: sharedSwiftSettings
         ),
         .executableTarget(
             name: "Reclaim",
             dependencies: ["ReclaimKit", "ReclaimAppCore"],
+            resources: [.process("Resources")],
             swiftSettings: sharedSwiftSettings
         ),
         .testTarget(
@@ -71,6 +75,10 @@ let package = Package(
         .testTarget(
             name: "ReclaimAppCoreTests",
             dependencies: ["ReclaimAppCore"],
+            swiftSettings: sharedSwiftSettings
+        ),
+        .testTarget(
+            name: "LocalizationLintTests",
             swiftSettings: sharedSwiftSettings
         ),
     ]

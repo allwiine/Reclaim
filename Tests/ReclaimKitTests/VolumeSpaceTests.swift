@@ -19,6 +19,8 @@ struct VolumeSpaceTests {
         #expect(unwrapped.availableBytes > 0)
         #expect(unwrapped.availableBytes <= unwrapped.totalBytes)
         #expect(unwrapped.usedBytes == unwrapped.totalBytes - unwrapped.availableBytes)
+        // The UI shows this instead of a hardcoded "Macintosh HD".
+        #expect(unwrapped.localizedName?.isEmpty == false)
     }
 
     @Test("A nonexistent path yields no measurement")

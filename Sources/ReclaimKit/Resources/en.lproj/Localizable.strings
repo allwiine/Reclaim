@@ -1,0 +1,170 @@
+/*
+  Localizable.strings (English) — ReclaimKit
+  Mirrors the defaultValue fallbacks in code; keep both in sync.
+*/
+
+/* Categories */
+"category.xcode.title" = "Xcode & Simulators";
+"category.android.title" = "Android Studio";
+"category.dotNet.title" = ".NET & Visual Studio";
+"category.aiTools.title" = "Claude & AI Tools";
+"category.packageManagers.title" = "Package Managers";
+"category.otherTools.title" = "Other Dev Tools";
+
+/* Safety levels */
+"safety.safe.title" = "Safe";
+"safety.caution.title" = "Caution";
+"safety.destructive.title" = "Destructive";
+"safety.safe.explanation" = "Regenerated automatically the next time the tool runs.";
+"safety.caution.explanation" = "Restorable, but re-downloading or losing history costs time.";
+"safety.destructive.explanation" = "Removes things you created or configured. Review carefully.";
+
+/* Services */
+"engine.commandExitStatus" = "Exited with status %lld.";
+"engine.toolReported" = "The tool reported: “%@”";
+"sizer.unreadableRoot" = "“%@” exists but could not be read.";
+
+/* Targets — Xcode & Apple toolchain */
+"target.xcode-derived-data.name" = "Derived data";
+"target.xcode-derived-data.summary" = "Build products, indexes and module caches for every project you have opened. Rebuilt on the next build.";
+"target.xcode-derived-data.note" = "The next build of each project will be a clean build.";
+"target.xcode-device-support.name" = "Device support files";
+"target.xcode-device-support.summary" = "Debug symbols copied from every iPhone, iPad, Watch and Apple TV you have ever plugged in. Re-copied automatically when a device reconnects.";
+"target.xcode-archives.name" = "Archives";
+"target.xcode-archives.summary" = "App archives with dSYMs, used to distribute builds and symbolicate crash reports.";
+"target.xcode-archives.note" = "Keep archives for versions that are live on the App Store — you need their dSYMs to read crash reports.";
+"target.xcode-simulator-caches.name" = "Simulator caches";
+"target.xcode-simulator-caches.summary" = "CoreSimulator's cache directory, including dyld caches for simulator runtimes.";
+"target.xcode-previews.name" = "SwiftUI Previews data";
+"target.xcode-previews.summary" = "Simulator devices and build artifacts created by the SwiftUI preview canvas.";
+"target.xcode-caches.name" = "Xcode caches";
+"target.xcode-caches.summary" = "Xcode's general cache folder, including the documentation cache.";
+"target.xcode-unavailable-simulators.name" = "Unavailable simulators";
+"target.xcode-unavailable-simulators.summary" = "Simulator devices left behind by runtimes that are no longer installed.";
+"target.xcode-unavailable-simulators.note" = "Size is only known after cleaning — simctl decides what qualifies.";
+"target.xcode-device-logs.name" = "Device logs";
+"target.xcode-device-logs.summary" = "Console logs collected from physical devices in Xcode's Devices window.";
+"target.xcode-xctest-devices.name" = "Test simulator clones";
+"target.xcode-xctest-devices.summary" = "Simulator clones created for parallel testing. Recreated on the next test run.";
+
+/* Targets — Android Studio & Gradle */
+"target.gradle-caches.name" = "Gradle caches";
+"target.gradle-caches.summary" = "Downloaded dependencies and transformed artifacts shared by all Gradle builds. Re-downloaded on demand.";
+"target.gradle-caches.note" = "The next build re-downloads what it needs — expect it to be slower once.";
+"target.gradle-daemon.name" = "Gradle daemon logs";
+"target.gradle-daemon.summary" = "Logs and registry files written by every Gradle daemon that ever ran.";
+"target.gradle-wrapper-dists.name" = "Gradle wrapper distributions";
+"target.gradle-wrapper-dists.summary" = "Every Gradle version any wrapper script has ever downloaded. Projects re-download their pinned version when needed.";
+"target.android-studio-caches.name" = "Android Studio caches";
+"target.android-studio-caches.summary" = "IDE caches and indexes, kept per Android Studio version — old versions linger forever.";
+"target.android-studio-caches.note" = "Android Studio rebuilds its index on next launch.";
+"target.android-build-cache.name" = "Android build cache";
+"target.android-build-cache.summary" = "The legacy Android build cache and temporary SDK files.";
+"target.android-system-images.name" = "SDK system images";
+"target.android-system-images.summary" = "Emulator system images downloaded via the SDK Manager. Each API level is multiple gigabytes.";
+"target.android-system-images.note" = "Existing emulators using a deleted image stop booting until it is re-downloaded from the SDK Manager.";
+"target.android-avds.name" = "Emulator devices (AVDs)";
+"target.android-avds.summary" = "Your Android Virtual Devices, including their user data and snapshots.";
+"target.android-avds.note" = "Deletes the emulators themselves, not just caches. Recreate them from Device Manager afterwards.";
+"target.gradle-build-scan.name" = "Gradle build-scan data";
+"target.gradle-build-scan.summary" = "Build-scan payloads staged locally by the Gradle build scan plugin.";
+"target.kotlin-native-cache.name" = "Kotlin/Native toolchains";
+"target.kotlin-native-cache.summary" = "Toolchains and dependency caches for Kotlin/Native builds. Each version is hundreds of megabytes.";
+"target.kotlin-native-cache.note" = "Gradle re-downloads what it needs on the next Kotlin/Native build.";
+
+/* Targets — .NET & Visual Studio */
+"target.nuget-packages.name" = "NuGet global packages";
+"target.nuget-packages.summary" = "Every package version any .NET project has ever restored, kept forever. Projects re-restore what they still use on the next build.";
+"target.nuget-packages.note" = "Equivalent to `dotnet nuget locals global-packages --clear` — the next restore re-downloads what is needed.";
+"target.nuget-http-cache.name" = "NuGet download caches";
+"target.nuget-http-cache.summary" = "HTTP responses and plugin output NuGet caches while restoring. Rebuilt on demand.";
+"target.nuget-http-cache.note" = "Equivalent to `dotnet nuget locals http-cache --clear`.";
+"target.dotnet-workload-packs.name" = "Orphaned workload packs";
+"target.dotnet-workload-packs.summary" = "SDK workload packs (MAUI, wasm-tools and friends) left behind by updated or uninstalled SDKs. The .NET CLI removes them itself.";
+"target.dotnet-workload-packs.note" = "Size is only known after cleaning — the .NET CLI decides what is orphaned. SDKs installed via Homebrew are not detected.";
+"target.azure-functions-bundles.name" = "Azure Functions extension bundles";
+"target.azure-functions-bundles.summary" = "Extension bundles and templates downloaded by Azure Functions Core Tools. Re-downloaded the next time `func` runs.";
+"target.vsmac-leftovers.name" = "Visual Studio for Mac leftovers";
+"target.vsmac-leftovers.summary" = "Caches and logs from Visual Studio for Mac, retired in 2024. Nothing reads them anymore.";
+"target.xamarin-caches.name" = "Xamarin caches";
+"target.xamarin-caches.summary" = "Build-agent and archive caches from the retired Xamarin toolchain.";
+
+/* Targets — Claude & AI tooling */
+"target.claude-code-cli-caches.name" = "Claude Code CLI caches";
+"target.claude-code-cli-caches.summary" = "Per-project diagnostic output and MCP logs written by Claude Code's Node harness. This folder grows without bound under heavy use.";
+"target.claude-code-scratch.name" = "Claude Code logs & scratch data";
+"target.claude-code-scratch.summary" = "Debug logs, shell snapshots and telemetry scratch data. Recreated on the next run.";
+"target.claude-code-scratch.note" = "Auth (~/.claude.json), settings and plugins are never touched by Reclaim.";
+"target.claude-code-transcripts.name" = "Claude Code session history";
+"target.claude-code-transcripts.summary" = "Conversation transcripts for every project (~/.claude/projects). Cleaning removes the ability to resume or rewind past sessions.";
+"target.claude-code-transcripts.note" = "Prefer setting \"cleanupPeriodDays\" in ~/.claude/settings.json so Claude Code prunes old transcripts automatically.";
+"target.claude-desktop-caches.name" = "Claude Desktop caches";
+"target.claude-desktop-caches.summary" = "Rendering and code caches for the Claude desktop app. Rebuilt on next launch.";
+"target.ollama-models.name" = "Ollama models";
+"target.ollama-models.summary" = "Local LLM weights pulled with `ollama pull`. Often tens of gigabytes.";
+"target.ollama-models.note" = "Models must be re-downloaded to use them again. To remove selectively, use `ollama rm <model>`.";
+"target.huggingface-cache.name" = "Hugging Face cache";
+"target.huggingface-cache.summary" = "Models and datasets cached by transformers, diffusers and the huggingface_hub.";
+"target.huggingface-cache.note" = "Anything still needed is re-downloaded on next use.";
+"target.lmstudio-models.name" = "LM Studio models";
+"target.lmstudio-models.summary" = "Model files downloaded through LM Studio.";
+
+/* Targets — Package managers & toolchains */
+"target.homebrew-cache.name" = "Homebrew downloads";
+"target.homebrew-cache.summary" = "Downloaded bottles and old formula versions kept by Homebrew.";
+"target.npm-cache.name" = "npm cache";
+"target.npm-cache.summary" = "npm's content-addressable package cache.";
+"target.pnpm-store.name" = "pnpm store";
+"target.pnpm-store.summary" = "pnpm's global content-addressable store. Packages are re-fetched per project as needed.";
+"target.pnpm-store.note" = "Prefer `pnpm store prune` to drop only unreferenced packages.";
+"target.yarn-cache.name" = "Yarn cache";
+"target.yarn-cache.summary" = "Yarn's global package cache.";
+"target.pip-cache.name" = "pip cache";
+"target.pip-cache.summary" = "Wheels and HTTP responses cached by pip.";
+"target.uv-cache.name" = "uv cache";
+"target.uv-cache.summary" = "The uv package manager's wheel and source cache.";
+"target.cocoapods-cache.name" = "CocoaPods cache";
+"target.cocoapods-cache.summary" = "Downloaded pod releases and spec data.";
+"target.spm-cache.name" = "Swift Package Manager cache";
+"target.spm-cache.summary" = "Checked-out repositories and manifests cached by SwiftPM (shared by Xcode and the CLI).";
+"target.cargo-registry.name" = "Cargo registry";
+"target.cargo-registry.summary" = "Downloaded Rust crates and registry indexes.";
+"target.cargo-registry.note" = "Crates are re-downloaded on the next `cargo build`.";
+"target.go-build-cache.name" = "Go build cache";
+"target.go-build-cache.summary" = "Compiled Go build artifacts.";
+"target.go-module-cache.name" = "Go module cache";
+"target.go-module-cache.summary" = "Downloaded Go modules. Go marks these files read-only, so deletion must go through the Go toolchain.";
+"target.go-module-cache.instructions" = "Run `go clean -modcache` in Terminal.";
+"target.deno-cache.name" = "Deno cache";
+"target.deno-cache.summary" = "Remote modules and generated code cached by Deno. Re-downloaded on demand.";
+"target.npm-logs.name" = "npm logs";
+"target.npm-logs.summary" = "Debug logs npm writes for every invocation. They are never pruned.";
+"target.yarn-berry-cache.name" = "Yarn Berry cache";
+"target.yarn-berry-cache.summary" = "Yarn Berry's global compressed package cache.";
+"target.node-gyp-cache.name" = "node-gyp headers";
+"target.node-gyp-cache.summary" = "Node.js headers and libraries downloaded for building native addons.";
+"target.poetry-cache.name" = "Poetry cache";
+"target.poetry-cache.summary" = "Package artifacts and metadata cached by the Poetry package manager.";
+
+/* Targets — Other developer tools */
+"target.vscode-caches.name" = "VS Code caches";
+"target.vscode-caches.summary" = "Extension host, rendering and code caches for Visual Studio Code.";
+"target.jetbrains-caches.name" = "JetBrains IDE caches";
+"target.jetbrains-caches.summary" = "Caches and indexes for IntelliJ, PyCharm, WebStorm and friends, kept per IDE version.";
+"target.jetbrains-caches.note" = "Each IDE rebuilds its index on next launch.";
+"target.docker-vm-disk.name" = "Docker VM disk";
+"target.docker-vm-disk.summary" = "The virtual disk holding all Docker images, containers and volumes. It only shrinks when Docker itself prunes.";
+"target.docker-vm-disk.instructions" = "Run `docker system prune -a` (and optionally `--volumes`) in Terminal, then let Docker Desktop compact the disk.";
+"target.vscode-workspace-storage.name" = "VS Code workspace storage";
+"target.vscode-workspace-storage.summary" = "Per-workspace UI state, history and extension data for every folder you have ever opened — entries for deleted projects linger forever.";
+"target.vscode-workspace-storage.note" = "Open workspaces recreate their entry, but per-workspace history and unsaved editor state are lost.";
+"target.playwright-browsers.name" = "Playwright browsers";
+"target.playwright-browsers.summary" = "Browser builds downloaded by Playwright for testing. Each version set is over a gigabyte.";
+"target.playwright-browsers.note" = "Run `npx playwright install` to restore browsers before the next test run.";
+"target.puppeteer-cache.name" = "Puppeteer browsers";
+"target.puppeteer-cache.summary" = "Chrome builds downloaded by Puppeteer.";
+"target.puppeteer-cache.note" = "Re-downloaded the next time Puppeteer installs its browser.";
+"target.pre-commit-cache.name" = "pre-commit environments";
+"target.pre-commit-cache.summary" = "Hook environments built by pre-commit. Recreated on the next run in each repository.";
+"target.jetbrains-logs.name" = "JetBrains IDE logs";
+"target.jetbrains-logs.summary" = "Log files for IntelliJ, PyCharm, WebStorm and friends, kept per IDE version.";

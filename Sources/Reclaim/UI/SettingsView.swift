@@ -20,51 +20,84 @@ struct SettingsView: View {
 
         ScrollView {
             VStack(alignment: .leading, spacing: 26) {
-                section("Cleaning") {
+                section(localized("settings.sectionCleaning", defaultValue: "Cleaning")) {
                     SettingRow(
-                        "Move items to the Trash",
-                        help: "The default. Nothing leaves your Mac until you empty the Trash.",
+                        localized("settings.moveToTrash", defaultValue: "Move items to the Trash"),
+                        help: localized(
+                            "settings.moveToTrashHelp",
+                            defaultValue: "The default. Nothing leaves your Mac until you empty the Trash."
+                        ),
                         isOn: Binding(
                             get: { model.disposal == .trash },
                             set: { model.disposal = $0 ? .trash : .delete }
                         )
                     )
                     SettingRow(
-                        "Dry run",
-                        help: "Report what would be removed without touching anything.",
+                        localized("settings.dryRun", defaultValue: "Dry run"),
+                        help: localized(
+                            "settings.dryRunHelp",
+                            defaultValue: "Report what would be removed without touching anything."
+                        ),
                         isOn: $model.dryRun
                     )
                     SettingRow(
-                        "Preselect Caution items",
-                        help: "Off by default. Only Safe items are selected after a scan.",
+                        localized("settings.preselectCaution", defaultValue: "Preselect Caution items"),
+                        help: localized(
+                            "settings.preselectCautionHelp",
+                            defaultValue: "Off by default. Only Safe items are selected after a scan."
+                        ),
                         isOn: $model.preselectCaution,
                         isLast: true
                     )
                 }
 
-                section("Scanning") {
+                section(localized("settings.sectionScanning", defaultValue: "Scanning")) {
                     SettingRow(
-                        "Scan weekly in the background",
-                        help: "Runs quietly while Reclaim is open, once a week has passed.",
+                        localized(
+                            "settings.weeklyScan",
+                            defaultValue: "Scan weekly in the background"
+                        ),
+                        help: localized(
+                            "settings.weeklyScanHelp",
+                            defaultValue: "Runs quietly while Reclaim is open, once a week has passed."
+                        ),
                         isOn: $model.weeklyScanEnabled
                     )
                     SettingRow(
-                        "Notify when more than 25 GB is reclaimable",
-                        help: "A single notification after each background scan that finds that much.",
+                        localized(
+                            "settings.notifyLarge",
+                            defaultValue: "Notify when more than \(AppModel.notificationThresholdBytes.formattedBytesCompact) is reclaimable"
+                        ),
+                        help: localized(
+                            "settings.notifyLargeHelp",
+                            defaultValue: "A single notification after each background scan that finds that much."
+                        ),
                         isOn: $model.notifyLargeReclaimable
                     )
                     SettingRow(
-                        "Show tools that are not installed",
-                        help: "Keep catalogue entries visible even when the tool was not found on this Mac.",
+                        localized(
+                            "settings.showNotInstalled",
+                            defaultValue: "Show tools that are not installed"
+                        ),
+                        help: localized(
+                            "settings.showNotInstalledHelp",
+                            defaultValue: "Keep catalogue entries visible even when the tool was not found on this Mac."
+                        ),
                         isOn: $model.showNotInstalled,
                         isLast: true
                     )
                 }
 
-                section("Menu bar") {
+                section(localized("settings.sectionMenuBar", defaultValue: "Menu bar")) {
                     SettingRow(
-                        "Show Reclaim in the menu bar",
-                        help: "A compact summary with quick access to scanning and safe cleanup.",
+                        localized(
+                            "settings.menuBarExtra",
+                            defaultValue: "Show Reclaim in the menu bar"
+                        ),
+                        help: localized(
+                            "settings.menuBarExtraHelp",
+                            defaultValue: "A compact summary with quick access to scanning and safe cleanup."
+                        ),
                         isOn: $model.menuBarExtraEnabled,
                         isLast: true
                     )
@@ -93,19 +126,22 @@ struct SettingsView: View {
 
     private var permissions: some View {
         VStack(alignment: .leading, spacing: 9) {
-            SectionLabel("Permissions")
+            SectionLabel(localized("settings.sectionPermissions", defaultValue: "Permissions"))
             HStack(spacing: 16) {
                 VStack(alignment: .leading, spacing: 3) {
-                    Text("Full Disk Access")
+                    Text(localized("settings.fullDiskAccess", defaultValue: "Full Disk Access"))
                         .font(Theme.rowTitle)
                         .foregroundStyle(Theme.textPrimary)
-                    Text("Some locations (for example parts of ~/Library) may require Full Disk Access to scan or clean.")
-                        .font(.system(size: 12))
-                        .lineSpacing(2.5)
-                        .foregroundStyle(Color(hex: 0x8E8E95))
+                    Text(localized(
+                        "settings.fullDiskAccessHelp",
+                        defaultValue: "Some locations (for example parts of ~/Library) may require Full Disk Access to scan or clean."
+                    ))
+                    .font(.system(size: 12))
+                    .lineSpacing(2.5)
+                    .foregroundStyle(Color(hex: 0x8E8E95))
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
-                Button("Open Privacy Settings…") {
+                Button(localized("fda.openSettingsButton", defaultValue: "Open Privacy Settings…")) {
                     NSWorkspace.shared.open(PrivacyLinks.fullDiskAccess)
                 }
                 .buttonStyle(.rcSecondary)
@@ -118,20 +154,41 @@ struct SettingsView: View {
 
     private var exclusions: some View {
         VStack(alignment: .leading, spacing: 9) {
-            SectionLabel("Excluded from scans")
+            SectionLabel(localized("settings.sectionExclusions", defaultValue: "Excluded from scans"))
             VStack(alignment: .leading, spacing: 8) {
-                exclusionRow("~/.claude.json", "auth — never in catalogue")
-                exclusionRow("~/.claude/settings.json", "never in catalogue")
-                exclusionRow("~/.claude/plugins", "never in catalogue")
-                exclusionRow("~/Library/Keychains", "never in catalogue")
-                exclusionRow("~/.aspnet", "dev certs & keys — never in catalogue")
-                exclusionRow("~/.dotnet/tools", "installed tools — never in catalogue")
+                exclusionRow(
+                    "~/.claude.json",
+                    localized("settings.exclusionAuth", defaultValue: "auth — never in catalogue")
+                )
+                exclusionRow(
+                    "~/.claude/settings.json",
+                    localized("settings.exclusionNever", defaultValue: "never in catalogue")
+                )
+                exclusionRow(
+                    "~/.claude/plugins",
+                    localized("settings.exclusionNever", defaultValue: "never in catalogue")
+                )
+                exclusionRow(
+                    "~/Library/Keychains",
+                    localized("settings.exclusionNever", defaultValue: "never in catalogue")
+                )
+                exclusionRow(
+                    "~/.aspnet",
+                    localized("settings.exclusionCerts", defaultValue: "dev certs & keys — never in catalogue")
+                )
+                exclusionRow(
+                    "~/.dotnet/tools",
+                    localized("settings.exclusionTools", defaultValue: "installed tools — never in catalogue")
+                )
 
-                Text("Reclaim's catalogue holds only caches, logs and scratch data. Credentials, settings and plugins are excluded structurally — they are not part of the catalogue and cannot be selected.")
-                    .font(Theme.footnote)
-                    .lineSpacing(2.5)
-                    .foregroundStyle(Theme.textQuaternary)
-                    .padding(.top, 6)
+                Text(localized(
+                    "settings.exclusionsFootnote",
+                    defaultValue: "Reclaim's catalogue holds only caches, logs and scratch data. Credentials, settings and plugins are excluded structurally — they are not part of the catalogue and cannot be selected."
+                ))
+                .font(Theme.footnote)
+                .lineSpacing(2.5)
+                .foregroundStyle(Theme.textQuaternary)
+                .padding(.top, 6)
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)

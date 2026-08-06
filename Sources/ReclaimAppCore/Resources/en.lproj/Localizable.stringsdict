@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>summary.movedToTrash</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>Moved %1$#@items@ (%2$@) from %3$#@locations@ to the Trash. Empty the Trash to free the space permanently.</string>
+		<key>items</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>one</key>
+			<string>%lld item</string>
+			<key>other</key>
+			<string>%lld items</string>
+		</dict>
+		<key>locations</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>one</key>
+			<string>%lld location</string>
+			<key>other</key>
+			<string>%lld locations</string>
+		</dict>
+	</dict>
+	<key>summary.deletedPermanently</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>Freed %1$@ by permanently deleting %2$#@items@ from %3$#@locations@.</string>
+		<key>items</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>one</key>
+			<string>%lld item</string>
+			<key>other</key>
+			<string>%lld items</string>
+		</dict>
+		<key>locations</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>one</key>
+			<string>%lld location</string>
+			<key>other</key>
+			<string>%lld locations</string>
+		</dict>
+	</dict>
+</dict>
+</plist>

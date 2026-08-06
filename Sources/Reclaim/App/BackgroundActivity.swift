@@ -54,8 +54,14 @@ enum BackgroundActivity {
         guard granted else { return }
 
         let content = UNMutableNotificationContent()
-        content.title = "Reclaim found \(model.cleanableBytes.formattedBytesCompact)"
-        content.body = "Developer caches are holding on to space. Review and reclaim it when convenient."
+        content.title = localized(
+            "notification.title",
+            defaultValue: "Reclaim found \(model.cleanableBytes.formattedBytesCompact)"
+        )
+        content.body = localized(
+            "notification.body",
+            defaultValue: "Developer caches are holding on to space. Review and reclaim it when convenient."
+        )
         let request = UNNotificationRequest(
             identifier: "reclaim.background-scan",
             content: content,

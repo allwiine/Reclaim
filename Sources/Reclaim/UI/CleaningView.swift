@@ -15,11 +15,15 @@ struct CleaningView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Text(model.disposal == .trash ? "Moving to Trash" : "Deleting")
+            Text(model.disposal == .trash
+                ? localized("title.movingToTrash", defaultValue: "Moving to Trash")
+                : localized("title.deleting", defaultValue: "Deleting"))
                 .font(.system(size: 20, weight: .semibold))
                 .foregroundStyle(Theme.textPrimary)
 
-            Text(model.cleanProgress?.targetPath ?? model.cleanProgress?.targetName ?? "Finishing up…")
+            Text(model.cleanProgress?.targetPath
+                ?? model.cleanProgress?.targetName
+                ?? localized("progress.finishingUp", defaultValue: "Finishing up…"))
                 .font(Theme.mono(11.5))
                 .foregroundStyle(Color(hex: 0x7E7E85))
                 .lineLimit(1)
@@ -33,21 +37,27 @@ struct CleaningView: View {
                 .padding(.top, 20)
 
             if let progress = model.cleanProgress {
-                Text("\(progress.index) of ^[\(progress.total) location](inflect: true)")
-                    .font(.system(size: 12.5))
-                    .monospacedDigit()
-                    .foregroundStyle(Theme.textSecondary)
-                    .padding(.top, 14)
-                    .contentTransition(.numericText())
-                    .animation(Theme.smooth, value: progress.index)
+                Text(localized(
+                    "cleaning.progress",
+                    defaultValue: "\(progress.index) of \(progress.total) locations"
+                ))
+                .font(.system(size: 12.5))
+                .monospacedDigit()
+                .foregroundStyle(Theme.textSecondary)
+                .padding(.top, 14)
+                .contentTransition(.numericText())
+                .animation(Theme.smooth, value: progress.index)
             }
 
-            Button("Stop after this item") {
+            Button(localized("cleaning.stopButton", defaultValue: "Stop after this item")) {
                 model.cancelClean()
             }
             .buttonStyle(.rcSecondary)
             .padding(.top, 30)
-            .help("The item being cleaned finishes; the rest are skipped")
+            .help(localized(
+                "cleaning.stopHelp",
+                defaultValue: "The item being cleaned finishes; the rest are skipped"
+            ))
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(40)
