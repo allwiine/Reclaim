@@ -64,6 +64,15 @@ public struct DiskSizer: Sendable {
         _ url: URL, seenHardLinks: inout Set<NSObject>
     ) throws -> DiskMeasurement {
         let fileManager = FileManager.default
+
+        // A symlink's deletion frees only the link inode, and following
+        // it would measure (and later imply deleting) content outside
+        // the target. Treat it as a single, size-less entry.
+        if let type = (try? fileManager.attributesOfItem(atPath: url.path))?[.type] as? FileAttributeType,
+           type == .typeSymbolicLink {
+            return DiskMeasurement(bytes: 0, fileCount: 1)
+        }
+
         var isDirectory: ObjCBool = false
         guard fileManager.fileExists(atPath: url.path, isDirectory: &isDirectory) else {
             return .zero

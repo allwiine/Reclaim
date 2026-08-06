@@ -22,7 +22,7 @@ struct StatusLabel: View {
             ProgressView()
                 .controlSize(.small)
 
-        case .measured(let measurement, _):
+        case .measured(let measurement, _, _):
             if measurement.bytes == 0 && measurement.inaccessibleItems == 0 {
                 Text("Empty")
                     .foregroundStyle(.secondary)

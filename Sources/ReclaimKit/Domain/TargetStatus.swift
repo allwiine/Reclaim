@@ -41,9 +41,13 @@ public enum TargetStatus: Sendable, Equatable {
     /// A scan is in flight.
     case scanning
     /// Scanned successfully. `resolvedPaths` are the concrete locations
-    /// (globs expanded) that the measurement covers and that cleanup
-    /// will operate on.
-    case measured(DiskMeasurement, resolvedPaths: [URL])
+    /// (globs expanded) the target's patterns matched. `cleanupPaths`
+    /// are the exact items a clean pass will dispose of — snapshotted
+    /// at scan time so nothing created afterwards can ever be deleted.
+    /// For `.removeContents` they are the directories' children; for
+    /// `.removePaths` the roots themselves; empty for strategies
+    /// Reclaim does not delete directly.
+    case measured(DiskMeasurement, resolvedPaths: [URL], cleanupPaths: [URL])
     /// None of the target's path patterns exist on this machine.
     case notInstalled
     /// The target is command-based; its reclaimable size is unknown
@@ -54,13 +58,19 @@ public enum TargetStatus: Sendable, Equatable {
 
     /// Measured bytes, or `nil` when no measurement is available.
     public var bytes: Int64? {
-        if case .measured(let measurement, _) = self { return measurement.bytes }
+        if case .measured(let measurement, _, _) = self { return measurement.bytes }
         return nil
     }
 
-    /// Concrete paths cleanup should operate on, if known.
+    /// Concrete locations the target's patterns matched, if known.
     public var resolvedPaths: [URL] {
-        if case .measured(_, let paths) = self { return paths }
+        if case .measured(_, let paths, _) = self { return paths }
+        return []
+    }
+
+    /// The exact scan-time items a clean pass disposes of, if known.
+    public var cleanupPaths: [URL] {
+        if case .measured(_, _, let paths) = self { return paths }
         return []
     }
 }

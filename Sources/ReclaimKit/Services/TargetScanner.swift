@@ -25,18 +25,45 @@ public struct TargetScanner: Sendable {
         // Command-only targets have nothing to measure up front.
         guard !target.pathPatterns.isEmpty else { return .unmeasurable }
 
-        let paths = resolver.resolveAll(target.pathPatterns)
-        guard !paths.isEmpty else { return .notInstalled }
+        let roots = resolver.resolveAll(target.pathPatterns)
+        guard !roots.isEmpty else { return .notInstalled }
 
         do {
-            let measurement = try sizer.measure(paths)
+            let cleanupPaths = try Self.cleanupPaths(for: target.strategy, roots: roots)
+            // For removeContents the deletion set (the children) is what
+            // gets measured, so the size shown is exactly what cleaning
+            // this snapshot would remove.
+            let measured: [URL] =
+                if case .removeContents = target.strategy { cleanupPaths } else { roots }
+            let measurement = try sizer.measure(measured)
             Log.scanner.debug("Scanned \(target.id, privacy: .public): \(measurement.bytes) bytes in \(measurement.fileCount) files")
-            return .measured(measurement, resolvedPaths: paths)
+            return .measured(measurement, resolvedPaths: roots, cleanupPaths: cleanupPaths)
         } catch is CancellationError {
             return .idle
         } catch {
             Log.scanner.error("Scan failed for \(target.id, privacy: .public): \(error.localizedDescription, privacy: .public)")
             return .failed(message: error.localizedDescription)
+        }
+    }
+
+    /// The exact items cleaning will dispose of, captured at scan time
+    /// so nothing created after the scan can ever be deleted.
+    private static func cleanupPaths(
+        for strategy: CleanupStrategy, roots: [URL]
+    ) throws -> [URL] {
+        switch strategy {
+        case .removeContents:
+            try roots.flatMap { root in
+                try FileManager.default.contentsOfDirectory(
+                    at: root, includingPropertiesForKeys: nil, options: []
+                )
+                .sorted { $0.path < $1.path }
+            }
+        case .removePaths:
+            roots
+        case .command, .manual:
+            // Reclaim never deletes these directly.
+            []
         }
     }
 }

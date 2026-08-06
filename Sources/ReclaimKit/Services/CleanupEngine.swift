@@ -18,8 +18,6 @@ public protocol FileRemoving: Sendable {
     func trash(_ url: URL) throws
     /// Permanently delete an item.
     func delete(_ url: URL) throws
-    /// Immediate children of a directory (including hidden entries).
-    func childrenOfDirectory(_ url: URL) throws -> [URL]
 }
 
 /// Production implementation backed by `FileManager`.
@@ -32,14 +30,6 @@ public struct FileManagerRemover: FileRemoving {
 
     public func delete(_ url: URL) throws {
         try FileManager.default.removeItem(at: url)
-    }
-
-    public func childrenOfDirectory(_ url: URL) throws -> [URL] {
-        try FileManager.default.contentsOfDirectory(
-            at: url,
-            includingPropertiesForKeys: nil,
-            options: []
-        )
     }
 }
 
@@ -89,9 +79,10 @@ public struct CleanupEngine: Sendable {
     ///
     /// - Parameters:
     ///   - target: The registry entry being cleaned.
-    ///   - resolvedPaths: Concrete paths from the target's latest scan.
-    ///     Passing scan-time paths (instead of re-resolving) guarantees
-    ///     we only ever delete what the user saw and approved.
+    ///   - resolvedPaths: The exact scan-time cleanup paths
+    ///     (``TargetStatus/cleanupPaths``). The engine never lists
+    ///     directories itself, so nothing created after the scan —
+    ///     which the user never saw or approved — can be deleted.
     ///   - disposal: Trash (default, recoverable) or permanent delete.
     public func clean(
         _ target: CleanupTarget,
@@ -101,20 +92,9 @@ public struct CleanupEngine: Sendable {
         var outcome = CleanOutcome()
 
         switch target.strategy {
-        case .removeContents:
-            for directory in resolvedPaths {
-                do {
-                    for child in try remover.childrenOfDirectory(directory) {
-                        dispose(child, disposal: disposal, outcome: &outcome)
-                    }
-                } catch {
-                    outcome.failures.append(
-                        CleanFailure(path: directory.path, message: error.localizedDescription)
-                    )
-                }
-            }
-
-        case .removePaths:
+        case .removeContents, .removePaths:
+            // Identical here by design: the strategies differ only in
+            // how the scanner derives the paths (children vs roots).
             for path in resolvedPaths {
                 dispose(path, disposal: disposal, outcome: &outcome)
             }

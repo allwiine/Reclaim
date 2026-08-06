@@ -102,6 +102,22 @@ struct DiskSizerTests {
         }
     }
 
+    @Test("A symlink is measured as the link itself, not its destination")
+    func symlinkIsNotFollowed() throws {
+        try withTemporaryDirectory { root in
+            let outside = root.appending(path: "outside")
+            try makeFile(in: outside, name: "big.bin", byteCount: 100_000)
+            let link = root.appending(path: "link")
+            try FileManager.default.createSymbolicLink(at: link, withDestinationURL: outside)
+
+            let measurement = try DiskSizer().measure([link])
+
+            // Deleting a symlink frees (almost) nothing — the target
+            // survives — so its measurement must not include it.
+            #expect(measurement.bytes < 100_000)
+        }
+    }
+
     @Test("Hard-linked files are counted once by size")
     func hardLinkDeduplication() throws {
         try withTemporaryDirectory { root in

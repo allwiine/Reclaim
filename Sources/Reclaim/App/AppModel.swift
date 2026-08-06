@@ -170,7 +170,7 @@ final class AppModel {
     func isSelectable(_ target: CleanupTarget) -> Bool {
         guard target.strategy.isCleanable, !isScanning, !isCleaning else { return false }
         switch status(of: target.id) {
-        case .measured(let measurement, _): return measurement.bytes > 0
+        case .measured(let measurement, _, _): return measurement.bytes > 0
         case .unmeasurable: return true
         default: return false
         }
@@ -269,8 +269,8 @@ final class AppModel {
         let jobs: [CleanJob] = targets.compactMap { target in
             guard selection.contains(target.id), target.strategy.isCleanable else { return nil }
             switch status(of: target.id) {
-            case .measured(let measurement, let paths):
-                return CleanJob(target: target, paths: paths, bytesBefore: measurement.bytes)
+            case .measured(let measurement, _, let cleanupPaths):
+                return CleanJob(target: target, paths: cleanupPaths, bytesBefore: measurement.bytes)
             case .unmeasurable:
                 return CleanJob(target: target, paths: [], bytesBefore: 0)
             default:

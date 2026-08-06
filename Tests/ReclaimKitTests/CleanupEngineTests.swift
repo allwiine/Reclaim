@@ -26,11 +26,9 @@ private final class MockRemover: FileRemoving, Sendable {
     }
 
     private let state = Mutex(State())
-    private let children: [URL: [URL]]
     private let failingPaths: Set<URL>
 
-    init(children: [URL: [URL]] = [:], failingPaths: Set<URL> = []) {
-        self.children = children
+    init(failingPaths: Set<URL> = []) {
         self.failingPaths = failingPaths
     }
 
@@ -45,11 +43,6 @@ private final class MockRemover: FileRemoving, Sendable {
     func delete(_ url: URL) throws {
         if failingPaths.contains(url) { throw StubError() }
         state.withLock { $0.deleted.append(url) }
-    }
-
-    func childrenOfDirectory(_ url: URL) throws -> [URL] {
-        guard let entries = children[url] else { throw StubError() }
-        return entries
     }
 }
 
@@ -75,14 +68,16 @@ struct CleanupEngineTests {
     private var childA: URL { cacheRoot.appending(path: "a") }
     private var childB: URL { cacheRoot.appending(path: "b") }
 
-    @Test("removeContents trashes children but keeps the directory")
-    func removeContentsKeepsRoot() {
-        let remover = MockRemover(children: [cacheRoot: [childA, childB]])
+    @Test("removeContents disposes exactly the scan-time paths it is given")
+    func removeContentsDisposesGivenPaths() {
+        let remover = MockRemover()
         let engine = CleanupEngine(remover: remover)
 
+        // The scanner snapshots the children; the engine must dispose
+        // precisely those — never list the directory again at clean time.
         let outcome = engine.clean(
             makeTarget(strategy: .removeContents),
-            resolvedPaths: [cacheRoot],
+            resolvedPaths: [childA, childB],
             disposal: .trash
         )
 
@@ -110,12 +105,12 @@ struct CleanupEngineTests {
 
     @Test("Disposal setting routes to delete instead of trash")
     func permanentDeletion() {
-        let remover = MockRemover(children: [cacheRoot: [childA]])
+        let remover = MockRemover()
         let engine = CleanupEngine(remover: remover)
 
         _ = engine.clean(
             makeTarget(strategy: .removeContents),
-            resolvedPaths: [cacheRoot],
+            resolvedPaths: [childA],
             disposal: .delete
         )
 
@@ -125,15 +120,12 @@ struct CleanupEngineTests {
 
     @Test("Per-item failures are collected without aborting the pass")
     func failuresAreCollected() {
-        let remover = MockRemover(
-            children: [cacheRoot: [childA, childB]],
-            failingPaths: [childA]
-        )
+        let remover = MockRemover(failingPaths: [childA])
         let engine = CleanupEngine(remover: remover)
 
         let outcome = engine.clean(
             makeTarget(strategy: .removeContents),
-            resolvedPaths: [cacheRoot],
+            resolvedPaths: [childA, childB],
             disposal: .trash
         )
 
@@ -160,21 +152,6 @@ struct CleanupEngineTests {
         #expect(remover.deleted.isEmpty)
     }
 
-    @Test("Unreadable directories surface as failures")
-    func unreadableDirectory() {
-        // No children registered for cacheRoot → listing throws.
-        let remover = MockRemover()
-        let engine = CleanupEngine(remover: remover)
-
-        let outcome = engine.clean(
-            makeTarget(strategy: .removeContents),
-            resolvedPaths: [cacheRoot],
-            disposal: .trash
-        )
-
-        #expect(outcome.removedItems == 0)
-        #expect(outcome.failures.count == 1)
-    }
 }
 
 // MARK: - Command execution
