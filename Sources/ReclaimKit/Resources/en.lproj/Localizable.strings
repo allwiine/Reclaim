@@ -7,7 +7,7 @@
 "category.xcode.title" = "Xcode & Simulators";
 "category.android.title" = "Android Studio";
 "category.dotNet.title" = ".NET & Visual Studio";
-"category.aiTools.title" = "Claude & AI Tools";
+"category.aiTools.title" = "AI Tools";
 "category.packageManagers.title" = "Package Managers";
 "category.otherTools.title" = "Other Dev Tools";
 
@@ -89,7 +89,7 @@
 "target.xamarin-caches.name" = "Xamarin caches";
 "target.xamarin-caches.summary" = "Build-agent and archive caches from the retired Xamarin toolchain.";
 
-/* Targets — Claude & AI tooling */
+/* Targets — AI tooling */
 "target.claude-code-cli-caches.name" = "Claude Code CLI caches";
 "target.claude-code-cli-caches.summary" = "Per-project diagnostic output and MCP logs written by Claude Code's Node harness. This folder grows without bound under heavy use.";
 "target.claude-code-scratch.name" = "Claude Code logs & scratch data";
@@ -100,6 +100,39 @@
 "target.claude-code-transcripts.note" = "Prefer setting \"cleanupPeriodDays\" in ~/.claude/settings.json so Claude Code prunes old transcripts automatically.";
 "target.claude-desktop-caches.name" = "Claude Desktop caches";
 "target.claude-desktop-caches.summary" = "Rendering and code caches for the Claude desktop app. Rebuilt on next launch.";
+"target.chatgpt-desktop-caches.name" = "ChatGPT Desktop caches";
+"target.chatgpt-desktop-caches.summary" = "Rendering and update caches for OpenAI's ChatGPT desktop app. Rebuilt on next launch.";
+"target.codex-cli-sessions.name" = "Codex CLI session history";
+"target.codex-cli-sessions.summary" = "Session transcripts and logs written by OpenAI's Codex CLI. Cleaning removes the ability to resume past sessions.";
+"target.codex-cli-sessions.note" = "Auth and config in ~/.codex (auth.json, config.toml) are never touched by Reclaim.";
+"target.copilot-cli-data.name" = "GitHub Copilot CLI logs & sessions";
+"target.copilot-cli-data.summary" = "Logs and resumable session state kept by the GitHub Copilot CLI. Cleaning removes the ability to resume past sessions.";
+"target.copilot-cli-data.note" = "Copilot's config in ~/.copilot is never touched by Reclaim.";
+"target.gemini-cli-scratch.name" = "Gemini CLI scratch data";
+"target.gemini-cli-scratch.summary" = "Per-project temp files, logs and checkpoints written by Google's Gemini CLI.";
+"target.gemini-cli-scratch.note" = "Settings and auth in ~/.gemini are never touched by Reclaim.";
+"target.cursor-caches.name" = "Cursor caches";
+"target.cursor-caches.summary" = "Extension host, rendering and code caches for the Cursor editor.";
+"target.windsurf-caches.name" = "Windsurf caches";
+"target.windsurf-caches.summary" = "Extension host, rendering and code caches for the Windsurf editor.";
+"target.antigravity-caches.name" = "Antigravity caches";
+"target.antigravity-caches.summary" = "Extension host, rendering and code caches for Google's Antigravity IDE.";
+"target.cline-tasks.name" = "Cline task history";
+"target.cline-tasks.summary" = "Conversation history and file checkpoints for every Cline task, stored inside VS Code, Cursor and Windsurf. Grows by gigabytes under heavy use.";
+"target.cline-tasks.note" = "Cline's settings and MCP configuration are never touched by Reclaim.";
+"target.roo-code-tasks.name" = "Roo Code task history";
+"target.roo-code-tasks.summary" = "Conversation history and file checkpoints for every Roo Code task, stored inside VS Code, Cursor and Windsurf.";
+"target.roo-code-tasks.note" = "Roo Code's settings and MCP configuration are never touched by Reclaim.";
+"target.continue-index.name" = "Continue codebase index";
+"target.continue-index.summary" = "Codebase index built by the Continue extension for @codebase context. Rebuilt on next indexing.";
+"target.continue-index.note" = "Config and session history in ~/.continue are never touched by Reclaim.";
+"target.aider-caches.name" = "Aider caches";
+"target.aider-caches.summary" = "Model metadata and version-check caches kept by aider.";
+"target.goose-data.name" = "Goose sessions & logs";
+"target.goose-data.summary" = "Session transcripts and logs from Block's Goose agent. Cleaning removes the ability to resume past sessions.";
+"target.opencode-data.name" = "OpenCode caches & logs";
+"target.opencode-data.summary" = "Downloaded provider bundles and logs kept by the OpenCode agent.";
+"target.opencode-data.note" = "Auth and session storage in ~/.local/share/opencode are never touched by Reclaim.";
 "target.ollama-models.name" = "Ollama models";
 "target.ollama-models.summary" = "Local LLM weights pulled with `ollama pull`. Often tens of gigabytes.";
 "target.ollama-models.note" = "Models must be re-downloaded to use them again. To remove selectively, use `ollama rm <model>`.";
@@ -108,6 +141,9 @@
 "target.huggingface-cache.note" = "Anything still needed is re-downloaded on next use.";
 "target.lmstudio-models.name" = "LM Studio models";
 "target.lmstudio-models.summary" = "Model files downloaded through LM Studio.";
+"target.llamacpp-cache.name" = "llama.cpp model cache";
+"target.llamacpp-cache.summary" = "Models downloaded by llama.cpp tools with the -hf flag. Often several gigabytes.";
+"target.llamacpp-cache.note" = "Models are re-downloaded on next use.";
 
 /* Targets — Package managers & toolchains */
 "target.homebrew-cache.name" = "Homebrew downloads";

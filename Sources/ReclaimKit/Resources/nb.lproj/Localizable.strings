@@ -10,7 +10,7 @@
 "category.xcode.title" = "Xcode og simulatorer";
 "category.android.title" = "Android Studio";
 "category.dotNet.title" = ".NET og Visual Studio";
-"category.aiTools.title" = "Claude og AI-verktøy";
+"category.aiTools.title" = "AI-verktøy";
 "category.packageManagers.title" = "Pakkebehandlere";
 "category.otherTools.title" = "Andre utviklerverktøy";
 
@@ -92,7 +92,7 @@
 "target.xamarin-caches.name" = "Xamarin-cacher";
 "target.xamarin-caches.summary" = "Byggagent- og arkivcacher fra den avviklede Xamarin-verktøykjeden.";
 
-/* Mål, Claude og AI-verktøy */
+/* Mål, AI-verktøy */
 "target.claude-code-cli-caches.name" = "Claude Code CLI-cacher";
 "target.claude-code-cli-caches.summary" = "Diagnostikk per prosjekt og MCP-logger fra Claude Codes Node-harness. Denne mappen vokser uten grenser ved tung bruk.";
 "target.claude-code-scratch.name" = "Claude Code-logger og scratch-data";
@@ -103,6 +103,39 @@
 "target.claude-code-transcripts.note" = "Foretrekk å sette «cleanupPeriodDays» i ~/.claude/settings.json, slik at Claude Code rydder gamle utskrifter automatisk.";
 "target.claude-desktop-caches.name" = "Claude Desktop-cacher";
 "target.claude-desktop-caches.summary" = "Gjengivelses- og kodecacher for Claude-skrivebordsappen. Bygges på nytt ved neste oppstart.";
+"target.chatgpt-desktop-caches.name" = "ChatGPT Desktop-cacher";
+"target.chatgpt-desktop-caches.summary" = "Gjengivelses- og oppdateringscacher for OpenAIs ChatGPT-skrivebordsapp. Bygges på nytt ved neste oppstart.";
+"target.codex-cli-sessions.name" = "Codex CLI-økthistorikk";
+"target.codex-cli-sessions.summary" = "Øktutskrifter og logger skrevet av OpenAIs Codex CLI. Rydding fjerner muligheten til å gjenoppta tidligere økter.";
+"target.codex-cli-sessions.note" = "Autentisering og konfigurasjon i ~/.codex (auth.json, config.toml) røres aldri av Reclaim.";
+"target.copilot-cli-data.name" = "GitHub Copilot CLI-logger og økter";
+"target.copilot-cli-data.summary" = "Logger og gjenopptakbar økttilstand fra GitHub Copilot CLI. Rydding fjerner muligheten til å gjenoppta tidligere økter.";
+"target.copilot-cli-data.note" = "Copilots konfigurasjon i ~/.copilot røres aldri av Reclaim.";
+"target.gemini-cli-scratch.name" = "Gemini CLI-scratch-data";
+"target.gemini-cli-scratch.summary" = "Midlertidige filer, logger og sjekkpunkter per prosjekt fra Googles Gemini CLI.";
+"target.gemini-cli-scratch.note" = "Innstillinger og autentisering i ~/.gemini røres aldri av Reclaim.";
+"target.cursor-caches.name" = "Cursor-cacher";
+"target.cursor-caches.summary" = "Extension host-, gjengivelses- og kodecacher for Cursor-editoren.";
+"target.windsurf-caches.name" = "Windsurf-cacher";
+"target.windsurf-caches.summary" = "Extension host-, gjengivelses- og kodecacher for Windsurf-editoren.";
+"target.antigravity-caches.name" = "Antigravity-cacher";
+"target.antigravity-caches.summary" = "Extension host-, gjengivelses- og kodecacher for Googles Antigravity-IDE.";
+"target.cline-tasks.name" = "Cline-oppgavehistorikk";
+"target.cline-tasks.summary" = "Samtalehistorikk og filsjekkpunkter for hver Cline-oppgave, lagret i VS Code, Cursor og Windsurf. Vokser med gigabyte ved tung bruk.";
+"target.cline-tasks.note" = "Clines innstillinger og MCP-konfigurasjon røres aldri av Reclaim.";
+"target.roo-code-tasks.name" = "Roo Code-oppgavehistorikk";
+"target.roo-code-tasks.summary" = "Samtalehistorikk og filsjekkpunkter for hver Roo Code-oppgave, lagret i VS Code, Cursor og Windsurf.";
+"target.roo-code-tasks.note" = "Roo Codes innstillinger og MCP-konfigurasjon røres aldri av Reclaim.";
+"target.continue-index.name" = "Continue-kodebaseindeks";
+"target.continue-index.summary" = "Kodebaseindeksen Continue-utvidelsen bygger for @codebase-kontekst. Bygges på nytt ved neste indeksering.";
+"target.continue-index.note" = "Konfigurasjon og økthistorikk i ~/.continue røres aldri av Reclaim.";
+"target.aider-caches.name" = "Aider-cacher";
+"target.aider-caches.summary" = "Modellmetadata- og versjonssjekkcacher fra aider.";
+"target.goose-data.name" = "Goose-økter og -logger";
+"target.goose-data.summary" = "Øktutskrifter og logger fra Blocks Goose-agent. Rydding fjerner muligheten til å gjenoppta tidligere økter.";
+"target.opencode-data.name" = "OpenCode-cacher og -logger";
+"target.opencode-data.summary" = "Nedlastede leverandørpakker og logger fra OpenCode-agenten.";
+"target.opencode-data.note" = "Autentisering og øktlagring i ~/.local/share/opencode røres aldri av Reclaim.";
 "target.ollama-models.name" = "Ollama-modeller";
 "target.ollama-models.summary" = "Lokale LLM-vekter hentet med `ollama pull`. Ofte titalls gigabyte.";
 "target.ollama-models.note" = "Modeller må lastes ned på nytt for å brukes igjen. Bruk `ollama rm <modell>` for å fjerne enkeltvis.";
@@ -111,6 +144,9 @@
 "target.huggingface-cache.note" = "Alt som fortsatt trengs, lastes ned på nytt ved neste bruk.";
 "target.lmstudio-models.name" = "LM Studio-modeller";
 "target.lmstudio-models.summary" = "Modellfiler lastet ned gjennom LM Studio.";
+"target.llamacpp-cache.name" = "llama.cpp-modellcache";
+"target.llamacpp-cache.summary" = "Modeller lastet ned av llama.cpp-verktøy med -hf-flagget. Ofte flere gigabyte.";
+"target.llamacpp-cache.note" = "Modeller lastes ned på nytt ved neste bruk.";
 
 /* Mål, Pakkebehandlere og verktøykjeder */
 "target.homebrew-cache.name" = "Homebrew-nedlastinger";

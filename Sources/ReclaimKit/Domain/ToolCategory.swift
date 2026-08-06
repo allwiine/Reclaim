@@ -29,7 +29,7 @@ public enum ToolCategory: String, CaseIterable, Identifiable, Sendable {
         case .dotNet:
             localized("category.dotNet.title", defaultValue: ".NET & Visual Studio")
         case .aiTools:
-            localized("category.aiTools.title", defaultValue: "Claude & AI Tools")
+            localized("category.aiTools.title", defaultValue: "AI Tools")
         case .packageManagers:
             localized("category.packageManagers.title", defaultValue: "Package Managers")
         case .otherTools:
