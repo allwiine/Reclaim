@@ -14,7 +14,7 @@ Built with **Swift 6.2**, **SwiftUI**, the **Observation** framework, strict con
 | --- | --- |
 | Xcode & Simulators | Derived data, device support files, archives, simulator caches, SwiftUI Previews data, device logs, XCTest simulator clones, unavailable simulators (`simctl`) |
 | Android Studio | Gradle caches, wrapper distributions, build-scan data, IDE caches, Kotlin/Native toolchains, SDK system images, AVDs |
-| Claude & AI tools | Claude Code CLI caches (`~/Library/Caches/claude-cli-nodejs`), logs & scratch data, session transcripts, Claude Desktop caches, Ollama / Hugging Face / LM Studio models |
+| AI tools | Claude Code caches, logs & transcripts, Codex / Gemini / Copilot CLI data, Claude & ChatGPT Desktop caches, Cursor / Windsurf / Antigravity caches, Cline & Roo Code task history, Continue index, aider / Goose / OpenCode data, Ollama / Hugging Face / LM Studio / llama.cpp models |
 | Package managers | Homebrew, npm, pnpm, Yarn (classic & Berry), pip, uv, Poetry, CocoaPods, SwiftPM, Cargo, Go, Deno, node-gyp |
 | Other dev tools | VS Code caches & workspace storage, JetBrains caches & logs, Playwright / Puppeteer browsers, pre-commit environments, Docker VM disk (measured; cleaned via Docker itself) |
 

@@ -493,7 +493,7 @@ public enum TargetRegistry {
         ),
     ]
 
-    // MARK: - Claude & AI tooling
+    // MARK: - AI tooling
 
     static let aiTools: [CleanupTarget] = [
         CleanupTarget(
@@ -575,6 +575,284 @@ public enum TargetRegistry {
             relatedAppBundleIDs: ["com.anthropic.claudefordesktop"]
         ),
         CleanupTarget(
+            id: "chatgpt-desktop-caches",
+            name: localized(
+                "target.chatgpt-desktop-caches.name",
+                defaultValue: "ChatGPT Desktop caches"
+            ),
+            summary: localized(
+                "target.chatgpt-desktop-caches.summary",
+                defaultValue: "Rendering and update caches for OpenAI's ChatGPT desktop app. Rebuilt on next launch."
+            ),
+            category: .aiTools,
+            safety: .safe,
+            pathPatterns: ["~/Library/Caches/com.openai.chat"],
+            strategy: .removeContents,
+            relatedAppBundleIDs: ["com.openai.chat"]
+        ),
+        CleanupTarget(
+            id: "codex-cli-sessions",
+            name: localized(
+                "target.codex-cli-sessions.name",
+                defaultValue: "Codex CLI session history"
+            ),
+            summary: localized(
+                "target.codex-cli-sessions.summary",
+                defaultValue: "Session transcripts and logs written by OpenAI's Codex CLI. Cleaning removes the ability to resume past sessions."
+            ),
+            category: .aiTools,
+            safety: .caution,
+            pathPatterns: [
+                "~/.codex/sessions",
+                "~/.codex/archived_sessions",
+                "~/.codex/log",
+            ],
+            strategy: .removeContents,
+            note: localized(
+                "target.codex-cli-sessions.note",
+                defaultValue: "Auth and config in ~/.codex (auth.json, config.toml) are never touched by Reclaim."
+            )
+        ),
+        CleanupTarget(
+            id: "copilot-cli-data",
+            name: localized(
+                "target.copilot-cli-data.name",
+                defaultValue: "GitHub Copilot CLI logs & sessions"
+            ),
+            summary: localized(
+                "target.copilot-cli-data.summary",
+                defaultValue: "Logs and resumable session state kept by the GitHub Copilot CLI. Cleaning removes the ability to resume past sessions."
+            ),
+            category: .aiTools,
+            safety: .caution,
+            pathPatterns: [
+                "~/.copilot/logs",
+                "~/.copilot/history-session-state",
+            ],
+            strategy: .removeContents,
+            note: localized(
+                "target.copilot-cli-data.note",
+                defaultValue: "Copilot's config in ~/.copilot is never touched by Reclaim."
+            )
+        ),
+        CleanupTarget(
+            id: "gemini-cli-scratch",
+            name: localized(
+                "target.gemini-cli-scratch.name",
+                defaultValue: "Gemini CLI scratch data"
+            ),
+            summary: localized(
+                "target.gemini-cli-scratch.summary",
+                defaultValue: "Per-project temp files, logs and checkpoints written by Google's Gemini CLI."
+            ),
+            category: .aiTools,
+            safety: .safe,
+            pathPatterns: ["~/.gemini/tmp"],
+            strategy: .removeContents,
+            note: localized(
+                "target.gemini-cli-scratch.note",
+                defaultValue: "Settings and auth in ~/.gemini are never touched by Reclaim."
+            )
+        ),
+        CleanupTarget(
+            id: "cursor-caches",
+            name: localized(
+                "target.cursor-caches.name",
+                defaultValue: "Cursor caches"
+            ),
+            summary: localized(
+                "target.cursor-caches.summary",
+                defaultValue: "Extension host, rendering and code caches for the Cursor editor."
+            ),
+            category: .aiTools,
+            safety: .safe,
+            pathPatterns: [
+                "~/Library/Application Support/Cursor/Cache",
+                "~/Library/Application Support/Cursor/CachedData",
+                "~/Library/Application Support/Cursor/Code Cache",
+                "~/Library/Application Support/Cursor/GPUCache",
+            ],
+            strategy: .removeContents,
+            relatedAppBundleIDs: ["com.todesktop.230313mzl4w4u92"]
+        ),
+        CleanupTarget(
+            id: "windsurf-caches",
+            name: localized(
+                "target.windsurf-caches.name",
+                defaultValue: "Windsurf caches"
+            ),
+            summary: localized(
+                "target.windsurf-caches.summary",
+                defaultValue: "Extension host, rendering and code caches for the Windsurf editor."
+            ),
+            category: .aiTools,
+            safety: .safe,
+            pathPatterns: [
+                "~/Library/Application Support/Windsurf/Cache",
+                "~/Library/Application Support/Windsurf/CachedData",
+                "~/Library/Application Support/Windsurf/Code Cache",
+                "~/Library/Application Support/Windsurf/GPUCache",
+            ],
+            strategy: .removeContents,
+            relatedAppBundleIDs: ["com.exafunction.windsurf"]
+        ),
+        CleanupTarget(
+            id: "antigravity-caches",
+            name: localized(
+                "target.antigravity-caches.name",
+                defaultValue: "Antigravity caches"
+            ),
+            summary: localized(
+                "target.antigravity-caches.summary",
+                defaultValue: "Extension host, rendering and code caches for Google's Antigravity IDE."
+            ),
+            category: .aiTools,
+            safety: .safe,
+            pathPatterns: [
+                "~/Library/Application Support/Antigravity/Cache",
+                "~/Library/Application Support/Antigravity/CachedData",
+                "~/Library/Application Support/Antigravity/Code Cache",
+                "~/Library/Application Support/Antigravity/GPUCache",
+            ],
+            strategy: .removeContents
+        ),
+        CleanupTarget(
+            id: "cline-tasks",
+            name: localized(
+                "target.cline-tasks.name",
+                defaultValue: "Cline task history"
+            ),
+            summary: localized(
+                "target.cline-tasks.summary",
+                defaultValue: "Conversation history and file checkpoints for every Cline task, stored inside VS Code, Cursor and Windsurf. Grows by gigabytes under heavy use."
+            ),
+            category: .aiTools,
+            safety: .caution,
+            pathPatterns: [
+                "~/Library/Application Support/Code/User/globalStorage/saoudrizwan.claude-dev/tasks",
+                "~/Library/Application Support/Code/User/globalStorage/saoudrizwan.claude-dev/checkpoints",
+                "~/Library/Application Support/Cursor/User/globalStorage/saoudrizwan.claude-dev/tasks",
+                "~/Library/Application Support/Cursor/User/globalStorage/saoudrizwan.claude-dev/checkpoints",
+                "~/Library/Application Support/Windsurf/User/globalStorage/saoudrizwan.claude-dev/tasks",
+                "~/Library/Application Support/Windsurf/User/globalStorage/saoudrizwan.claude-dev/checkpoints",
+            ],
+            strategy: .removeContents,
+            note: localized(
+                "target.cline-tasks.note",
+                defaultValue: "Cline's settings and MCP configuration are never touched by Reclaim."
+            ),
+            relatedAppBundleIDs: [
+                "com.microsoft.VSCode",
+                "com.todesktop.230313mzl4w4u92",
+                "com.exafunction.windsurf",
+            ]
+        ),
+        CleanupTarget(
+            id: "roo-code-tasks",
+            name: localized(
+                "target.roo-code-tasks.name",
+                defaultValue: "Roo Code task history"
+            ),
+            summary: localized(
+                "target.roo-code-tasks.summary",
+                defaultValue: "Conversation history and file checkpoints for every Roo Code task, stored inside VS Code, Cursor and Windsurf."
+            ),
+            category: .aiTools,
+            safety: .caution,
+            pathPatterns: [
+                "~/Library/Application Support/Code/User/globalStorage/rooveterinaryinc.roo-cline/tasks",
+                "~/Library/Application Support/Code/User/globalStorage/rooveterinaryinc.roo-cline/checkpoints",
+                "~/Library/Application Support/Cursor/User/globalStorage/rooveterinaryinc.roo-cline/tasks",
+                "~/Library/Application Support/Cursor/User/globalStorage/rooveterinaryinc.roo-cline/checkpoints",
+                "~/Library/Application Support/Windsurf/User/globalStorage/rooveterinaryinc.roo-cline/tasks",
+                "~/Library/Application Support/Windsurf/User/globalStorage/rooveterinaryinc.roo-cline/checkpoints",
+            ],
+            strategy: .removeContents,
+            note: localized(
+                "target.roo-code-tasks.note",
+                defaultValue: "Roo Code's settings and MCP configuration are never touched by Reclaim."
+            ),
+            relatedAppBundleIDs: [
+                "com.microsoft.VSCode",
+                "com.todesktop.230313mzl4w4u92",
+                "com.exafunction.windsurf",
+            ]
+        ),
+        CleanupTarget(
+            id: "continue-index",
+            name: localized(
+                "target.continue-index.name",
+                defaultValue: "Continue codebase index"
+            ),
+            summary: localized(
+                "target.continue-index.summary",
+                defaultValue: "Codebase index built by the Continue extension for @codebase context. Rebuilt on next indexing."
+            ),
+            category: .aiTools,
+            safety: .safe,
+            pathPatterns: ["~/.continue/index"],
+            strategy: .removeContents,
+            note: localized(
+                "target.continue-index.note",
+                defaultValue: "Config and session history in ~/.continue are never touched by Reclaim."
+            )
+        ),
+        CleanupTarget(
+            id: "aider-caches",
+            name: localized(
+                "target.aider-caches.name",
+                defaultValue: "Aider caches"
+            ),
+            summary: localized(
+                "target.aider-caches.summary",
+                defaultValue: "Model metadata and version-check caches kept by aider."
+            ),
+            category: .aiTools,
+            safety: .safe,
+            pathPatterns: ["~/.aider/caches"],
+            strategy: .removeContents
+        ),
+        CleanupTarget(
+            id: "goose-data",
+            name: localized(
+                "target.goose-data.name",
+                defaultValue: "Goose sessions & logs"
+            ),
+            summary: localized(
+                "target.goose-data.summary",
+                defaultValue: "Session transcripts and logs from Block's Goose agent. Cleaning removes the ability to resume past sessions."
+            ),
+            category: .aiTools,
+            safety: .caution,
+            pathPatterns: [
+                "~/.local/share/goose/sessions",
+                "~/.local/state/goose/logs",
+            ],
+            strategy: .removeContents
+        ),
+        CleanupTarget(
+            id: "opencode-data",
+            name: localized(
+                "target.opencode-data.name",
+                defaultValue: "OpenCode caches & logs"
+            ),
+            summary: localized(
+                "target.opencode-data.summary",
+                defaultValue: "Downloaded provider bundles and logs kept by the OpenCode agent."
+            ),
+            category: .aiTools,
+            safety: .safe,
+            pathPatterns: [
+                "~/.cache/opencode",
+                "~/.local/share/opencode/log",
+            ],
+            strategy: .removeContents,
+            note: localized(
+                "target.opencode-data.note",
+                defaultValue: "Auth and session storage in ~/.local/share/opencode are never touched by Reclaim."
+            )
+        ),
+        CleanupTarget(
             id: "ollama-models",
             name: localized(
                 "target.ollama-models.name",
@@ -629,6 +907,25 @@ public enum TargetRegistry {
                 "~/.cache/lm-studio/models",
             ],
             strategy: .removeContents
+        ),
+        CleanupTarget(
+            id: "llamacpp-cache",
+            name: localized(
+                "target.llamacpp-cache.name",
+                defaultValue: "llama.cpp model cache"
+            ),
+            summary: localized(
+                "target.llamacpp-cache.summary",
+                defaultValue: "Models downloaded by llama.cpp tools with the -hf flag. Often several gigabytes."
+            ),
+            category: .aiTools,
+            safety: .caution,
+            pathPatterns: ["~/Library/Caches/llama.cpp"],
+            strategy: .removeContents,
+            note: localized(
+                "target.llamacpp-cache.note",
+                defaultValue: "Models are re-downloaded on next use."
+            )
         ),
     ]
 
