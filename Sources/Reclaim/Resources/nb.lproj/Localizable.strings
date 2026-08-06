@@ -134,6 +134,7 @@
 "browser.emptySearchDetail" = "Ingen katalogoppføring matcher søket. Prøv et verktøynavn eller en del av en filbane.";
 "browser.emptyCategoryDetail" = "Ingen av disse verktøyene ble funnet på denne Macen. Slå på «Vis verktøy som ikke er installert» i Innstillinger for å vise dem likevel.";
 "browser.selectAccessibility" = "Velg %@";
+"browser.keepOutOfAutoSelect" = "Hold utenfor automatisk valg";
 
 /* Radstatuser */
 "status.empty" = "Tomt";
@@ -150,6 +151,7 @@
 "inspector.cleansByRunning" = "Ryddes ved å kjøre";
 "inspector.largestContents" = "Største innhold";
 "inspector.measuringContents" = "Måler innhold …";
+"inspector.excludedNote" = "Holdes utenfor automatisk valg. Huk av manuelt hvis du vil rydde det.";
 
 /* Bekreftelsesdialog */
 "confirm.moveToTrash" = "Flytt til papirkurven";
@@ -196,8 +198,16 @@
 "history.columnWhat" = "Hva";
 "history.columnItems" = "Elementer";
 "history.columnFreed" = "Frigjort";
+"history.clearButton" = "Tøm historikken …";
+"history.clearConfirmTitle" = "Tømme hele ryddehistorikken?";
+"history.clearConfirmAction" = "Tøm historikken";
+"history.clearConfirmMessage" = "Fjerner oppføringen for hver rydding og nullstiller totalstatistikken. Ingen filer på disken berøres.";
 
 /* Innstillinger */
+"settings.sectionGeneral" = "Generelt";
+"settings.launchAtLogin" = "Åpne Reclaim ved pålogging";
+"settings.launchAtLoginHelp" = "Holder menylinjesammendraget og ukentlige bakgrunnsskanninger i gang uten at du åpner appen selv.";
+"settings.launchAtLoginFailed" = "Kunne ikke endre påloggingselementet. Administrer det under Systeminnstillinger → Generelt → Påloggingselementer.";
 "settings.sectionCleaning" = "Rydding";
 "settings.moveToTrash" = "Flytt elementer til papirkurven";
 "settings.moveToTrashHelp" = "Standard. Ingenting forlater Macen din før du tømmer papirkurven.";
@@ -210,6 +220,8 @@
 "settings.weeklyScanHelp" = "Kjører stille mens Reclaim er åpen, når en uke har gått.";
 "settings.notifyLarge" = "Varsle når mer enn %@ kan frigjøres";
 "settings.notifyLargeHelp" = "Ett enkelt varsel etter hver bakgrunnsskanning som finner så mye.";
+"settings.notificationsDenied" = "Varsler for Reclaim er slått av i Systeminnstillinger, så dette varselet kan ikke vises.";
+"settings.openNotificationSettings" = "Åpne varslingsinnstillinger …";
 "settings.showNotInstalled" = "Vis verktøy som ikke er installert";
 "settings.showNotInstalledHelp" = "Behold katalogoppføringer synlige selv når verktøyet ikke ble funnet på denne Macen.";
 "settings.sectionMenuBar" = "Menylinje";
@@ -218,6 +230,9 @@
 "settings.sectionPermissions" = "Tillatelser";
 "settings.fullDiskAccess" = "Full disktilgang";
 "settings.fullDiskAccessHelp" = "Noen plasseringer (for eksempel deler av ~/Library) kan kreve full disktilgang for å skannes eller ryddes.";
+"settings.fdaStatusGranted" = "Gitt";
+"settings.fdaStatusDenied" = "Ikke gitt";
+"settings.fdaStatusUnknown" = "Sjekkes når en skanning kjører";
 "settings.sectionExclusions" = "Utelatt fra skanning";
 "settings.exclusionAuth" = "auth · aldri i katalogen";
 "settings.exclusionNever" = "aldri i katalogen";

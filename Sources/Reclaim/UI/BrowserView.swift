@@ -329,6 +329,16 @@ private struct TargetRow: View {
                 )
             }
         }
+        if target.strategy.isCleanable {
+            if !paths.isEmpty { Divider() }
+            Toggle(
+                localized("browser.keepOutOfAutoSelect", defaultValue: "Keep out of automatic selection"),
+                isOn: Binding(
+                    get: { model.isExcludedFromAutoSelect(target) },
+                    set: { model.setExcludedFromAutoSelect(target, $0) }
+                )
+            )
+        }
     }
 }
 

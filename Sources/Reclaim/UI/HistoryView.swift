@@ -13,6 +13,7 @@ import SwiftUI
 struct HistoryView: View {
     @Environment(AppModel.self) private var model
     @State private var appeared = false
+    @State private var isConfirmingClear = false
 
     var body: some View {
         Group {
@@ -23,6 +24,23 @@ struct HistoryView: View {
             }
         }
         .onAppear { withAnimation(Theme.springy) { appeared = true } }
+        .confirmationDialog(
+            localized("history.clearConfirmTitle", defaultValue: "Clear all clean history?"),
+            isPresented: $isConfirmingClear,
+            titleVisibility: .visible
+        ) {
+            Button(
+                localized("history.clearConfirmAction", defaultValue: "Clear History"),
+                role: .destructive
+            ) {
+                model.clearHistory()
+            }
+        } message: {
+            Text(localized(
+                "history.clearConfirmMessage",
+                defaultValue: "Removes the record of every clean pass and resets the lifetime statistics. No files on disk are affected."
+            ))
+        }
     }
 
     // MARK: - Empty
@@ -77,12 +95,20 @@ struct HistoryView: View {
                     .padding(.top, 28)
                     .entrance(appeared, delay: 0.08)
 
-                Text(localized(
-                    "history.footnote",
-                    defaultValue: "Each entry lists what was cleaned and what the follow-up scan measured as actually freed."
-                ))
-                .font(Theme.footnote)
-                .foregroundStyle(Theme.textQuaternary)
+                HStack(alignment: .firstTextBaseline, spacing: 16) {
+                    Text(localized(
+                        "history.footnote",
+                        defaultValue: "Each entry lists what was cleaned and what the follow-up scan measured as actually freed."
+                    ))
+                    .font(Theme.footnote)
+                    .foregroundStyle(Theme.textQuaternary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                    Button(localized("history.clearButton", defaultValue: "Clear History…")) {
+                        isConfirmingClear = true
+                    }
+                    .buttonStyle(.rcSecondary)
+                }
                 .padding(.top, 14)
                 .entrance(appeared, delay: 0.12)
             }
@@ -166,6 +192,9 @@ private struct HistoryRow: View {
                 .foregroundStyle(Theme.textSecondary)
                 .lineLimit(1)
                 .frame(maxWidth: .infinity, alignment: .leading)
+                // The single line truncates long passes; the tooltip
+                // always carries the full list.
+                .help(entry.targetNames.joined(separator: ", "))
             Text(entry.itemsRemoved.formatted())
                 .font(Theme.body)
                 .monospacedDigit()

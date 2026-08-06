@@ -11,15 +11,26 @@ import AppKit
 import ReclaimAppCore
 import ReclaimKit
 import SwiftUI
+import UserNotifications
 
 struct SettingsView: View {
     @Environment(AppModel.self) private var model
+
+    @State private var launchAtLogin = false
+    @State private var launchAtLoginFailed = false
+    @State private var notificationsDenied = false
 
     var body: some View {
         @Bindable var model = model
 
         ScrollView {
             VStack(alignment: .leading, spacing: 26) {
+                if LoginItemService.isAvailable {
+                    section(localized("settings.sectionGeneral", defaultValue: "General")) {
+                        launchAtLoginRow
+                    }
+                }
+
                 section(localized("settings.sectionCleaning", defaultValue: "Cleaning")) {
                     SettingRow(
                         localized("settings.moveToTrash", defaultValue: "Move items to the Trash"),
@@ -74,6 +85,9 @@ struct SettingsView: View {
                         ),
                         isOn: $model.notifyLargeReclaimable
                     )
+                    if model.notifyLargeReclaimable, notificationsDenied {
+                        notificationsDeniedRow
+                    }
                     SettingRow(
                         localized(
                             "settings.showNotInstalled",
@@ -112,6 +126,40 @@ struct SettingsView: View {
             .padding(.top, 24)
             .padding(.bottom, 48)
         }
+        .task {
+            if LoginItemService.isAvailable {
+                launchAtLogin = LoginItemService.isEnabled
+            }
+            await refreshNotificationStatus()
+        }
+        .onChange(of: model.notifyLargeReclaimable) { _, enabled in
+            // Ask for permission the moment the user opts in — not
+            // silently at the first (possibly weeks-later) notification.
+            guard enabled else { return }
+            Task {
+                await requestNotificationAuthorization()
+                await refreshNotificationStatus()
+            }
+        }
+    }
+
+    // MARK: - Notifications plumbing
+
+    /// UNUserNotificationCenter requires a real app bundle; `swift run`
+    /// has none and would crash.
+    private var notificationCenterAvailable: Bool {
+        Bundle.main.bundleIdentifier != nil
+    }
+
+    private func refreshNotificationStatus() async {
+        guard notificationCenterAvailable else { return }
+        let settings = await UNUserNotificationCenter.current().notificationSettings()
+        notificationsDenied = settings.authorizationStatus == .denied
+    }
+
+    private func requestNotificationAuthorization() async {
+        guard notificationCenterAvailable else { return }
+        _ = try? await UNUserNotificationCenter.current().requestAuthorization(options: [.alert])
     }
 
     // MARK: - Sections
@@ -121,6 +169,69 @@ struct SettingsView: View {
             SectionLabel(title)
             VStack(spacing: 0, content: rows)
                 .card(radius: Theme.radiusPanel)
+        }
+    }
+
+    /// Login-item state lives in SMAppService, not UserDefaults — the
+    /// toggle reads and writes the service directly.
+    @ViewBuilder
+    private var launchAtLoginRow: some View {
+        SettingRow(
+            localized("settings.launchAtLogin", defaultValue: "Open Reclaim at login"),
+            help: localized(
+                "settings.launchAtLoginHelp",
+                defaultValue: "Keeps the menu bar summary and weekly background scans running without opening the app yourself."
+            ),
+            isOn: Binding(
+                get: { launchAtLogin },
+                set: { newValue in
+                    do {
+                        try LoginItemService.setEnabled(newValue)
+                        launchAtLogin = newValue
+                        launchAtLoginFailed = false
+                    } catch {
+                        launchAtLoginFailed = true
+                    }
+                }
+            ),
+            isLast: !launchAtLoginFailed
+        )
+        if launchAtLoginFailed {
+            Text(localized(
+                "settings.launchAtLoginFailed",
+                defaultValue: "Couldn't change the login item — manage it under System Settings → General → Login Items."
+            ))
+            .font(Theme.caption)
+            .foregroundStyle(Theme.dangerWarn)
+            .padding(.horizontal, 16)
+            .padding(.bottom, 12)
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    /// Shown when the notify toggle is on but macOS blocks the alert —
+    /// without this the setting silently does nothing forever.
+    private var notificationsDeniedRow: some View {
+        HStack(spacing: 10) {
+            Image(systemName: "bell.slash")
+                .font(.system(size: 12))
+                .foregroundStyle(Theme.cautionTitle)
+            Text(localized(
+                "settings.notificationsDenied",
+                defaultValue: "Notifications for Reclaim are turned off in System Settings, so this alert cannot appear."
+            ))
+            .font(Theme.caption)
+            .foregroundStyle(Theme.textSecondary)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            Button(localized("settings.openNotificationSettings", defaultValue: "Open Notification Settings…")) {
+                NSWorkspace.shared.open(PrivacyLinks.notifications)
+            }
+            .buttonStyle(.rcSecondary)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
+        .overlay(alignment: .bottom) {
+            Rectangle().fill(Theme.separator).frame(height: 1)
         }
     }
 
@@ -139,6 +250,15 @@ struct SettingsView: View {
                     .font(.system(size: 12))
                     .lineSpacing(2.5)
                     .foregroundStyle(Color(hex: 0x8E8E95))
+                    HStack(spacing: 6) {
+                        Circle()
+                            .fill(fdaStatusColor)
+                            .frame(width: 7, height: 7)
+                        Text(fdaStatusText)
+                            .font(Theme.caption)
+                            .foregroundStyle(Theme.textTertiary)
+                    }
+                    .padding(.top, 4)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 Button(localized("fda.openSettingsButton", defaultValue: "Open Privacy Settings…")) {
@@ -149,6 +269,25 @@ struct SettingsView: View {
             .padding(.horizontal, 16)
             .padding(.vertical, 13)
             .card(radius: Theme.radiusPanel)
+        }
+    }
+
+    private var fdaStatusText: String {
+        switch model.hasFullDiskAccess {
+        case .some(true):
+            localized("settings.fdaStatusGranted", defaultValue: "Granted")
+        case .some(false):
+            localized("settings.fdaStatusDenied", defaultValue: "Not granted")
+        case .none:
+            localized("settings.fdaStatusUnknown", defaultValue: "Checked when a scan runs")
+        }
+    }
+
+    private var fdaStatusColor: Color {
+        switch model.hasFullDiskAccess {
+        case .some(true): Theme.safe
+        case .some(false): Theme.dangerWarn
+        case .none: Theme.textQuaternary
         }
     }
 

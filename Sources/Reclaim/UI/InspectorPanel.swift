@@ -71,6 +71,20 @@ struct InspectorPanel: View {
                         .padding(.top, 10)
                 }
 
+                if target.strategy.isCleanable, model.isExcludedFromAutoSelect(target) {
+                    Label(
+                        localized(
+                            "inspector.excludedNote",
+                            defaultValue: "Kept out of automatic selection — tick it manually to clean it."
+                        ),
+                        systemImage: "hand.raised"
+                    )
+                    .font(Theme.caption)
+                    .lineSpacing(2.5)
+                    .foregroundStyle(Theme.textTertiary)
+                    .padding(.top, 10)
+                }
+
                 pathChip(for: target, status: status)
                     .padding(.top, 14)
 
