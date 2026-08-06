@@ -1,0 +1,66 @@
+//
+//  CleaningView.swift
+//  Reclaim
+//
+//  Full-screen clean progress: which location is being disposed of,
+//  how far along the pass is, and a way to stop safely.
+//
+
+import ReclaimAppCore
+import ReclaimKit
+import SwiftUI
+
+struct CleaningView: View {
+    @Environment(AppModel.self) private var model
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Text(model.disposal == .trash ? "Moving to Trash" : "Deleting")
+                .font(.system(size: 20, weight: .semibold))
+                .foregroundStyle(Theme.textPrimary)
+
+            Text(model.cleanProgress?.targetPath ?? model.cleanProgress?.targetName ?? "Finishing up…")
+                .font(Theme.mono(11.5))
+                .foregroundStyle(Color(hex: 0x7E7E85))
+                .lineLimit(1)
+                .frame(height: 16)
+                .padding(.top, 10)
+                .contentTransition(.opacity)
+                .animation(Theme.quick, value: model.cleanProgress?.targetPath)
+
+            ProgressBar(fraction: model.cleanProgress?.fraction ?? 0, height: 6)
+                .frame(width: 420)
+                .padding(.top, 20)
+
+            if let progress = model.cleanProgress {
+                Text("\(progress.index) of ^[\(progress.total) location](inflect: true)")
+                    .font(.system(size: 12.5))
+                    .monospacedDigit()
+                    .foregroundStyle(Theme.textSecondary)
+                    .padding(.top, 14)
+                    .contentTransition(.numericText())
+                    .animation(Theme.smooth, value: progress.index)
+            }
+
+            Button("Stop after this item") {
+                model.cancelClean()
+            }
+            .buttonStyle(.rcSecondary)
+            .padding(.top, 30)
+            .help("The item being cleaned finishes; the rest are skipped")
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(40)
+    }
+}
+
+// MARK: - Previews
+
+#if DEBUG
+#Preview(traits: .fixedLayout(width: 1060, height: 810)) {
+    CleaningView()
+        .background(Theme.background)
+        .environment(PreviewData.scanned())
+        .preferredColorScheme(.dark)
+}
+#endif
