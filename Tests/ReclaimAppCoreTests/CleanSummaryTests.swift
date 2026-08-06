@@ -34,6 +34,16 @@ struct CleanSummaryTests {
         #expect(!summary.message.contains("1 locations"))
     }
 
+    @Test("A stopped pass says it was stopped early")
+    func stoppedWording() {
+        var summary = CleanSummary(disposal: .trash)
+        summary.itemsRemoved = 1
+        summary.cleanedTargets = 1
+        summary.wasStopped = true
+
+        #expect(summary.message.contains("stopped early"))
+    }
+
     @Test("A pass where nothing was removed says so instead of claiming success")
     func totalFailure() {
         var summary = CleanSummary(disposal: .trash)

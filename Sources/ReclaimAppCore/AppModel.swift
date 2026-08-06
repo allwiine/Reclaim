@@ -63,6 +63,17 @@ public final class AppModel {
     /// and clears it by assigning `nil`.
     public var lastCleanSummary: CleanSummary?
 
+    /// The target currently being cleaned, for progress UI.
+    public struct CleanProgress: Equatable, Sendable {
+        public let targetName: String
+        /// 1-based position within this pass.
+        public let index: Int
+        public let total: Int
+    }
+
+    /// Non-nil while a clean pass is processing a target.
+    public private(set) var cleanProgress: CleanProgress?
+
     @ObservationIgnored
     private(set) var scanTask: Task<Void, Never>?
     @ObservationIgnored
@@ -255,6 +266,11 @@ public final class AppModel {
         scanTask?.cancel()
     }
 
+    /// Stop the running clean pass after the in-flight target finishes.
+    public func cancelClean() {
+        cleanTask?.cancel()
+    }
+
     /// Fan out scans through a width-limited task group. Runs on the
     /// main actor; the blocking work happens inside the child tasks,
     /// which execute nonisolated on the global executor.
@@ -317,8 +333,17 @@ public final class AppModel {
             var summary = CleanSummary(disposal: chosenDisposal)
 
             // Sequential on purpose: cleanup should be predictable and
-            // easy to interrupt, and it is I/O-bound anyway.
-            for job in jobs {
+            // easy to interrupt, and it is I/O-bound anyway. The
+            // cancellation check sits between jobs: the in-flight
+            // target always finishes, so nothing is left half-cleaned.
+            for (index, job) in jobs.enumerated() {
+                if Task.isCancelled {
+                    summary.wasStopped = true
+                    break
+                }
+                self.cleanProgress = CleanProgress(
+                    targetName: job.target.name, index: index + 1, total: jobs.count
+                )
                 self.statuses[job.target.id] = .scanning
 
                 let outcome = await Self.offMain {
@@ -340,6 +365,7 @@ public final class AppModel {
                 self.selection.remove(job.target.id)
             }
 
+            self.cleanProgress = nil
             self.lastCleanSummary = summary
             self.isCleaning = false
             self.cleanTask = nil

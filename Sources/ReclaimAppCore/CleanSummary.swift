@@ -19,6 +19,8 @@ public struct CleanSummary: Equatable, Sendable {
     public var failedTargets: Int = 0
     /// Files and folders disposed of across all targets.
     public var itemsRemoved: Int = 0
+    /// Whether the pass was stopped before processing every target.
+    public var wasStopped: Bool = false
     /// Human-readable failure lines, empty on full success.
     public var failures: [String] = []
 
@@ -29,6 +31,10 @@ public struct CleanSummary: Equatable, Sendable {
     /// Alert body text.
     public var message: String {
         var lines: [String] = []
+
+        if wasStopped {
+            lines.append("Cleaning was stopped early — not every selected item was processed.")
+        }
 
         if itemsRemoved == 0 {
             lines.append("Nothing was cleaned.")

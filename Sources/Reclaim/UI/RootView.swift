@@ -53,6 +53,20 @@ struct RootView: View {
         } message: { summary in
             Text(summary.message)
         }
+        .safeAreaInset(edge: .bottom) {
+            if let progress = model.cleanProgress {
+                HStack(spacing: 8) {
+                    ProgressView()
+                        .controlSize(.small)
+                    Text("Cleaning \(progress.targetName) (\(progress.index) of \(progress.total))…")
+                        .font(.callout)
+                    Spacer()
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+                .background(.bar)
+            }
+        }
     }
 
     // MARK: - Detail
@@ -88,13 +102,19 @@ struct RootView: View {
                     Label("Stop", systemImage: "stop.fill")
                 }
                 .help("Stop the current scan")
+            } else if model.isCleaning {
+                Button {
+                    model.cancelClean()
+                } label: {
+                    Label("Stop", systemImage: "stop.fill")
+                }
+                .help("Finish the current item, then stop cleaning")
             } else {
                 Button {
                     model.scanAll()
                 } label: {
                     Label("Scan", systemImage: "arrow.clockwise")
                 }
-                .disabled(model.isCleaning)
                 .help("Measure every known cache and tool location")
             }
 

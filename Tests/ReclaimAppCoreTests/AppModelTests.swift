@@ -257,6 +257,49 @@ struct AppModelTests {
         #expect(summary?.failures.count == 1)
     }
 
+    @Test("Stopping a clean pass finishes the current target and skips the rest")
+    func stoppableCleanPass() async {
+        let store = TemporaryDefaults()
+        let first = target("first")
+        let second = target("second")
+        let gate = DispatchSemaphore(value: 0)
+        let cleaned = Mutex<[String]>([])
+
+        let model = AppModel(
+            targets: [first, second],
+            defaults: store.defaults,
+            scanExecutor: { _ in measured(100) },
+            cleanExecutor: { t, _, _ in
+                if t.id == "first" { gate.wait() }
+                cleaned.withLock { $0.append(t.id) }
+                return CleanOutcome(removedItems: 1)
+            }
+        )
+
+        model.scanAll()
+        await model.scanTask?.value
+        model.setSelected(first, true)
+        model.setSelected(second, true)
+        model.cleanSelected()
+
+        // Wait (bounded) until the first job is reported in flight.
+        for _ in 0..<10_000 where model.cleanProgress == nil {
+            await Task.yield()
+        }
+        #expect(model.cleanProgress?.targetName == "first")
+        #expect(model.cleanProgress?.total == 2)
+
+        model.cancelClean()
+        gate.signal()
+        await model.cleanTask?.value
+
+        #expect(cleaned.withLock { $0 } == ["first"], "the in-flight target finishes; the rest are skipped")
+        #expect(model.cleanProgress == nil)
+        #expect(model.lastCleanSummary?.wasStopped == true)
+        #expect(model.isSelected(second), "skipped targets stay selected")
+        #expect(model.status(of: "second").bytes == 100, "skipped targets keep their measurement")
+    }
+
     @Test("The disposal chosen in Settings reaches the clean executor")
     func disposalSnapshot() async {
         let store = TemporaryDefaults()
