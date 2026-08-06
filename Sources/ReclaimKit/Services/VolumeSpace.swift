@@ -12,12 +12,16 @@ import Foundation
 public struct VolumeSpace: Sendable, Equatable {
     public let totalBytes: Int64
     public let availableBytes: Int64
+    /// The user-visible volume name (e.g. "Macintosh HD", localized by
+    /// the system), or `nil` when the volume does not report one.
+    public let localizedName: String?
 
     public var usedBytes: Int64 { max(0, totalBytes - availableBytes) }
 
-    public init(totalBytes: Int64, availableBytes: Int64) {
+    public init(totalBytes: Int64, availableBytes: Int64, localizedName: String? = nil) {
         self.totalBytes = totalBytes
         self.availableBytes = availableBytes
+        self.localizedName = localizedName
     }
 }
 
@@ -33,6 +37,7 @@ public struct VolumeSpaceProbe: Sendable {
             .volumeTotalCapacityKey,
             .volumeAvailableCapacityForImportantUsageKey,
             .volumeAvailableCapacityKey,
+            .volumeLocalizedNameKey,
         ]), let total = values.volumeTotalCapacity else { return nil }
 
         // "Important usage" matches Finder: it counts purgeable space
@@ -43,6 +48,10 @@ public struct VolumeSpaceProbe: Sendable {
         guard let available = important.flatMap({ $0 > 0 ? $0 : nil }) ?? plain else {
             return nil
         }
-        return VolumeSpace(totalBytes: Int64(total), availableBytes: available)
+        return VolumeSpace(
+            totalBytes: Int64(total),
+            availableBytes: available,
+            localizedName: values.volumeLocalizedName
+        )
     }
 }
