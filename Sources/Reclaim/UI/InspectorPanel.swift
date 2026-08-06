@@ -23,7 +23,7 @@ struct InspectorPanel: View {
             if let target {
                 details(for: target)
             } else {
-                Text("Select an item")
+                Text(localized("inspector.selectAnItem", defaultValue: "Select an item"))
                     .font(Theme.body)
                     .foregroundStyle(Theme.textQuaternary)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -119,11 +119,11 @@ struct InspectorPanel: View {
                     .foregroundStyle(Theme.textSecondary)
             }
         case .unmeasurable:
-            Text("Size known after cleaning")
+            Text(localized("inspector.sizeKnownAfterCleaning", defaultValue: "Size known after cleaning"))
                 .font(Theme.cardTitle)
                 .foregroundStyle(Theme.textSecondary)
         case .notInstalled:
-            Text("Not installed")
+            Text(localized("status.notInstalled", defaultValue: "Not installed"))
                 .font(Theme.cardTitle)
                 .foregroundStyle(Theme.textSecondary)
         case .failed(let message):
@@ -131,7 +131,7 @@ struct InspectorPanel: View {
                 .font(Theme.body)
                 .foregroundStyle(Theme.dangerWarn)
         case .idle, .scanning:
-            Text("—")
+            Text(verbatim: "—")
                 .font(Theme.cardTitle)
                 .foregroundStyle(Theme.textQuaternary)
         }
@@ -152,7 +152,9 @@ struct InspectorPanel: View {
             }
         } label: {
             HStack(spacing: 8) {
-                Text(path.isEmpty ? "No fixed location" : path)
+                Text(path.isEmpty
+                    ? localized("inspector.noFixedLocation", defaultValue: "No fixed location")
+                    : path)
                     .font(Theme.mono())
                     .foregroundStyle(Color(hex: 0x8E8E95))
                     .multilineTextAlignment(.leading)
@@ -175,12 +177,14 @@ struct InspectorPanel: View {
         }
         .buttonStyle(.plain)
         .disabled(status.resolvedPaths.isEmpty)
-        .help(status.resolvedPaths.isEmpty ? "" : "Reveal in Finder")
+        .help(status.resolvedPaths.isEmpty
+            ? ""
+            : localized("action.revealInFinder", defaultValue: "Reveal in Finder"))
     }
 
     private func delegatedCard(for target: CleanupTarget) -> some View {
         VStack(alignment: .leading, spacing: 5) {
-            Text("Reclaim won’t delete this")
+            Text(localized("inspector.wontDeleteTitle", defaultValue: "Reclaim won’t delete this"))
                 .font(.system(size: 12, weight: .semibold))
                 .foregroundStyle(Theme.cautionTitle)
             Text(target.manualInstructions ?? "")
@@ -194,7 +198,10 @@ struct InspectorPanel: View {
                         .font(Theme.mono())
                         .foregroundStyle(Color(hex: 0xDCDCE2))
                         .frame(maxWidth: .infinity, alignment: .leading)
-                    Button(copied ? "Copied" : "Copy") {
+                    Button(copied
+                        ? localized("action.copied", defaultValue: "Copied")
+                        : localized("action.copy", defaultValue: "Copy")
+                    ) {
                         NSPasteboard.general.clearContents()
                         NSPasteboard.general.setString(command, forType: .string)
                         withAnimation(Theme.quick) { copied = true }
@@ -225,7 +232,9 @@ struct InspectorPanel: View {
 
     private func commandInfo(_ spec: CommandSpec) -> some View {
         Label {
-            Text("Cleans by running \(Text(spec.displayCommand).font(Theme.mono()))")
+            Text(localized("inspector.cleansByRunning", defaultValue: "Cleans by running"))
+                + Text(verbatim: " ")
+                + Text(spec.displayCommand).font(Theme.mono())
         } icon: {
             Image(systemName: "terminal")
         }
@@ -236,7 +245,7 @@ struct InspectorPanel: View {
     @ViewBuilder
     private func breakdown(for target: CleanupTarget, status: TargetStatus) -> some View {
         if case .measured(let measurement, _, _) = status, measurement.bytes > 0 {
-            SectionLabel("Largest contents")
+            SectionLabel(localized("inspector.largestContents", defaultValue: "Largest contents"))
                 .padding(.top, 24)
 
             if let entries = model.breakdowns[target.id], !entries.isEmpty {
@@ -271,7 +280,7 @@ struct InspectorPanel: View {
             } else {
                 HStack(spacing: 8) {
                     ProgressView().controlSize(.small)
-                    Text("Measuring contents…")
+                    Text(localized("inspector.measuringContents", defaultValue: "Measuring contents…"))
                         .font(Theme.caption)
                         .foregroundStyle(Theme.textQuaternary)
                 }
@@ -291,11 +300,15 @@ struct InspectorPanel: View {
     }
 
     private func footerLine(_ measurement: DiskMeasurement, locations: Int) -> String {
-        let files = "\(measurement.fileCount.formatted()) file\(measurement.fileCount == 1 ? "" : "s")"
-        let places = "\(locations) location\(locations == 1 ? "" : "s")"
-        var line = "\(files) across \(places)."
+        var line = localized(
+            "inspector.footer",
+            defaultValue: "\(measurement.fileCount) files across \(locations) locations."
+        )
         if measurement.inaccessibleItems > 0 {
-            line += " \(measurement.inaccessibleItems) entr\(measurement.inaccessibleItems == 1 ? "y" : "ies") could not be read — sizes are a lower bound."
+            line += " " + localized(
+                "inspector.footerUnreadable",
+                defaultValue: "\(measurement.inaccessibleItems) entries could not be read — sizes are a lower bound."
+            )
         }
         return line
     }

@@ -167,12 +167,12 @@ extension ToolCategory {
     /// Single-letter glyph shown in category icon tiles.
     var letter: String {
         switch self {
-        case .xcode: "X"
-        case .android: "A"
-        case .dotNet: "N"
-        case .aiTools: "C"
-        case .packageManagers: "P"
-        case .otherTools: "D"
+        case .xcode: localized("category.xcode.letter", defaultValue: "X")
+        case .android: localized("category.android.letter", defaultValue: "A")
+        case .dotNet: localized("category.dotNet.letter", defaultValue: "N")
+        case .aiTools: localized("category.aiTools.letter", defaultValue: "C")
+        case .packageManagers: localized("category.packageManagers.letter", defaultValue: "P")
+        case .otherTools: localized("category.otherTools.letter", defaultValue: "D")
         }
     }
 }
@@ -200,7 +200,7 @@ enum BadgeKind {
     var title: String {
         switch self {
         case .safety(let level): level.title
-        case .delegated: "Handled by tool"
+        case .delegated: localized("badge.delegated.title", defaultValue: "Handled by tool")
         }
     }
 
@@ -214,7 +214,10 @@ enum BadgeKind {
     var explanation: String {
         switch self {
         case .safety(let level): level.explanation
-        case .delegated: "Reclaim measures this but leaves removal to the tool that owns it."
+        case .delegated: localized(
+            "badge.delegated.explanation",
+            defaultValue: "Reclaim measures this but leaves removal to the tool that owns it."
+        )
         }
     }
 }
@@ -238,23 +241,42 @@ extension Color {
 extension Int64 {
     /// Compact size like the design: "34.2 GB" at gigabyte scale,
     /// whole megabytes below that, "—"-friendly zero handling is the
-    /// caller's business.
+    /// caller's business. Numbers follow the current locale ("34,2 GB"
+    /// in Norwegian); units come from the catalogues.
     var formattedBytesCompact: String {
         let gb = Double(self) / 1_000_000_000
-        if gb >= 1 { return String(format: "%.1f GB", gb) }
+        if gb >= 1 {
+            let value = gb.formatted(.number.precision(.fractionLength(1)))
+            return localized("format.valueGigabytes", defaultValue: "\(value) GB")
+        }
         let mb = Int((Double(self) / 1_000_000).rounded())
-        return mb >= 1 ? "\(mb) MB" : "< 1 MB"
+        if mb >= 1 {
+            return localized("format.valueMegabytes", defaultValue: "\(mb.formatted()) MB")
+        }
+        return localized("format.underOneMegabyte", defaultValue: "< 1 MB")
     }
 
     /// Split value/unit for hero numerals ("34.2", "GB").
     var byteParts: (value: String, unit: String) {
         let gb = Double(self) / 1_000_000_000
-        if gb >= 1 { return (String(format: "%.1f", gb), "GB") }
-        return ("\(Int((Double(self) / 1_000_000).rounded()))", "MB")
+        if gb >= 1 {
+            return (
+                gb.formatted(.number.precision(.fractionLength(1))),
+                localized("format.unitGigabytes", defaultValue: "GB")
+            )
+        }
+        let mb = Int((Double(self) / 1_000_000).rounded())
+        return (mb.formatted(), localized("format.unitMegabytes", defaultValue: "MB"))
     }
 
     /// Whole-gigabyte figure for disk capacity labels ("372 GB").
     var wholeGB: String {
-        "\(Int((Double(self) / 1_000_000_000).rounded())) GB"
+        localized("format.valueGigabytes", defaultValue: "\(wholeGBValue) GB")
+    }
+
+    /// Whole-gigabyte number alone ("372"), for hero numerals.
+    var wholeGBValue: String {
+        (Double(self) / 1_000_000_000).rounded()
+            .formatted(.number.precision(.fractionLength(0)))
     }
 }

@@ -27,14 +27,14 @@ struct SidebarView: View {
             ScrollView {
                 VStack(spacing: 1) {
                     SidebarRow(
-                        title: "Overview",
+                        title: localized("sidebar.overview", defaultValue: "Overview"),
                         systemImage: "square.grid.2x2",
                         isSelected: destination == .overview
                     ) {
                         destination = .overview
                     }
 
-                    SectionLabel("Categories")
+                    SectionLabel(localized("sidebar.categories", defaultValue: "Categories"))
                         .padding(.horizontal, 10)
                         .padding(.top, 14)
                         .padding(.bottom, 8)
@@ -53,14 +53,14 @@ struct SidebarView: View {
 
             VStack(spacing: 1) {
                 SidebarRow(
-                    title: "History",
+                    title: localized("sidebar.history", defaultValue: "History"),
                     systemImage: "clock.arrow.circlepath",
                     isSelected: destination == .history
                 ) {
                     destination = .history
                 }
                 SidebarRow(
-                    title: "Settings",
+                    title: localized("sidebar.settings", defaultValue: "Settings"),
                     systemImage: "gearshape",
                     isSelected: destination == .settings
                 ) {
@@ -80,7 +80,7 @@ struct SidebarView: View {
 
     private var headline: some View {
         VStack(alignment: .leading, spacing: 0) {
-            SectionLabel("Reclaimable")
+            SectionLabel(localized("sidebar.reclaimable", defaultValue: "Reclaimable"))
 
             if hasMeasurements {
                 let parts = model.totalFoundBytes.byteParts
@@ -103,13 +103,13 @@ struct SidebarView: View {
                 HStack(alignment: .center, spacing: 6) {
                     StripedPlaceholder()
                         .frame(width: 62, height: 22)
-                    Text("GB")
+                    Text(localized("format.unitGigabytes", defaultValue: "GB"))
                         .font(.system(size: 15, weight: .medium))
                         .foregroundStyle(Color(hex: 0x5C5C63))
                 }
                 .padding(.top, 6)
 
-                Text("Run a scan to measure")
+                Text(localized("sidebar.runScanHint", defaultValue: "Run a scan to measure"))
                     .font(Theme.footnote)
                     .foregroundStyle(Theme.textQuaternary)
                     .padding(.top, 9)
@@ -216,7 +216,7 @@ struct StripedPlaceholder: View {
     var body: some View {
         stripes
             .clipShape(RoundedRectangle(cornerRadius: 6))
-            .accessibilityLabel("Not measured yet")
+            .accessibilityLabel(localized("accessibility.notMeasuredYet", defaultValue: "Not measured yet"))
     }
 
     private var stripes: some View {

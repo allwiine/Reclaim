@@ -8,12 +8,22 @@
 //
 
 import Foundation
+import ReclaimAppCore
 import ReclaimKit
 
 extension Int64 {
     /// File-style byte formatting ("1.24 GB"), matching Finder.
     var formattedBytes: String {
         formatted(.byteCount(style: .file))
+    }
+}
+
+extension AppModel {
+    /// The user-visible name of the volume the disk cards describe,
+    /// falling back to a generic label until the probe reports one.
+    var volumeDisplayName: String {
+        volumeSpace?.localizedName
+            ?? localized("disk.startupDisk", defaultValue: "Startup Disk")
     }
 }
 

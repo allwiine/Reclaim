@@ -44,7 +44,7 @@ struct ToolbarView: View {
                     Image(systemName: "arrow.clockwise")
                 }
                 .buttonStyle(.rcIcon)
-                .help("Scan again")
+                .help(localized("toolbar.scanAgainHelp", defaultValue: "Scan again"))
                 .keyboardShortcut("r", modifiers: .command)
 
                 Button(reclaimLabel) {
@@ -54,7 +54,7 @@ struct ToolbarView: View {
                     enabled: model.selectedBytes > 0 || !model.selection.isEmpty
                 ))
                 .disabled(model.selection.isEmpty)
-                .help("Clean the selected items")
+                .help(localized("toolbar.reclaimHelp", defaultValue: "Clean the selected items"))
             }
         }
         .padding(.leading, 18)
@@ -71,7 +71,7 @@ struct ToolbarView: View {
             Image(systemName: "magnifyingglass")
                 .font(.system(size: 10))
                 .foregroundStyle(Color(hex: 0x8B8B92))
-            TextField("Search paths", text: $searchText)
+            TextField(localized("toolbar.searchPlaceholder", defaultValue: "Search paths"), text: $searchText)
                 .textFieldStyle(.plain)
                 .font(.system(size: 12))
                 .foregroundStyle(Theme.textPrimary)
@@ -104,50 +104,68 @@ struct ToolbarView: View {
     }
 
     private var reclaimLabel: String {
-        model.selectedBytes > 0
-            ? "Reclaim \(model.selectedBytes.formattedBytesCompact)"
-            : model.selection.isEmpty ? "Nothing selected" : "Reclaim selection"
+        if model.selectedBytes > 0 {
+            return localized(
+                "toolbar.reclaimBytes",
+                defaultValue: "Reclaim \(model.selectedBytes.formattedBytesCompact)"
+            )
+        }
+        return model.selection.isEmpty
+            ? localized("toolbar.nothingSelected", defaultValue: "Nothing selected")
+            : localized("toolbar.reclaimSelection", defaultValue: "Reclaim selection")
     }
 
     // MARK: - Titles
 
     private var title: String {
         switch phase {
-        case .idle: "Reclaim"
-        case .scanning: "Scanning"
-        case .cleaning: model.disposal == .trash ? "Moving to Trash" : "Cleaning"
-        case .done: "Finished"
-        case .overview: "Overview"
+        case .idle: localized("app.name", defaultValue: "Reclaim")
+        case .scanning: localized("title.scanning", defaultValue: "Scanning")
+        case .cleaning: model.disposal == .trash
+            ? localized("title.movingToTrash", defaultValue: "Moving to Trash")
+            : localized("title.cleaning", defaultValue: "Cleaning")
+        case .done: localized("title.finished", defaultValue: "Finished")
+        case .overview: localized("sidebar.overview", defaultValue: "Overview")
         case .browser: browserTitle
-        case .history: "History"
-        case .settings: "Settings"
+        case .history: localized("sidebar.history", defaultValue: "History")
+        case .settings: localized("sidebar.settings", defaultValue: "Settings")
         }
     }
 
     private var browserTitle: String {
-        if !searchText.isEmpty { return "Search" }
+        if !searchText.isEmpty { return localized("title.search", defaultValue: "Search") }
         if case .category(let category) = destination { return category.title }
-        return "Results"
+        return localized("title.results", defaultValue: "Results")
     }
 
     private var subtitle: String {
         switch phase {
         case .idle:
-            return "No scan yet"
+            return localized("toolbar.noScanYet", defaultValue: "No scan yet")
         case .overview:
             guard let lastScan = model.lastScan else { return "" }
             let when = lastScan.formatted(.relative(presentation: .named))
             let measured = model.targets.count { model.bytes(of: $0) > 0 }
-            return "Scanned \(when) · \(measured) locations"
+            return localized(
+                "toolbar.scannedSubtitle",
+                defaultValue: "Scanned \(when) · \(measured) locations"
+            )
         case .browser:
             if !searchText.isEmpty { return "" }
             guard case .category(let category) = destination else { return "" }
             let targets = model.visibleTargets(in: category)
             let bytes = targets.reduce(Int64(0)) { $0 + model.bytes(of: $1) }
-            return "\(targets.count) items · \(bytes.formattedBytesCompact)"
+            return localized(
+                "toolbar.categorySubtitle",
+                defaultValue: "\(targets.count) items · \(bytes.formattedBytesCompact)"
+            )
         case .history:
             let recent = model.history.count
-            return recent == 0 ? "" : "\(recent) clean\(recent == 1 ? "" : "s") on record"
+            guard recent > 0 else { return "" }
+            return localized(
+                "toolbar.historySubtitle",
+                defaultValue: "\(recent) cleans on record"
+            )
         default:
             return ""
         }

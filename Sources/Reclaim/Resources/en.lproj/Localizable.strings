@@ -1,0 +1,227 @@
+/*
+  Localizable.strings (English) — Reclaim app
+  Mirrors the defaultValue fallbacks in code; keep both in sync.
+  Plural-bearing keys live in Localizable.stringsdict.
+*/
+
+/* App */
+"app.name" = "Reclaim";
+
+/* Shared actions */
+"action.cancel" = "Cancel";
+"action.copy" = "Copy";
+"action.copied" = "Copied";
+"action.revealInFinder" = "Reveal in Finder";
+
+/* Accessibility */
+"accessibility.notMeasuredYet" = "Not measured yet";
+"accessibility.safetyBadge" = "Safety: %@";
+"accessibility.inProgress" = "In progress";
+
+/* Badges & category glyphs */
+"badge.delegated.title" = "Handled by tool";
+"badge.delegated.explanation" = "Reclaim measures this but leaves removal to the tool that owns it.";
+"category.xcode.letter" = "X";
+"category.android.letter" = "A";
+"category.dotNet.letter" = "N";
+"category.aiTools.letter" = "C";
+"category.packageManagers.letter" = "P";
+"category.otherTools.letter" = "D";
+
+/* Number & unit formats */
+"format.valueGigabytes" = "%@ GB";
+"format.valueMegabytes" = "%@ MB";
+"format.underOneMegabyte" = "< 1 MB";
+"format.unitGigabytes" = "GB";
+"format.unitMegabytes" = "MB";
+
+/* Sidebar */
+"sidebar.overview" = "Overview";
+"sidebar.categories" = "Categories";
+"sidebar.history" = "History";
+"sidebar.settings" = "Settings";
+"sidebar.reclaimable" = "Reclaimable";
+"sidebar.runScanHint" = "Run a scan to measure";
+
+/* Toolbar */
+"toolbar.searchPlaceholder" = "Search paths";
+"toolbar.scanAgainHelp" = "Scan again";
+"toolbar.reclaimHelp" = "Clean the selected items";
+"toolbar.reclaimBytes" = "Reclaim %@";
+"toolbar.nothingSelected" = "Nothing selected";
+"toolbar.reclaimSelection" = "Reclaim selection";
+"toolbar.noScanYet" = "No scan yet";
+
+/* Titles */
+"title.scanning" = "Scanning";
+"title.movingToTrash" = "Moving to Trash";
+"title.cleaning" = "Cleaning";
+"title.deleting" = "Deleting";
+"title.finished" = "Finished";
+"title.search" = "Search";
+"title.results" = "Results";
+
+/* Idle (first launch) */
+"idle.versionBadge" = "Reclaim %@";
+"idle.headline" = "Reclaim the space your tools quietly keep.";
+"idle.pitch" = "Reclaim checks a curated catalogue of known cache and scratch locations, tells you what each one is and what it costs to lose, then cleans only what you select.";
+"idle.scanButton" = "Scan this Mac";
+"idle.readOnlyNote" = "Read-only — nothing is removed by scanning";
+"idle.safetyNote.safe" = "Regenerated automatically. Build caches, indexes, logs.";
+"idle.safetyNote.caution" = "Restorable, but re-downloading or losing history costs something.";
+"idle.safetyNote.destructive" = "Removes things you made, like emulators. Never preselected.";
+"idle.catalogueTitle" = "What Reclaim looks at";
+"idle.trustNote" = "Nothing is removed without your confirmation, and everything goes to the Trash by default. Credentials, settings and plugins are never in the catalogue.";
+
+/* Scanning */
+"progress.finishingUp" = "Finishing up…";
+"scanning.foundSoFar" = "%@ found so far";
+"scanning.stopButton" = "Stop";
+"scanning.stopHelp" = "Keep what has been measured so far";
+
+/* Cleaning */
+"cleaning.stopButton" = "Stop after this item";
+"cleaning.stopHelp" = "The item being cleaned finishes; the rest are skipped";
+
+/* Overview */
+"overview.partialScanNotice" = "Scan stopped early — the sizes below cover only what was measured before stopping.";
+"overview.reclaimableNow" = "Reclaimable now";
+"overview.safeToRemove" = "%@ safe to remove";
+"overview.needsDecision" = "%@ needs a decision";
+"overview.reclaimSafeButton" = "Reclaim safe space";
+"overview.reviewEverythingButton" = "Review everything";
+"overview.biggestLocations" = "Biggest single locations";
+"overview.needsAttention" = "Needs your attention";
+"overview.reclaimedAllTime" = "Reclaimed all time";
+"overview.noCleansYet" = "no cleans recorded yet";
+"overview.lastClean" = "Last clean";
+"overview.nothingCleanedYet" = "nothing cleaned yet";
+"overview.lastCleanSub" = "%1$@ freed · %2$@";
+"overview.nextBackgroundScan" = "Next background scan";
+"overview.weeklyWhileRunning" = "weekly, while Reclaim is running";
+"overview.backgroundScansOff" = "background scans are off";
+"overview.off" = "Off";
+"overview.afterFirstScan" = "After first scan";
+
+/* Disk card */
+"disk.startupDisk" = "Startup Disk";
+"disk.usedOfTotal" = "%1$@ used of %2$@";
+"disk.freeOfTotal" = "%1$@ free of %2$@";
+"disk.gbFree" = "GB free";
+"disk.legendDeveloperCaches" = "Developer caches";
+"disk.legendOtherUsed" = "Other used space";
+"disk.legendFree" = "Free";
+
+/* Full Disk Access banner */
+"fda.title" = "Full Disk Access is not granted";
+"fda.body" = "Some locations cannot be measured or cleaned, so results may be incomplete.";
+"fda.openSettingsButton" = "Open Privacy Settings…";
+
+/* Browser */
+"browser.selectAllSafe" = "Select all safe";
+"browser.clear" = "Clear";
+"browser.noItemsSelected" = "No items selected";
+"browser.noMatches" = "No matches";
+"browser.nothingFound" = "Nothing found";
+"browser.emptySearchDetail" = "No catalogue entry matches that search — try a tool name or a path fragment.";
+"browser.emptyCategoryDetail" = "None of these tools were found on this Mac. Enable “Show tools that are not installed” in Settings to list them anyway.";
+"browser.selectAccessibility" = "Select %@";
+
+/* Row statuses */
+"status.empty" = "Empty";
+"status.notInstalled" = "Not installed";
+"status.sizeUnknown" = "Size unknown";
+"status.sizeUnknownHelp" = "The reclaimable size is only known after cleaning.";
+"status.scanFailed" = "Couldn't scan";
+
+/* Inspector */
+"inspector.selectAnItem" = "Select an item";
+"inspector.sizeKnownAfterCleaning" = "Size known after cleaning";
+"inspector.noFixedLocation" = "No fixed location";
+"inspector.wontDeleteTitle" = "Reclaim won’t delete this";
+"inspector.cleansByRunning" = "Cleans by running";
+"inspector.largestContents" = "Largest contents";
+"inspector.measuringContents" = "Measuring contents…";
+
+/* Confirmation sheet */
+"confirm.moveToTrash" = "Move to Trash";
+"confirm.deletePermanently" = "Delete Permanently";
+"confirm.bodyDryRun" = "Dry run is on — Reclaim will only report what would be removed. Nothing is touched.";
+"confirm.bodyTrash" = "Everything listed below moves to the Trash. Nothing is removed permanently until you empty it.";
+"confirm.bodyDelete" = "Everything listed below is deleted immediately and cannot be recovered.";
+"confirm.sizeUnknown" = "size unknown";
+"confirm.destructiveWarning" = "This selection includes items marked Destructive — things you created, like emulators, that cannot be restored.";
+"confirm.cautionWarning" = "This selection includes items marked Caution. They can be restored, but re-downloading models or losing history costs something.";
+"confirm.runningAppsWarning" = "%@ appears to be running — cleaning its data now may break builds or work in progress. Consider quitting first.";
+"confirm.trashToggle" = "Move to Trash instead of deleting";
+"confirm.trashToggleHelp" = "The app-wide disposal setting — also in Settings";
+
+/* Done */
+"done.emptyTrashTitle" = "Empty the Trash?";
+"done.emptyTrashButton" = "Empty Trash";
+"done.emptyTrashMessage" = "This empties everything in the Trash — including items Reclaim didn't put there. This cannot be undone.";
+"done.unitReclaimed" = "%@ reclaimed";
+"done.unitWouldBeReclaimed" = "%@ would be reclaimed";
+"done.noteDryRun" = "Dry run — nothing was touched. Turn off Dry run in Settings to clean for real.";
+"done.noteStopped" = "Stopped early — not every selected item was processed.";
+"done.noteTrashEmptied" = "Trash emptied. The space is available now.";
+"done.noteMovedToTrash" = "Moved to the Trash. Empty it to release the space for good.";
+"done.noteDeleted" = "Deleted permanently. The space is available now.";
+"done.failuresTitle" = "Some items could not be cleaned";
+"done.failuresMore" = "…and %lld more.";
+"done.fullDiskAccessHint" = "If access was denied, grant Reclaim Full Disk Access in System Settings → Privacy & Security.";
+"done.backToOverview" = "Back to overview";
+"done.emptyTrashFailed" = "Couldn't empty the Trash: %@";
+"done.trashEmptied" = "Trash emptied";
+"done.tryAgain" = "Try again";
+
+/* History */
+"history.emptyTitle" = "No cleans yet";
+"history.emptyDetail" = "Every clean pass is recorded here: when it ran, what it covered, and how much space came back.";
+"history.footnote" = "Each entry lists what was cleaned and what the follow-up scan measured as actually freed.";
+"history.chartHelp" = "%1$@ — %2$@";
+"history.columnWhen" = "When";
+"history.columnWhat" = "What";
+"history.columnItems" = "Items";
+"history.columnFreed" = "Freed";
+
+/* Settings */
+"settings.sectionCleaning" = "Cleaning";
+"settings.moveToTrash" = "Move items to the Trash";
+"settings.moveToTrashHelp" = "The default. Nothing leaves your Mac until you empty the Trash.";
+"settings.dryRun" = "Dry run";
+"settings.dryRunHelp" = "Report what would be removed without touching anything.";
+"settings.preselectCaution" = "Preselect Caution items";
+"settings.preselectCautionHelp" = "Off by default. Only Safe items are selected after a scan.";
+"settings.sectionScanning" = "Scanning";
+"settings.weeklyScan" = "Scan weekly in the background";
+"settings.weeklyScanHelp" = "Runs quietly while Reclaim is open, once a week has passed.";
+"settings.notifyLarge" = "Notify when more than %@ is reclaimable";
+"settings.notifyLargeHelp" = "A single notification after each background scan that finds that much.";
+"settings.showNotInstalled" = "Show tools that are not installed";
+"settings.showNotInstalledHelp" = "Keep catalogue entries visible even when the tool was not found on this Mac.";
+"settings.sectionMenuBar" = "Menu bar";
+"settings.menuBarExtra" = "Show Reclaim in the menu bar";
+"settings.menuBarExtraHelp" = "A compact summary with quick access to scanning and safe cleanup.";
+"settings.sectionPermissions" = "Permissions";
+"settings.fullDiskAccess" = "Full Disk Access";
+"settings.fullDiskAccessHelp" = "Some locations (for example parts of ~/Library) may require Full Disk Access to scan or clean.";
+"settings.sectionExclusions" = "Excluded from scans";
+"settings.exclusionAuth" = "auth — never in catalogue";
+"settings.exclusionNever" = "never in catalogue";
+"settings.exclusionCerts" = "dev certs & keys — never in catalogue";
+"settings.exclusionTools" = "installed tools — never in catalogue";
+"settings.exclusionsFootnote" = "Reclaim's catalogue holds only caches, logs and scratch data. Credentials, settings and plugins are excluded structurally — they are not part of the catalogue and cannot be selected.";
+
+/* Menu bar extra */
+"menu.scanThisMac" = "Scan This Mac";
+"menu.reclaimable" = "Reclaimable: %@";
+"menu.safeToRemove" = "Safe to remove: %@";
+"menu.scanning" = "Scanning…";
+"menu.scanNow" = "Scan Now";
+"menu.reviewInReclaim" = "Review in Reclaim…";
+"menu.quit" = "Quit Reclaim";
+
+/* Notifications */
+"notification.title" = "Reclaim found %@";
+"notification.body" = "Developer caches are holding on to space. Review and reclaim it when convenient.";

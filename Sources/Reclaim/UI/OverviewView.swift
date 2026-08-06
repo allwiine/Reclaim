@@ -72,7 +72,10 @@ struct OverviewView: View {
 
     private var partialScanNotice: some View {
         Label(
-            "Scan stopped early — the sizes below cover only what was measured before stopping.",
+            localized(
+                "overview.partialScanNotice",
+                defaultValue: "Scan stopped early — the sizes below cover only what was measured before stopping."
+            ),
             systemImage: "exclamationmark.circle"
         )
         .font(Theme.body)
@@ -94,27 +97,42 @@ struct OverviewView: View {
             ring
 
             VStack(alignment: .leading, spacing: 0) {
-                SectionLabel("Reclaimable now")
+                SectionLabel(localized("overview.reclaimableNow", defaultValue: "Reclaimable now"))
 
                 VStack(alignment: .leading, spacing: 9) {
                     breakdownRow(
                         color: Theme.safe,
-                        title: "\(model.safeReclaimableBytes.formattedBytesCompact) safe to remove",
-                        subtitle: "^[\(model.safeReclaimableCount) safe item](inflect: true), regenerated automatically"
+                        title: localized(
+                            "overview.safeToRemove",
+                            defaultValue: "\(model.safeReclaimableBytes.formattedBytesCompact) safe to remove"
+                        ),
+                        subtitle: localized(
+                            "overview.safeItemsSubtitle",
+                            defaultValue: "\(model.safeReclaimableCount) safe items, regenerated automatically"
+                        )
                     )
                     breakdownRow(
                         color: Theme.cautionBright,
-                        title: "\(model.reviewBytes.formattedBytesCompact) needs a decision",
-                        subtitle: "^[\(model.reviewCount) item](inflect: true) worth a look first"
+                        title: localized(
+                            "overview.needsDecision",
+                            defaultValue: "\(model.reviewBytes.formattedBytesCompact) needs a decision"
+                        ),
+                        subtitle: localized(
+                            "overview.reviewItemsSubtitle",
+                            defaultValue: "\(model.reviewCount) items worth a look first"
+                        )
                     )
                 }
                 .padding(.top, 13)
 
                 HStack(spacing: 9) {
-                    Button("Reclaim safe space", action: reclaimSafe)
-                        .buttonStyle(.rcPrimary)
-                        .disabled(model.safeReclaimableBytes == 0)
-                    Button("Review everything") {
+                    Button(
+                        localized("overview.reclaimSafeButton", defaultValue: "Reclaim safe space"),
+                        action: reclaimSafe
+                    )
+                    .buttonStyle(.rcPrimary)
+                    .disabled(model.safeReclaimableBytes == 0)
+                    Button(localized("overview.reviewEverythingButton", defaultValue: "Review everything")) {
                         openCategory(largestCategory)
                     }
                     .buttonStyle(.rcSecondary)
@@ -162,7 +180,7 @@ struct OverviewView: View {
         model.categoryTotals().max { $0.bytes < $1.bytes }?.category ?? .xcode
     }
 
-    private func breakdownRow(color: Color, title: String, subtitle: LocalizedStringKey) -> some View {
+    private func breakdownRow(color: Color, title: String, subtitle: String) -> some View {
         HStack(alignment: .top, spacing: 9) {
             Circle()
                 .fill(color)
@@ -186,13 +204,16 @@ struct OverviewView: View {
     private var diskCard: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
-                SectionLabel("Macintosh HD")
+                SectionLabel(model.volumeDisplayName)
                 Spacer()
                 if let space = model.volumeSpace {
-                    Text("\(space.usedBytes.wholeGB) used of \(space.totalBytes.wholeGB)")
-                        .font(Theme.footnote)
-                        .monospacedDigit()
-                        .foregroundStyle(Theme.textTertiary)
+                    Text(localized(
+                        "disk.usedOfTotal",
+                        defaultValue: "\(space.usedBytes.wholeGB) used of \(space.totalBytes.wholeGB)"
+                    ))
+                    .font(Theme.footnote)
+                    .monospacedDigit()
+                    .foregroundStyle(Theme.textTertiary)
                 }
             }
 
@@ -203,7 +224,7 @@ struct OverviewView: View {
                     .foregroundStyle(Theme.textPrimary)
                     .contentTransition(.numericText())
                     .animation(Theme.smooth, value: freeGBNumber)
-                Text("GB free")
+                Text(localized("disk.gbFree", defaultValue: "GB free"))
                     .font(Theme.cardTitle)
                     .fontWeight(.regular)
                     .foregroundStyle(Theme.textSecondary)
@@ -214,9 +235,21 @@ struct OverviewView: View {
                 .padding(.top, 12)
 
             VStack(spacing: 6) {
-                diskLegendRow("Developer caches", model.totalFoundBytes.formattedBytesCompact, Theme.accent)
-                diskLegendRow("Other used space", otherUsedBytes.wholeGB, .white.opacity(0.28))
-                diskLegendRow("Free", (model.volumeSpace?.availableBytes ?? 0).wholeGB, .white.opacity(0.08))
+                diskLegendRow(
+                    localized("disk.legendDeveloperCaches", defaultValue: "Developer caches"),
+                    model.totalFoundBytes.formattedBytesCompact,
+                    Theme.accent
+                )
+                diskLegendRow(
+                    localized("disk.legendOtherUsed", defaultValue: "Other used space"),
+                    otherUsedBytes.wholeGB,
+                    .white.opacity(0.28)
+                )
+                diskLegendRow(
+                    localized("disk.legendFree", defaultValue: "Free"),
+                    (model.volumeSpace?.availableBytes ?? 0).wholeGB,
+                    .white.opacity(0.08)
+                )
             }
             .padding(.top, 14)
         }
@@ -227,7 +260,7 @@ struct OverviewView: View {
 
     private var freeGBNumber: String {
         guard let space = model.volumeSpace else { return "—" }
-        return "\(Int((Double(space.availableBytes) / 1_000_000_000).rounded()))"
+        return space.availableBytes.wholeGBValue
     }
 
     private var otherUsedBytes: Int64 {
@@ -277,7 +310,7 @@ struct OverviewView: View {
 
     private var biggestCard: some View {
         VStack(alignment: .leading, spacing: 6) {
-            SectionLabel("Biggest single locations")
+            SectionLabel(localized("overview.biggestLocations", defaultValue: "Biggest single locations"))
             let largest = model.largestTargets(limit: 6)
             let ceiling = largest.first.map { model.bytes(of: $0) } ?? 0
             VStack(spacing: 0) {
@@ -303,7 +336,7 @@ struct OverviewView: View {
 
     private var attentionCard: some View {
         VStack(alignment: .leading, spacing: 12) {
-            SectionLabel("Needs your attention")
+            SectionLabel(localized("overview.needsAttention", defaultValue: "Needs your attention"))
             VStack(spacing: 10) {
                 ForEach(model.manualTargets) { target in
                     AttentionCard(target: target) {
@@ -320,23 +353,23 @@ struct OverviewView: View {
     private var statTiles: some View {
         VStack(spacing: 12) {
             StatTile(
-                label: "Reclaimed all time",
+                label: localized("overview.reclaimedAllTime", defaultValue: "Reclaimed all time"),
                 sub: model.history.isEmpty
-                    ? "no cleans recorded yet"
-                    : "across ^[\(model.history.count) clean](inflect: true)",
+                    ? localized("overview.noCleansYet", defaultValue: "no cleans recorded yet")
+                    : localized("overview.acrossCleans", defaultValue: "across \(model.history.count) cleans"),
                 value: model.reclaimedAllTimeBytes > 0
                     ? model.reclaimedAllTimeBytes.formattedBytesCompact : "—"
             )
             StatTile(
-                label: "Last clean",
+                label: localized("overview.lastClean", defaultValue: "Last clean"),
                 sub: lastCleanSub,
                 value: lastCleanValue
             )
             StatTile(
-                label: "Next background scan",
+                label: localized("overview.nextBackgroundScan", defaultValue: "Next background scan"),
                 sub: model.weeklyScanEnabled
-                    ? "weekly, while Reclaim is running"
-                    : "background scans are off",
+                    ? localized("overview.weeklyWhileRunning", defaultValue: "weekly, while Reclaim is running")
+                    : localized("overview.backgroundScansOff", defaultValue: "background scans are off"),
                 value: nextScanValue
             )
         }
@@ -347,16 +380,22 @@ struct OverviewView: View {
         return last.date.formatted(date: .abbreviated, time: .omitted)
     }
 
-    private var lastCleanSub: LocalizedStringKey {
-        guard let last = model.history.first else { return "nothing cleaned yet" }
+    private var lastCleanSub: String {
+        guard let last = model.history.first else {
+            return localized("overview.nothingCleanedYet", defaultValue: "nothing cleaned yet")
+        }
         let freed = last.reclaimedBytes.formattedBytesCompact
         let when = last.date.formatted(.relative(presentation: .named))
-        return "\(freed) freed · \(when)"
+        return localized("overview.lastCleanSub", defaultValue: "\(freed) freed · \(when)")
     }
 
     private var nextScanValue: String {
-        guard model.weeklyScanEnabled else { return "Off" }
-        guard let next = model.nextBackgroundScanDate else { return "After first scan" }
+        guard model.weeklyScanEnabled else {
+            return localized("overview.off", defaultValue: "Off")
+        }
+        guard let next = model.nextBackgroundScanDate else {
+            return localized("overview.afterFirstScan", defaultValue: "After first scan")
+        }
         return next.formatted(.dateTime.weekday(.wide).hour().minute())
     }
 }
@@ -382,7 +421,10 @@ private struct CategoryCard: View {
                 HStack {
                     CategoryTile(category: category)
                     Spacer()
-                    Text(all > 0 ? "\(Int((Double(bytes) / Double(all) * 100).rounded()))%" : "—")
+                    Text(all > 0
+                        ? (Double(bytes) / Double(all))
+                            .formatted(.percent.precision(.fractionLength(0)))
+                        : "—")
                         .font(Theme.caption)
                         .monospacedDigit()
                         .foregroundStyle(Theme.textTertiary)
@@ -406,7 +448,7 @@ private struct CategoryCard: View {
                     color: category.color
                 )
                 .padding(.top, 9)
-                Text("^[\(items) item](inflect: true)")
+                Text(localized("count.items", defaultValue: "\(items) items"))
                     .font(Theme.caption)
                     .foregroundStyle(Theme.textTertiary)
                     .padding(.top, 8)
@@ -441,7 +483,7 @@ private struct BiggestRow: View {
     var body: some View {
         Button(action: open) {
             HStack(spacing: 12) {
-                Text("\(rank)")
+                Text(rank.formatted())
                     .font(Theme.caption)
                     .monospacedDigit()
                     .foregroundStyle(Theme.textQuaternary)
@@ -531,7 +573,7 @@ private struct AttentionCard: View {
 /// One compact statistics tile.
 private struct StatTile: View {
     let label: String
-    let sub: LocalizedStringKey
+    let sub: String
     let value: String
 
     var body: some View {
@@ -562,15 +604,18 @@ struct FullDiskAccessBanner: View {
                 .font(.system(size: 16))
                 .foregroundStyle(Theme.cautionBright)
             VStack(alignment: .leading, spacing: 2) {
-                Text("Full Disk Access is not granted")
+                Text(localized("fda.title", defaultValue: "Full Disk Access is not granted"))
                     .font(.system(size: 13, weight: .medium))
                     .foregroundStyle(Theme.textPrimary)
-                Text("Some locations cannot be measured or cleaned, so results may be incomplete.")
-                    .font(Theme.caption)
-                    .foregroundStyle(Theme.textSecondary)
+                Text(localized(
+                    "fda.body",
+                    defaultValue: "Some locations cannot be measured or cleaned, so results may be incomplete."
+                ))
+                .font(Theme.caption)
+                .foregroundStyle(Theme.textSecondary)
             }
             Spacer()
-            Button("Open Privacy Settings…") {
+            Button(localized("fda.openSettingsButton", defaultValue: "Open Privacy Settings…")) {
                 NSWorkspace.shared.open(PrivacyLinks.fullDiskAccess)
             }
             .buttonStyle(.rcSecondary)

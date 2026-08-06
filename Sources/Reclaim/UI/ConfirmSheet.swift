@@ -85,15 +85,15 @@ struct ConfirmSheet: View {
             HStack(spacing: 10) {
                 trashToggle(toTrash: toTrash)
                 Spacer()
-                Button("Cancel", action: onCancel)
+                Button(localized("action.cancel", defaultValue: "Cancel"), action: onCancel)
                     .buttonStyle(.rcSecondary)
                     .keyboardShortcut(.cancelAction)
                 if toTrash {
-                    Button("Move to Trash", action: onConfirm)
+                    Button(localized("confirm.moveToTrash", defaultValue: "Move to Trash"), action: onConfirm)
                         .buttonStyle(.rcPrimary)
                         .keyboardShortcut(.defaultAction)
                 } else {
-                    Button("Delete Permanently", action: onConfirm)
+                    Button(localized("confirm.deletePermanently", defaultValue: "Delete Permanently"), action: onConfirm)
                         .buttonStyle(.rcDanger)
                 }
             }
@@ -112,18 +112,34 @@ struct ConfirmSheet: View {
     // MARK: - Content
 
     private func title(_ picked: [CleanupTarget]) -> String {
-        let prefix = model.dryRun ? "Dry run: reclaim" : "Reclaim"
-        let locations = "\(picked.count) location\(picked.count == 1 ? "" : "s")"
-        return "\(prefix) \(model.selectedBytes.formattedBytesCompact) from \(locations)?"
+        let space = model.selectedBytes.formattedBytesCompact
+        return model.dryRun
+            ? localized(
+                "confirm.titleDryRun",
+                defaultValue: "Dry run: reclaim \(space) from \(picked.count) locations?"
+            )
+            : localized(
+                "confirm.title",
+                defaultValue: "Reclaim \(space) from \(picked.count) locations?"
+            )
     }
 
     private func bodyText(toTrash: Bool) -> String {
         if model.dryRun {
-            return "Dry run is on — Reclaim will only report what would be removed. Nothing is touched."
+            return localized(
+                "confirm.bodyDryRun",
+                defaultValue: "Dry run is on — Reclaim will only report what would be removed. Nothing is touched."
+            )
         }
         return toTrash
-            ? "Everything listed below moves to the Trash. Nothing is removed permanently until you empty it."
-            : "Everything listed below is deleted immediately and cannot be recovered."
+            ? localized(
+                "confirm.bodyTrash",
+                defaultValue: "Everything listed below moves to the Trash. Nothing is removed permanently until you empty it."
+            )
+            : localized(
+                "confirm.bodyDelete",
+                defaultValue: "Everything listed below is deleted immediately and cannot be recovered."
+            )
     }
 
     private func itemList(_ picked: [CleanupTarget]) -> some View {
@@ -163,16 +179,24 @@ struct ConfirmSheet: View {
     }
 
     private func sizeLabel(for target: CleanupTarget) -> String {
-        if case .unmeasurable = model.status(of: target.id) { return "size unknown" }
+        if case .unmeasurable = model.status(of: target.id) {
+            return localized("confirm.sizeUnknown", defaultValue: "size unknown")
+        }
         return model.bytes(of: target).formattedBytesCompact
     }
 
     private func warningText(_ picked: [CleanupTarget]) -> String? {
         var lines: [String] = []
         if picked.contains(where: { $0.safety == .destructive }) {
-            lines.append("This selection includes items marked Destructive — things you created, like emulators, that cannot be restored.")
+            lines.append(localized(
+                "confirm.destructiveWarning",
+                defaultValue: "This selection includes items marked Destructive — things you created, like emulators, that cannot be restored."
+            ))
         } else if picked.contains(where: { $0.safety == .caution }) {
-            lines.append("This selection includes items marked Caution. They can be restored, but re-downloading models or losing history costs something.")
+            lines.append(localized(
+                "confirm.cautionWarning",
+                defaultValue: "This selection includes items marked Caution. They can be restored, but re-downloading models or losing history costs something."
+            ))
         }
         if let running = RunningTools.warning(for: picked) {
             lines.append(running)
@@ -186,12 +210,15 @@ struct ConfirmSheet: View {
             get: { model.disposal == .trash },
             set: { model.disposal = $0 ? .trash : .delete }
         )) {
-            Text("Move to Trash instead of deleting")
+            Text(localized("confirm.trashToggle", defaultValue: "Move to Trash instead of deleting"))
                 .font(Theme.body)
                 .foregroundStyle(Color(hex: 0xC8C8CF))
         }
         .toggleStyle(SmallCheckToggleStyle())
-        .help("The app-wide disposal setting — also in Settings")
+        .help(localized(
+            "confirm.trashToggleHelp",
+            defaultValue: "The app-wide disposal setting — also in Settings"
+        ))
     }
 }
 

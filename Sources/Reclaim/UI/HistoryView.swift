@@ -32,14 +32,17 @@ struct HistoryView: View {
             Image(systemName: "clock.arrow.circlepath")
                 .font(.system(size: 28))
                 .foregroundStyle(Theme.textQuaternary)
-            Text("No cleans yet")
+            Text(localized("history.emptyTitle", defaultValue: "No cleans yet"))
                 .font(.system(size: 14, weight: .medium))
                 .foregroundStyle(Theme.textSecondary)
-            Text("Every clean pass is recorded here: when it ran, what it covered, and how much space came back.")
-                .font(Theme.body)
-                .foregroundStyle(Theme.textTertiary)
-                .multilineTextAlignment(.center)
-                .frame(maxWidth: 380)
+            Text(localized(
+                "history.emptyDetail",
+                defaultValue: "Every clean pass is recorded here: when it ran, what it covered, and how much space came back."
+            ))
+            .font(Theme.body)
+            .foregroundStyle(Theme.textTertiary)
+            .multilineTextAlignment(.center)
+            .frame(maxWidth: 380)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -51,7 +54,7 @@ struct HistoryView: View {
             VStack(alignment: .leading, spacing: 0) {
                 HStack(alignment: .bottom, spacing: 24) {
                     VStack(alignment: .leading, spacing: 6) {
-                        SectionLabel("Reclaimed all time")
+                        SectionLabel(localized("overview.reclaimedAllTime", defaultValue: "Reclaimed all time"))
                         HStack(alignment: .firstTextBaseline, spacing: 6) {
                             Text(model.reclaimedAllTimeBytes.byteParts.value)
                                 .font(Theme.heroNumber(34))
@@ -74,11 +77,14 @@ struct HistoryView: View {
                     .padding(.top, 28)
                     .entrance(appeared, delay: 0.08)
 
-                Text("Each entry lists what was cleaned and what the follow-up scan measured as actually freed.")
-                    .font(Theme.footnote)
-                    .foregroundStyle(Theme.textQuaternary)
-                    .padding(.top, 14)
-                    .entrance(appeared, delay: 0.12)
+                Text(localized(
+                    "history.footnote",
+                    defaultValue: "Each entry lists what was cleaned and what the follow-up scan measured as actually freed."
+                ))
+                .font(Theme.footnote)
+                .foregroundStyle(Theme.textQuaternary)
+                .padding(.top, 14)
+                .entrance(appeared, delay: 0.12)
             }
             .padding(.horizontal, 26)
             .padding(.top, 22)
@@ -101,7 +107,10 @@ struct HistoryView: View {
                 .frame(maxWidth: .infinity)
                 .frame(height: appeared ? max(8, share * 72) : 8)
                 .animation(Theme.springy.delay(Double(index) * 0.03), value: appeared)
-                .help("\(entry.date.formatted(date: .abbreviated, time: .shortened)) — \(entry.reclaimedBytes.formattedBytesCompact)")
+                .help(localized(
+                    "history.chartHelp",
+                    defaultValue: "\(entry.date.formatted(date: .abbreviated, time: .shortened)) — \(entry.reclaimedBytes.formattedBytesCompact)"
+                ))
             }
         }
     }
@@ -109,11 +118,11 @@ struct HistoryView: View {
     private var table: some View {
         VStack(spacing: 0) {
             HStack(spacing: 14) {
-                headerCell("When", width: 150)
-                Text("What")
+                headerCell(localized("history.columnWhen", defaultValue: "When"), width: 150)
+                Text(localized("history.columnWhat", defaultValue: "What"))
                     .frame(maxWidth: .infinity, alignment: .leading)
-                headerCell("Items", width: 80, trailing: true)
-                headerCell("Freed", width: 90, trailing: true)
+                headerCell(localized("history.columnItems", defaultValue: "Items"), width: 80, trailing: true)
+                headerCell(localized("history.columnFreed", defaultValue: "Freed"), width: 90, trailing: true)
             }
             .font(Theme.labelFont)
             .tracking(0.6)
@@ -157,7 +166,7 @@ private struct HistoryRow: View {
                 .foregroundStyle(Theme.textSecondary)
                 .lineLimit(1)
                 .frame(maxWidth: .infinity, alignment: .leading)
-            Text("\(entry.itemsRemoved)")
+            Text(entry.itemsRemoved.formatted())
                 .font(Theme.body)
                 .monospacedDigit()
                 .foregroundStyle(Theme.textSecondary)

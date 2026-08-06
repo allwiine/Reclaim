@@ -71,7 +71,10 @@ struct Badge: View {
                     .strokeBorder(kind.color.opacity(0.3), lineWidth: 0.5)
             }
             .help(kind.explanation)
-            .accessibilityLabel("Safety: \(kind.title)")
+            .accessibilityLabel(localized(
+                "accessibility.safetyBadge",
+                defaultValue: "Safety: \(kind.title)"
+            ))
     }
 }
 
