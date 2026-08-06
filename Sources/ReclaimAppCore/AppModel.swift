@@ -654,7 +654,10 @@ public final class AppModel {
                     summary.failedTargets += 1
                 }
                 summary.failures.append(contentsOf: outcome.failures.map {
-                    "\(job.target.name) — \($0.message)"
+                    localized(
+                        "clean.failureLine",
+                        defaultValue: "\(job.target.name) — \($0.message)"
+                    )
                 })
 
                 let refreshed = await Self.offMain { scan(job.target) }

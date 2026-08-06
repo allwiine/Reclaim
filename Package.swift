@@ -58,6 +58,7 @@ let package = Package(
         .target(
             name: "ReclaimAppCore",
             dependencies: ["ReclaimKit"],
+            resources: [.process("Resources")],
             swiftSettings: sharedSwiftSettings
         ),
         .executableTarget(
