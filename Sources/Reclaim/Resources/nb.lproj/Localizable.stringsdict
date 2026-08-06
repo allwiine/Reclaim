@@ -197,7 +197,7 @@
 	<key>browser.unreadableEntriesHelp</key>
 	<dict>
 		<key>NSStringLocalizedFormatKey</key>
-		<string>%#@entries@ kunne ikke leses — størrelsen er en nedre grense.</string>
+		<string>%#@entries@ kunne ikke leses, så størrelsen er en nedre grense.</string>
 		<key>entries</key>
 		<dict>
 			<key>NSStringFormatSpecTypeKey</key>
@@ -256,7 +256,7 @@
 	<key>inspector.footerUnreadable</key>
 	<dict>
 		<key>NSStringLocalizedFormatKey</key>
-		<string>%#@entries@ kunne ikke leses — størrelser er en nedre grense.</string>
+		<string>%#@entries@ kunne ikke leses, så størrelser er en nedre grense.</string>
 		<key>entries</key>
 		<dict>
 			<key>NSStringFormatSpecTypeKey</key>

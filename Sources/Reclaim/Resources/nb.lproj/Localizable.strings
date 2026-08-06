@@ -1,6 +1,10 @@
 /*
-  Localizable.strings (norsk bokmål) — Reclaim-appen
+  Localizable.strings (norsk bokmål), Reclaim-appen
   Flertallsnøkler ligger i Localizable.stringsdict.
+
+  Tone: skrevet for utviklere. Innarbeidede engelske fagbegreper
+  (cache, scratch, dry run, workspace) beholdes i stedet for tunge
+  fornorskinger. Ingen tankestreker i teksten.
 */
 
 /* App */
@@ -64,14 +68,14 @@
 /* Startskjerm */
 "idle.versionBadge" = "Reclaim %@";
 "idle.headline" = "Frigjør plassen verktøyene dine holder på i det stille.";
-"idle.pitch" = "Reclaim går gjennom en kuratert katalog over kjente buffer- og kladdeplasseringer, forteller deg hva hver av dem er og hva det koster å miste dem, og rydder bare det du velger.";
+"idle.pitch" = "Reclaim går gjennom en kuratert katalog over kjente cache- og scratch-plasseringer, forteller deg hva hver av dem er og hva det koster å miste dem, og rydder bare det du velger.";
 "idle.scanButton" = "Skann denne Macen";
-"idle.readOnlyNote" = "Skrivebeskyttet — ingenting fjernes ved skanning";
-"idle.safetyNote.safe" = "Gjenopprettes automatisk. Byggbuffere, indekser, logger.";
+"idle.readOnlyNote" = "Skrivebeskyttet: ingenting fjernes ved skanning";
+"idle.safetyNote.safe" = "Gjenopprettes automatisk. Byggcacher, indekser, logger.";
 "idle.safetyNote.caution" = "Kan gjenopprettes, men ny nedlasting eller tapt historikk koster noe.";
 "idle.safetyNote.destructive" = "Fjerner ting du har laget, som emulatorer. Forhåndsvelges aldri.";
 "idle.catalogueTitle" = "Hva Reclaim ser på";
-"idle.trustNote" = "Ingenting fjernes uten din bekreftelse, og alt går til papirkurven som standard. Påloggingsinformasjon, innstillinger og tillegg er aldri i katalogen.";
+"idle.trustNote" = "Ingenting fjernes uten din bekreftelse, og alt går til papirkurven som standard. Påloggingsinformasjon, innstillinger og plugins er aldri i katalogen.";
 
 /* Skanning */
 "progress.finishingUp" = "Avslutter …";
@@ -84,11 +88,11 @@
 "cleaning.stopHelp" = "Elementet som ryddes, fullføres; resten hoppes over";
 
 /* Oversikt */
-"overview.partialScanNotice" = "Skanningen ble stoppet tidlig — størrelsene nedenfor dekker bare det som ble målt før stopp.";
+"overview.partialScanNotice" = "Skanningen ble stoppet tidlig. Størrelsene nedenfor dekker bare det som ble målt før stopp.";
 "overview.reclaimableNow" = "Kan frigjøres nå";
 "overview.safeToRemove" = "%@ trygt å fjerne";
 "overview.nothingSafeLeft" = "Ingenting trygt igjen å fjerne";
-"overview.nothingSafeLeftSubtitle" = "Alt merket Trygt er allerede ryddet — skann på nytt for å måle igjen.";
+"overview.nothingSafeLeftSubtitle" = "Alt merket Trygt er allerede ryddet. Skann på nytt for å måle igjen.";
 "overview.needsDecision" = "%@ trenger en avgjørelse";
 "overview.reclaimSafeButton" = "Frigjør trygg plass";
 "overview.reviewEverythingButton" = "Se gjennom alt";
@@ -110,7 +114,7 @@
 "disk.usedOfTotal" = "%1$@ brukt av %2$@";
 "disk.freeOfTotal" = "%1$@ ledig av %2$@";
 "disk.gbFree" = "GB ledig";
-"disk.legendDeveloperCaches" = "Utviklerbuffere";
+"disk.legendDeveloperCaches" = "Utviklercache";
 "disk.legendOtherUsed" = "Annen brukt plass";
 "disk.legendFree" = "Ledig";
 
@@ -125,7 +129,7 @@
 "browser.noItemsSelected" = "Ingen elementer valgt";
 "browser.noMatches" = "Ingen treff";
 "browser.nothingFound" = "Ingenting funnet";
-"browser.emptySearchDetail" = "Ingen katalogoppføring matcher søket — prøv et verktøynavn eller en del av en filbane.";
+"browser.emptySearchDetail" = "Ingen katalogoppføring matcher søket. Prøv et verktøynavn eller en del av en filbane.";
 "browser.emptyCategoryDetail" = "Ingen av disse verktøyene ble funnet på denne Macen. Slå på «Vis verktøy som ikke er installert» i Innstillinger for å vise dem likevel.";
 "browser.selectAccessibility" = "Velg %@";
 
@@ -148,24 +152,24 @@
 /* Bekreftelsesdialog */
 "confirm.moveToTrash" = "Flytt til papirkurven";
 "confirm.deletePermanently" = "Slett permanent";
-"confirm.bodyDryRun" = "Tørrkjøring er på — Reclaim rapporterer bare hva som ville blitt fjernet. Ingenting røres.";
+"confirm.bodyDryRun" = "Dry run er på. Reclaim rapporterer bare hva som ville blitt fjernet, ingenting røres.";
 "confirm.bodyTrash" = "Alt som er oppført nedenfor, flyttes til papirkurven. Ingenting fjernes permanent før du tømmer den.";
 "confirm.bodyDelete" = "Alt som er oppført nedenfor, slettes umiddelbart og kan ikke gjenopprettes.";
 "confirm.sizeUnknown" = "ukjent størrelse";
-"confirm.destructiveWarning" = "Utvalget inneholder elementer merket Destruktivt — ting du har laget, som emulatorer, som ikke kan gjenopprettes.";
+"confirm.destructiveWarning" = "Utvalget inneholder elementer merket Destruktivt: ting du har laget, som emulatorer, som ikke kan gjenopprettes.";
 "confirm.cautionWarning" = "Utvalget inneholder elementer merket Forsiktig. De kan gjenopprettes, men ny nedlasting av modeller eller tapt historikk koster noe.";
-"confirm.runningAppsWarning" = "%@ ser ut til å kjøre — å rydde dataene nå kan ødelegge bygg eller pågående arbeid. Vurder å avslutte først.";
+"confirm.runningAppsWarning" = "%@ ser ut til å kjøre. Å rydde dataene nå kan ødelegge bygg eller pågående arbeid. Vurder å avslutte først.";
 "confirm.trashToggle" = "Flytt til papirkurven i stedet for å slette";
-"confirm.trashToggleHelp" = "Appens felles innstilling for fjerning — også i Innstillinger";
+"confirm.trashToggleHelp" = "Appens felles innstilling for fjerning. Finnes også i Innstillinger.";
 
 /* Ferdig */
 "done.emptyTrashTitle" = "Tømme papirkurven?";
 "done.emptyTrashButton" = "Tøm papirkurven";
-"done.emptyTrashMessage" = "Dette tømmer alt i papirkurven — også elementer Reclaim ikke la der. Dette kan ikke angres.";
+"done.emptyTrashMessage" = "Dette tømmer alt i papirkurven, også elementer Reclaim ikke la der. Dette kan ikke angres.";
 "done.unitReclaimed" = "%@ frigjort";
 "done.unitWouldBeReclaimed" = "%@ ville blitt frigjort";
-"done.noteDryRun" = "Tørrkjøring — ingenting ble rørt. Slå av Tørrkjøring i Innstillinger for å rydde på ordentlig.";
-"done.noteStopped" = "Stoppet tidlig — ikke alle valgte elementer ble behandlet.";
+"done.noteDryRun" = "Dry run: ingenting ble rørt. Slå av Dry run i Innstillinger for å rydde på ordentlig.";
+"done.noteStopped" = "Stoppet tidlig. Ikke alle valgte elementer ble behandlet.";
 "done.noteTrashEmptied" = "Papirkurven er tømt. Plassen er tilgjengelig nå.";
 "done.noteMovedToTrash" = "Flyttet til papirkurven. Tøm den for å frigjøre plassen for godt.";
 "done.noteDeleted" = "Slettet permanent. Plassen er tilgjengelig nå.";
@@ -181,7 +185,7 @@
 "history.emptyTitle" = "Ingen ryddinger ennå";
 "history.emptyDetail" = "Hver rydding registreres her: når den kjørte, hva den dekket, og hvor mye plass som kom tilbake.";
 "history.footnote" = "Hver oppføring viser hva som ble ryddet og hva oppfølgingsskanningen målte som faktisk frigjort.";
-"history.chartHelp" = "%1$@ — %2$@";
+"history.chartHelp" = "%1$@ · %2$@";
 "history.columnWhen" = "Når";
 "history.columnWhat" = "Hva";
 "history.columnItems" = "Elementer";
@@ -191,7 +195,7 @@
 "settings.sectionCleaning" = "Rydding";
 "settings.moveToTrash" = "Flytt elementer til papirkurven";
 "settings.moveToTrashHelp" = "Standard. Ingenting forlater Macen din før du tømmer papirkurven.";
-"settings.dryRun" = "Tørrkjøring";
+"settings.dryRun" = "Dry run";
 "settings.dryRunHelp" = "Rapporter hva som ville blitt fjernet uten å røre noe.";
 "settings.preselectCaution" = "Forhåndsvelg Forsiktig-elementer";
 "settings.preselectCautionHelp" = "Av som standard. Bare Trygt-elementer velges etter en skanning.";
@@ -209,11 +213,11 @@
 "settings.fullDiskAccess" = "Full disktilgang";
 "settings.fullDiskAccessHelp" = "Noen plasseringer (for eksempel deler av ~/Library) kan kreve full disktilgang for å skannes eller ryddes.";
 "settings.sectionExclusions" = "Utelatt fra skanning";
-"settings.exclusionAuth" = "pålogging — aldri i katalogen";
+"settings.exclusionAuth" = "auth · aldri i katalogen";
 "settings.exclusionNever" = "aldri i katalogen";
-"settings.exclusionCerts" = "utviklersertifikater og nøkler — aldri i katalogen";
-"settings.exclusionTools" = "installerte verktøy — aldri i katalogen";
-"settings.exclusionsFootnote" = "Reclaims katalog inneholder bare buffere, logger og kladdedata. Påloggingsinformasjon, innstillinger og tillegg er utelatt strukturelt — de er ikke en del av katalogen og kan ikke velges.";
+"settings.exclusionCerts" = "dev-sertifikater og nøkler · aldri i katalogen";
+"settings.exclusionTools" = "installerte verktøy · aldri i katalogen";
+"settings.exclusionsFootnote" = "Reclaims katalog inneholder bare cacher, logger og scratch-data. Påloggingsinformasjon, innstillinger og plugins er utelatt strukturelt: de er ikke en del av katalogen og kan ikke velges.";
 
 /* Menylinjemeny */
 "menu.scanThisMac" = "Skann denne Macen";
@@ -226,4 +230,4 @@
 
 /* Varsler */
 "notification.title" = "Reclaim fant %@";
-"notification.body" = "Utviklerbuffere holder på plass. Se gjennom og frigjør den når det passer.";
+"notification.body" = "Utviklercacher holder på plass. Se gjennom og frigjør den når det passer.";

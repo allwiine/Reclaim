@@ -1,12 +1,16 @@
 /*
-  Localizable.strings (norsk bokmål) — ReclaimKit
+  Localizable.strings (norsk bokmål), ReclaimKit
+
+  Tone: skrevet for utviklere. Innarbeidede engelske fagbegreper
+  (cache, snapshot, image, repo, workload, dry run) beholdes i stedet
+  for tunge fornorskinger. Ingen tankestreker i teksten.
 */
 
 /* Kategorier */
 "category.xcode.title" = "Xcode og simulatorer";
 "category.android.title" = "Android Studio";
 "category.dotNet.title" = ".NET og Visual Studio";
-"category.aiTools.title" = "Claude og KI-verktøy";
+"category.aiTools.title" = "Claude og AI-verktøy";
 "category.packageManagers.title" = "Pakkebehandlere";
 "category.otherTools.title" = "Andre utviklerverktøy";
 
@@ -23,140 +27,140 @@
 "engine.toolReported" = "Verktøyet meldte: «%@»";
 "sizer.unreadableRoot" = "«%@» finnes, men kunne ikke leses.";
 
-/* Mål — Xcode og Apple-verktøykjeden */
-"target.xcode-derived-data.name" = "Avledede data";
-"target.xcode-derived-data.summary" = "Byggprodukter, indekser og modulbuffere for hvert prosjekt du har åpnet. Bygges på nytt ved neste bygg.";
-"target.xcode-derived-data.note" = "Neste bygg av hvert prosjekt blir et rent bygg.";
-"target.xcode-device-support.name" = "Enhetsstøttefiler";
-"target.xcode-device-support.summary" = "Feilsøkingssymboler kopiert fra hver iPhone, iPad, Watch og Apple TV du noen gang har koblet til. Kopieres automatisk på nytt når en enhet kobles til igjen.";
+/* Mål, Xcode og Apple-verktøykjeden */
+"target.xcode-derived-data.name" = "DerivedData";
+"target.xcode-derived-data.summary" = "Byggprodukter, indekser og modulcacher for hvert prosjekt du har åpnet. Bygges på nytt ved neste bygg.";
+"target.xcode-derived-data.note" = "Neste bygg av hvert prosjekt blir en clean build.";
+"target.xcode-device-support.name" = "Device support-filer";
+"target.xcode-device-support.summary" = "Debugsymboler kopiert fra hver iPhone, iPad, Watch og Apple TV du noen gang har koblet til. Kopieres automatisk på nytt når en enhet kobles til igjen.";
 "target.xcode-archives.name" = "Arkiver";
-"target.xcode-archives.summary" = "Apparkiver med dSYM-er, brukt til å distribuere bygg og symbolisere krasjrapporter.";
-"target.xcode-archives.note" = "Behold arkiver for versjoner som er ute på App Store — du trenger dSYM-ene deres for å lese krasjrapporter.";
-"target.xcode-simulator-caches.name" = "Simulatorbuffere";
-"target.xcode-simulator-caches.summary" = "CoreSimulators buffermappe, inkludert dyld-buffere for simulatorkjøretidsmiljøer.";
-"target.xcode-previews.name" = "SwiftUI-forhåndsvisningsdata";
-"target.xcode-previews.summary" = "Simulatorenheter og byggartefakter opprettet av SwiftUI-forhåndsvisningen.";
-"target.xcode-caches.name" = "Xcode-buffere";
-"target.xcode-caches.summary" = "Xcodes generelle buffermappe, inkludert dokumentasjonsbufferen.";
+"target.xcode-archives.summary" = "Apparkiver med dSYM-er, brukt til å distribuere bygg og symbolicate krasjrapporter.";
+"target.xcode-archives.note" = "Behold arkiver for versjoner som er ute på App Store: du trenger dSYM-ene deres for å lese krasjrapporter.";
+"target.xcode-simulator-caches.name" = "Simulatorcacher";
+"target.xcode-simulator-caches.summary" = "CoreSimulators cachemappe, inkludert dyld-cacher for simulator-runtimes.";
+"target.xcode-previews.name" = "SwiftUI Previews-data";
+"target.xcode-previews.summary" = "Simulatorenheter og byggartefakter opprettet av SwiftUI preview-canvasen.";
+"target.xcode-caches.name" = "Xcode-cacher";
+"target.xcode-caches.summary" = "Xcodes generelle cachemappe, inkludert dokumentasjonscachen.";
 "target.xcode-unavailable-simulators.name" = "Utilgjengelige simulatorer";
-"target.xcode-unavailable-simulators.summary" = "Simulatorenheter etterlatt av kjøretidsmiljøer som ikke lenger er installert.";
-"target.xcode-unavailable-simulators.note" = "Størrelsen er først kjent etter rydding — simctl avgjør hva som kvalifiserer.";
+"target.xcode-unavailable-simulators.summary" = "Simulatorenheter etterlatt av runtimes som ikke lenger er installert.";
+"target.xcode-unavailable-simulators.note" = "Størrelsen er først kjent etter rydding; simctl avgjør hva som kvalifiserer.";
 "target.xcode-device-logs.name" = "Enhetslogger";
 "target.xcode-device-logs.summary" = "Konsollogger samlet inn fra fysiske enheter i Xcodes Enheter-vindu.";
 "target.xcode-xctest-devices.name" = "Simulatorkloner for testing";
 "target.xcode-xctest-devices.summary" = "Simulatorkloner opprettet for parallell testing. Opprettes på nytt ved neste testkjøring.";
 
-/* Mål — Android Studio og Gradle */
-"target.gradle-caches.name" = "Gradle-buffere";
+/* Mål, Android Studio og Gradle */
+"target.gradle-caches.name" = "Gradle-cacher";
 "target.gradle-caches.summary" = "Nedlastede avhengigheter og transformerte artefakter delt av alle Gradle-bygg. Lastes ned på nytt ved behov.";
-"target.gradle-caches.note" = "Neste bygg laster ned det det trenger på nytt — forvent at det går tregere én gang.";
+"target.gradle-caches.note" = "Neste bygg laster ned det det trenger på nytt, så forvent at det går tregere én gang.";
 "target.gradle-daemon.name" = "Gradle-daemonlogger";
 "target.gradle-daemon.summary" = "Logger og registerfiler skrevet av hver Gradle-daemon som noen gang har kjørt.";
 "target.gradle-wrapper-dists.name" = "Gradle wrapper-distribusjoner";
-"target.gradle-wrapper-dists.summary" = "Hver Gradle-versjon noe wrapper-skript noen gang har lastet ned. Prosjekter laster ned sin låste versjon på nytt ved behov.";
-"target.android-studio-caches.name" = "Android Studio-buffere";
-"target.android-studio-caches.summary" = "IDE-buffere og indekser, lagret per Android Studio-versjon — gamle versjoner blir liggende for alltid.";
+"target.gradle-wrapper-dists.summary" = "Hver Gradle-versjon noe wrapper-skript noen gang har lastet ned. Prosjekter laster ned sin pinnede versjon på nytt ved behov.";
+"target.android-studio-caches.name" = "Android Studio-cacher";
+"target.android-studio-caches.summary" = "IDE-cacher og indekser, lagret per Android Studio-versjon. Gamle versjoner blir liggende for alltid.";
 "target.android-studio-caches.note" = "Android Studio bygger indeksen sin på nytt ved neste oppstart.";
-"target.android-build-cache.name" = "Android-byggbuffer";
-"target.android-build-cache.summary" = "Den eldre Android-byggbufferen og midlertidige SDK-filer.";
-"target.android-system-images.name" = "SDK-systemavbildninger";
-"target.android-system-images.summary" = "Emulator-systemavbildninger lastet ned via SDK Manager. Hvert API-nivå er flere gigabyte.";
-"target.android-system-images.note" = "Eksisterende emulatorer som bruker en slettet avbildning, starter ikke før den lastes ned på nytt fra SDK Manager.";
+"target.android-build-cache.name" = "Android-byggcache";
+"target.android-build-cache.summary" = "Den eldre Android-byggcachen og midlertidige SDK-filer.";
+"target.android-system-images.name" = "SDK system-images";
+"target.android-system-images.summary" = "System-images for emulatoren, lastet ned via SDK Manager. Hvert API-nivå er flere gigabyte.";
+"target.android-system-images.note" = "Eksisterende emulatorer som bruker et slettet image, starter ikke før det lastes ned på nytt fra SDK Manager.";
 "target.android-avds.name" = "Emulatorenheter (AVD-er)";
-"target.android-avds.summary" = "Dine virtuelle Android-enheter, inkludert brukerdata og øyeblikksbilder.";
-"target.android-avds.note" = "Sletter selve emulatorene, ikke bare buffere. Opprett dem på nytt fra Device Manager etterpå.";
-"target.gradle-build-scan.name" = "Gradle build-scan-data";
-"target.gradle-build-scan.summary" = "Build-scan-data mellomlagret lokalt av Gradles build scan-tillegg.";
+"target.android-avds.summary" = "Dine Android Virtual Devices, inkludert brukerdata og snapshots.";
+"target.android-avds.note" = "Sletter selve emulatorene, ikke bare cacher. Opprett dem på nytt fra Device Manager etterpå.";
+"target.gradle-build-scan.name" = "Gradle build scan-data";
+"target.gradle-build-scan.summary" = "Build scan-data mellomlagret lokalt av Gradles build scan-plugin.";
 "target.kotlin-native-cache.name" = "Kotlin/Native-verktøykjeder";
-"target.kotlin-native-cache.summary" = "Verktøykjeder og avhengighetsbuffere for Kotlin/Native-bygg. Hver versjon er flere hundre megabyte.";
+"target.kotlin-native-cache.summary" = "Verktøykjeder og avhengighetscacher for Kotlin/Native-bygg. Hver versjon er flere hundre megabyte.";
 "target.kotlin-native-cache.note" = "Gradle laster ned det som trengs på nytt ved neste Kotlin/Native-bygg.";
 
-/* Mål — .NET og Visual Studio */
+/* Mål, .NET og Visual Studio */
 "target.nuget-packages.name" = "Globale NuGet-pakker";
 "target.nuget-packages.summary" = "Hver pakkeversjon noe .NET-prosjekt noen gang har hentet, lagret for alltid. Prosjekter henter det de fortsatt bruker på nytt ved neste bygg.";
-"target.nuget-packages.note" = "Tilsvarer `dotnet nuget locals global-packages --clear` — neste gjenoppretting laster ned det som trengs.";
-"target.nuget-http-cache.name" = "NuGet-nedlastingsbuffere";
-"target.nuget-http-cache.summary" = "HTTP-svar og tilleggsdata NuGet mellomlagrer under gjenoppretting. Bygges på nytt ved behov.";
+"target.nuget-packages.note" = "Tilsvarer `dotnet nuget locals global-packages --clear`. Neste restore laster ned det som trengs.";
+"target.nuget-http-cache.name" = "NuGet-nedlastingscache";
+"target.nuget-http-cache.summary" = "HTTP-svar og plugin-data NuGet mellomlagrer under restore. Bygges på nytt ved behov.";
 "target.nuget-http-cache.note" = "Tilsvarer `dotnet nuget locals http-cache --clear`.";
 "target.dotnet-workload-packs.name" = "Foreldreløse workload-pakker";
-"target.dotnet-workload-packs.summary" = "SDK-workload-pakker (MAUI, wasm-tools og venner) etterlatt av oppdaterte eller avinstallerte SDK-er. .NET-kommandolinjen fjerner dem selv.";
-"target.dotnet-workload-packs.note" = "Størrelsen er først kjent etter rydding — .NET-kommandolinjen avgjør hva som er foreldreløst. SDK-er installert via Homebrew oppdages ikke.";
-"target.azure-functions-bundles.name" = "Azure Functions-utvidelsespakker";
-"target.azure-functions-bundles.summary" = "Utvidelsespakker og maler lastet ned av Azure Functions Core Tools. Lastes ned på nytt neste gang `func` kjører.";
+"target.dotnet-workload-packs.summary" = "Workload-pakker fra SDK-en (MAUI, wasm-tools og venner) etterlatt av oppdaterte eller avinstallerte SDK-er. .NET CLI-en fjerner dem selv.";
+"target.dotnet-workload-packs.note" = "Størrelsen er først kjent etter rydding; .NET CLI-en avgjør hva som er foreldreløst. SDK-er installert via Homebrew oppdages ikke.";
+"target.azure-functions-bundles.name" = "Extension bundles for Azure Functions";
+"target.azure-functions-bundles.summary" = "Extension bundles og maler lastet ned av Azure Functions Core Tools. Lastes ned på nytt neste gang `func` kjører.";
 "target.vsmac-leftovers.name" = "Rester etter Visual Studio for Mac";
-"target.vsmac-leftovers.summary" = "Buffere og logger fra Visual Studio for Mac, avviklet i 2024. Ingenting leser dem lenger.";
-"target.xamarin-caches.name" = "Xamarin-buffere";
-"target.xamarin-caches.summary" = "Byggagent- og arkivbuffere fra den avviklede Xamarin-verktøykjeden.";
+"target.vsmac-leftovers.summary" = "Cacher og logger fra Visual Studio for Mac, avviklet i 2024. Ingenting leser dem lenger.";
+"target.xamarin-caches.name" = "Xamarin-cacher";
+"target.xamarin-caches.summary" = "Byggagent- og arkivcacher fra den avviklede Xamarin-verktøykjeden.";
 
-/* Mål — Claude og KI-verktøy */
-"target.claude-code-cli-caches.name" = "Claude Code CLI-buffere";
-"target.claude-code-cli-caches.summary" = "Diagnostikk per prosjekt og MCP-logger skrevet av Claude Codes Node-kjøremiljø. Denne mappen vokser uten grenser ved tung bruk.";
-"target.claude-code-scratch.name" = "Claude Code-logger og kladdedata";
-"target.claude-code-scratch.summary" = "Feilsøkingslogger, skallbilder og midlertidige telemetridata. Opprettes på nytt ved neste kjøring.";
-"target.claude-code-scratch.note" = "Autentisering (~/.claude.json), innstillinger og tillegg røres aldri av Reclaim.";
+/* Mål, Claude og AI-verktøy */
+"target.claude-code-cli-caches.name" = "Claude Code CLI-cacher";
+"target.claude-code-cli-caches.summary" = "Diagnostikk per prosjekt og MCP-logger fra Claude Codes Node-harness. Denne mappen vokser uten grenser ved tung bruk.";
+"target.claude-code-scratch.name" = "Claude Code-logger og scratch-data";
+"target.claude-code-scratch.summary" = "Debuglogger, shell-snapshots og midlertidige telemetridata. Opprettes på nytt ved neste kjøring.";
+"target.claude-code-scratch.note" = "Autentisering (~/.claude.json), innstillinger og plugins røres aldri av Reclaim.";
 "target.claude-code-transcripts.name" = "Claude Code-økthistorikk";
 "target.claude-code-transcripts.summary" = "Samtaleutskrifter for hvert prosjekt (~/.claude/projects). Rydding fjerner muligheten til å gjenoppta eller spole tilbake tidligere økter.";
 "target.claude-code-transcripts.note" = "Foretrekk å sette «cleanupPeriodDays» i ~/.claude/settings.json, slik at Claude Code rydder gamle utskrifter automatisk.";
-"target.claude-desktop-caches.name" = "Claude Desktop-buffere";
-"target.claude-desktop-caches.summary" = "Gjengivelses- og kodebuffere for Claude-skrivebordsappen. Bygges på nytt ved neste oppstart.";
+"target.claude-desktop-caches.name" = "Claude Desktop-cacher";
+"target.claude-desktop-caches.summary" = "Gjengivelses- og kodecacher for Claude-skrivebordsappen. Bygges på nytt ved neste oppstart.";
 "target.ollama-models.name" = "Ollama-modeller";
 "target.ollama-models.summary" = "Lokale LLM-vekter hentet med `ollama pull`. Ofte titalls gigabyte.";
 "target.ollama-models.note" = "Modeller må lastes ned på nytt for å brukes igjen. Bruk `ollama rm <modell>` for å fjerne enkeltvis.";
-"target.huggingface-cache.name" = "Hugging Face-buffer";
-"target.huggingface-cache.summary" = "Modeller og datasett mellomlagret av transformers, diffusers og huggingface_hub.";
+"target.huggingface-cache.name" = "Hugging Face-cache";
+"target.huggingface-cache.summary" = "Modeller og datasett cachet av transformers, diffusers og huggingface_hub.";
 "target.huggingface-cache.note" = "Alt som fortsatt trengs, lastes ned på nytt ved neste bruk.";
 "target.lmstudio-models.name" = "LM Studio-modeller";
 "target.lmstudio-models.summary" = "Modellfiler lastet ned gjennom LM Studio.";
 
-/* Mål — Pakkebehandlere og verktøykjeder */
+/* Mål, Pakkebehandlere og verktøykjeder */
 "target.homebrew-cache.name" = "Homebrew-nedlastinger";
 "target.homebrew-cache.summary" = "Nedlastede bottles og gamle formula-versjoner som Homebrew tar vare på.";
-"target.npm-cache.name" = "npm-buffer";
-"target.npm-cache.summary" = "npms innholdsadresserbare pakkebuffer.";
-"target.pnpm-store.name" = "pnpm-lager";
-"target.pnpm-store.summary" = "pnpms globale innholdsadresserbare lager. Pakker hentes på nytt per prosjekt ved behov.";
+"target.npm-cache.name" = "npm-cache";
+"target.npm-cache.summary" = "npms innholdsadresserbare pakkecache.";
+"target.pnpm-store.name" = "pnpm-store";
+"target.pnpm-store.summary" = "pnpms globale innholdsadresserbare store. Pakker hentes på nytt per prosjekt ved behov.";
 "target.pnpm-store.note" = "Foretrekk `pnpm store prune` for å fjerne bare pakker uten referanser.";
-"target.yarn-cache.name" = "Yarn-buffer";
-"target.yarn-cache.summary" = "Yarns globale pakkebuffer.";
-"target.pip-cache.name" = "pip-buffer";
-"target.pip-cache.summary" = "Wheels og HTTP-svar mellomlagret av pip.";
-"target.uv-cache.name" = "uv-buffer";
-"target.uv-cache.summary" = "Pakkebehandleren uv sin wheel- og kildekodebuffer.";
-"target.cocoapods-cache.name" = "CocoaPods-buffer";
-"target.cocoapods-cache.summary" = "Nedlastede pod-utgivelser og spesifikasjonsdata.";
-"target.spm-cache.name" = "Swift Package Manager-buffer";
-"target.spm-cache.summary" = "Utsjekkede kodelagre og manifester mellomlagret av SwiftPM (delt av Xcode og kommandolinjen).";
-"target.cargo-registry.name" = "Cargo-register";
-"target.cargo-registry.summary" = "Nedlastede Rust-crates og registerindekser.";
+"target.yarn-cache.name" = "Yarn-cache";
+"target.yarn-cache.summary" = "Yarns globale pakkecache.";
+"target.pip-cache.name" = "pip-cache";
+"target.pip-cache.summary" = "Wheels og HTTP-svar cachet av pip.";
+"target.uv-cache.name" = "uv-cache";
+"target.uv-cache.summary" = "Wheel- og kildecachen til pakkebehandleren uv.";
+"target.cocoapods-cache.name" = "CocoaPods-cache";
+"target.cocoapods-cache.summary" = "Nedlastede pod-utgivelser og spec-data.";
+"target.spm-cache.name" = "Swift Package Manager-cache";
+"target.spm-cache.summary" = "Utsjekkede repoer og manifester cachet av SwiftPM (delt av Xcode og CLI-en).";
+"target.cargo-registry.name" = "Cargo-registry";
+"target.cargo-registry.summary" = "Nedlastede Rust-crates og registry-indekser.";
 "target.cargo-registry.note" = "Crates lastes ned på nytt ved neste `cargo build`.";
-"target.go-build-cache.name" = "Go-byggbuffer";
+"target.go-build-cache.name" = "Go-byggcache";
 "target.go-build-cache.summary" = "Kompilerte Go-byggartefakter.";
-"target.go-module-cache.name" = "Go-modulbuffer";
+"target.go-module-cache.name" = "Go-modulcache";
 "target.go-module-cache.summary" = "Nedlastede Go-moduler. Go merker disse filene som skrivebeskyttede, så sletting må gå gjennom Go-verktøykjeden.";
 "target.go-module-cache.instructions" = "Kjør `go clean -modcache` i Terminal.";
-"target.deno-cache.name" = "Deno-buffer";
-"target.deno-cache.summary" = "Eksterne moduler og generert kode mellomlagret av Deno. Lastes ned på nytt ved behov.";
+"target.deno-cache.name" = "Deno-cache";
+"target.deno-cache.summary" = "Eksterne moduler og generert kode cachet av Deno. Lastes ned på nytt ved behov.";
 "target.npm-logs.name" = "npm-logger";
-"target.npm-logs.summary" = "Feilsøkingslogger npm skriver for hver kjøring. De ryddes aldri.";
-"target.yarn-berry-cache.name" = "Yarn Berry-buffer";
-"target.yarn-berry-cache.summary" = "Yarn Berrys globale komprimerte pakkebuffer.";
-"target.node-gyp-cache.name" = "node-gyp-headerfiler";
-"target.node-gyp-cache.summary" = "Node.js-headerfiler og biblioteker lastet ned for å bygge native-tillegg.";
-"target.poetry-cache.name" = "Poetry-buffer";
-"target.poetry-cache.summary" = "Pakkeartefakter og metadata mellomlagret av pakkebehandleren Poetry.";
+"target.npm-logs.summary" = "Debuglogger npm skriver for hver kjøring. De ryddes aldri.";
+"target.yarn-berry-cache.name" = "Yarn Berry-cache";
+"target.yarn-berry-cache.summary" = "Yarn Berrys globale komprimerte pakkecache.";
+"target.node-gyp-cache.name" = "node-gyp-headere";
+"target.node-gyp-cache.summary" = "Node.js-headere og biblioteker lastet ned for å bygge native addons.";
+"target.poetry-cache.name" = "Poetry-cache";
+"target.poetry-cache.summary" = "Pakkeartefakter og metadata cachet av pakkebehandleren Poetry.";
 
-/* Mål — Andre utviklerverktøy */
-"target.vscode-caches.name" = "VS Code-buffere";
-"target.vscode-caches.summary" = "Utvidelsesvert-, gjengivelses- og kodebuffere for Visual Studio Code.";
-"target.jetbrains-caches.name" = "JetBrains IDE-buffere";
-"target.jetbrains-caches.summary" = "Buffere og indekser for IntelliJ, PyCharm, WebStorm og venner, lagret per IDE-versjon.";
+/* Mål, Andre utviklerverktøy */
+"target.vscode-caches.name" = "VS Code-cacher";
+"target.vscode-caches.summary" = "Extension host-, gjengivelses- og kodecacher for Visual Studio Code.";
+"target.jetbrains-caches.name" = "JetBrains IDE-cacher";
+"target.jetbrains-caches.summary" = "Cacher og indekser for IntelliJ, PyCharm, WebStorm og venner, lagret per IDE-versjon.";
 "target.jetbrains-caches.note" = "Hver IDE bygger indeksen sin på nytt ved neste oppstart.";
 "target.docker-vm-disk.name" = "Docker VM-disk";
-"target.docker-vm-disk.summary" = "Den virtuelle disken som rommer alle Docker-avbildninger, -containere og -volumer. Den krymper bare når Docker selv rydder.";
+"target.docker-vm-disk.summary" = "Den virtuelle disken som rommer alle Docker-images, -containere og -volumer. Den krymper bare når Docker selv kjører prune.";
 "target.docker-vm-disk.instructions" = "Kjør `docker system prune -a` (og eventuelt `--volumes`) i Terminal, og la Docker Desktop komprimere disken etterpå.";
-"target.vscode-workspace-storage.name" = "VS Code-arbeidsområdelagring";
-"target.vscode-workspace-storage.summary" = "UI-tilstand, historikk og utvidelsesdata per arbeidsområde for hver mappe du noen gang har åpnet — oppføringer for slettede prosjekter blir liggende for alltid.";
-"target.vscode-workspace-storage.note" = "Åpne arbeidsområder oppretter oppføringen sin på nytt, men historikk og ulagret redigeringstilstand per arbeidsområde går tapt.";
+"target.vscode-workspace-storage.name" = "VS Code workspace-lagring";
+"target.vscode-workspace-storage.summary" = "UI-tilstand, historikk og utvidelsesdata per workspace for hver mappe du noen gang har åpnet. Oppføringer for slettede prosjekter blir liggende for alltid.";
+"target.vscode-workspace-storage.note" = "Åpne workspaces oppretter oppføringen sin på nytt, men historikk og ulagret editor-tilstand per workspace går tapt.";
 "target.playwright-browsers.name" = "Playwright-nettlesere";
 "target.playwright-browsers.summary" = "Nettleserbygg lastet ned av Playwright for testing. Hvert versjonssett er over en gigabyte.";
 "target.playwright-browsers.note" = "Kjør `npx playwright install` for å gjenopprette nettlesere før neste testkjøring.";
@@ -164,6 +168,6 @@
 "target.puppeteer-cache.summary" = "Chrome-bygg lastet ned av Puppeteer.";
 "target.puppeteer-cache.note" = "Lastes ned på nytt neste gang Puppeteer installerer nettleseren sin.";
 "target.pre-commit-cache.name" = "pre-commit-miljøer";
-"target.pre-commit-cache.summary" = "Hook-miljøer bygget av pre-commit. Opprettes på nytt ved neste kjøring i hvert kodelager.";
+"target.pre-commit-cache.summary" = "Hook-miljøer bygget av pre-commit. Opprettes på nytt ved neste kjøring i hvert repo.";
 "target.jetbrains-logs.name" = "JetBrains IDE-logger";
 "target.jetbrains-logs.summary" = "Loggfiler for IntelliJ, PyCharm, WebStorm og venner, lagret per IDE-versjon.";

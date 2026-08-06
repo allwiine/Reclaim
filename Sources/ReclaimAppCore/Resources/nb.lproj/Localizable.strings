@@ -1,13 +1,13 @@
 /*
-  Localizable.strings (norsk bokmål) — ReclaimAppCore
+  Localizable.strings (norsk bokmål), ReclaimAppCore
   Flertallsnøkler (summary.movedToTrash, summary.deletedPermanently)
-  ligger i Localizable.stringsdict.
+  ligger i Localizable.stringsdict. Ingen tankestreker i teksten.
 */
 
-"summary.dryRun" = "Tørrkjøring — ingenting ble rørt. Å rydde dette utvalget ville frigjort omtrent %@.";
-"summary.stoppedEarly" = "Ryddingen ble stoppet tidlig — ikke alle valgte elementer ble behandlet.";
+"summary.dryRun" = "Dry run: ingenting ble rørt. Å rydde dette utvalget ville frigjort omtrent %@.";
+"summary.stoppedEarly" = "Ryddingen ble stoppet tidlig, så ikke alle valgte elementer ble behandlet.";
 "summary.nothingCleaned" = "Ingenting ble ryddet.";
 "summary.failuresHeading" = "Noen elementer kunne ikke ryddes:";
 "summary.failuresMore" = "…og %lld til.";
 "summary.fullDiskAccessHint" = "Hvis tilgang ble nektet, gi Reclaim full disktilgang i Systeminnstillinger → Personvern og sikkerhet.";
-"clean.failureLine" = "%1$@ — %2$@";
+"clean.failureLine" = "%1$@: %2$@";

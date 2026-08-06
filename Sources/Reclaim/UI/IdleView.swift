@@ -121,7 +121,7 @@ struct IdleView: View {
                 .frame(width: 7, height: 7)
                 .alignmentGuide(.firstTextBaseline) { $0[VerticalAlignment.center] + 2.5 }
             (Text(level.title).fontWeight(.semibold).foregroundStyle(Theme.textPrimary)
-                + Text(verbatim: " — ")
+                + Text(verbatim: ": ")
                 + Text(text))
                 .font(Theme.body)
                 .foregroundStyle(Color(hex: 0x8E8E95))
