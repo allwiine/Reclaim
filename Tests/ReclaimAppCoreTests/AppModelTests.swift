@@ -54,6 +54,13 @@ private func measured(
     )
 }
 
+/// History store pointed at a throwaway file so tests never touch the
+/// real Application Support state.
+private func temporaryHistoryStore() -> CleanHistoryStore {
+    CleanHistoryStore(fileURL: FileManager.default.temporaryDirectory
+        .appending(path: "reclaim-history-\(UUID().uuidString).json"))
+}
+
 /// UserDefaults suite that cleans up after itself.
 private final class TemporaryDefaults {
     let name = "AppModelTests-\(UUID().uuidString)"
@@ -228,7 +235,8 @@ struct AppModelTests {
             cleanExecutor: { t, paths, disposal in
                 cleaned.withLock { $0.append((t.id, paths, disposal)) }
                 return CleanOutcome(removedItems: paths.count)
-            }
+            },
+            historyStore: temporaryHistoryStore()
         )
 
         model.scanAll()
@@ -264,7 +272,8 @@ struct AppModelTests {
                         removedItems: 0,
                         failures: [CleanFailure(path: "/x", message: "locked")]
                     )
-            }
+            },
+            historyStore: temporaryHistoryStore()
         )
 
         model.scanAll()
@@ -297,7 +306,8 @@ struct AppModelTests {
                 if t.id == "first" { gate.wait() }
                 cleaned.withLock { $0.append(t.id) }
                 return CleanOutcome(removedItems: 1)
-            }
+            },
+            historyStore: temporaryHistoryStore()
         )
 
         model.scanAll()
@@ -324,6 +334,181 @@ struct AppModelTests {
         #expect(model.status(of: "second").bytes == 100, "skipped targets keep their measurement")
     }
 
+    @Test("A finished scan preselects Safe items, honoring the Caution setting")
+    func postScanPreselection() async {
+        let store = TemporaryDefaults()
+        let safe = target("safe", safety: .safe)
+        let risky = target("risky", safety: .caution)
+        let manual = target("manual", strategy: .manual(instructions: "Use the tool."))
+        let model = AppModel(
+            targets: [safe, risky, manual],
+            defaults: store.defaults,
+            scanExecutor: { _ in measured(100) }
+        )
+
+        model.scanAll()
+        await model.scanTask?.value
+
+        #expect(model.isSelected(safe), "Safe items come ticked after a scan")
+        #expect(!model.isSelected(risky), "Caution items stay unticked by default")
+        #expect(!model.isSelected(manual), "manual targets can never be selected")
+
+        model.preselectCaution = true
+        model.scanAll()
+        await model.scanTask?.value
+
+        #expect(model.isSelected(risky), "the Caution preselection setting is honored")
+    }
+
+    @Test("A dry run reports projections and touches nothing")
+    func dryRunTouchesNothing() async {
+        let store = TemporaryDefaults()
+        let cache = target("cache")
+        let cleanCalls = Mutex(0)
+        let model = AppModel(
+            targets: [cache],
+            defaults: store.defaults,
+            scanExecutor: { _ in
+                measured(100, cleanupPaths: [URL(filePath: "/fixture/a"), URL(filePath: "/fixture/b")])
+            },
+            cleanExecutor: { _, _, _ in
+                cleanCalls.withLock { $0 += 1 }
+                return CleanOutcome(removedItems: 1)
+            },
+            historyStore: temporaryHistoryStore()
+        )
+        model.dryRun = true
+
+        model.scanAll()
+        await model.scanTask?.value
+        model.cleanSelected()
+        await model.cleanTask?.value
+
+        #expect(cleanCalls.withLock { $0 } == 0, "a dry run must never reach the engine")
+        #expect(model.lastCleanSummary?.isDryRun == true)
+        #expect(model.lastCleanSummary?.reclaimedBytes == 100)
+        #expect(model.lastCleanSummary?.itemsRemoved == 2)
+        #expect(model.isSelected(cache), "the selection survives a dry run")
+        #expect(model.status(of: "cache").bytes == 100, "measurements stay untouched")
+        #expect(model.history.isEmpty, "dry runs are not history")
+    }
+
+    @Test("A real clean pass is recorded in persistent history")
+    func historyRecording() async {
+        let store = TemporaryDefaults()
+        let historyStore = temporaryHistoryStore()
+        let cache = target("cache")
+        let scanCount = Mutex(0)
+        let model = AppModel(
+            targets: [cache],
+            defaults: store.defaults,
+            scanExecutor: { _ in
+                let calls = scanCount.withLock { $0 += 1; return $0 }
+                return calls == 1 ? measured(100) : measured(0)
+            },
+            cleanExecutor: { _, _, _ in CleanOutcome(removedItems: 3) },
+            historyStore: historyStore
+        )
+
+        model.scanAll()
+        await model.scanTask?.value
+        model.cleanSelected()
+        await model.cleanTask?.value
+
+        #expect(model.history.count == 1)
+        #expect(model.history.first?.targetNames == ["cache"])
+        #expect(model.history.first?.itemsRemoved == 3)
+        #expect(model.history.first?.reclaimedBytes == 100)
+        #expect(model.reclaimedAllTimeBytes == 100)
+        #expect(model.lastCleanSummary?.cleaned.map(\.name) == ["cache"])
+
+        // The entry must survive a fresh model (i.e. an app restart).
+        for _ in 0..<10_000 where historyStore.load().isEmpty {
+            await Task.yield()
+        }
+        #expect(historyStore.load().count == 1)
+    }
+
+    @Test("Scan progress is live during the pass and gone afterwards")
+    func scanProgressLifecycle() async {
+        let store = TemporaryDefaults()
+        let model = AppModel(
+            targets: [target("a"), target("b")],
+            defaults: store.defaults,
+            scanExecutor: { _ in measured(100) }
+        )
+        #expect(model.scanProgress == nil)
+
+        model.scanAll()
+        #expect(model.scanProgress?.total == 2)
+
+        await model.scanTask?.value
+        #expect(model.scanProgress == nil)
+    }
+
+    @Test("The weekly background scan fires only when due")
+    func backgroundScanScheduling() async {
+        let store = TemporaryDefaults()
+        let model = AppModel(
+            targets: [target("cache")],
+            defaults: store.defaults,
+            scanExecutor: { _ in measured(100) }
+        )
+
+        #expect(model.nextBackgroundScanDate == nil, "no schedule before the first scan")
+        model.runBackgroundScanIfDue()
+        #expect(model.scanTask == nil, "never scans without a previous scan on record")
+
+        model.scanAll()
+        await model.scanTask?.value
+        let next = model.nextBackgroundScanDate
+        #expect(next != nil)
+
+        model.runBackgroundScanIfDue(now: .now)
+        #expect(!model.isScanning, "not due yet — a scan just finished")
+
+        model.runBackgroundScanIfDue(now: next!.addingTimeInterval(60))
+        #expect(model.isScanning, "a week later the scan starts")
+        await model.scanTask?.value
+
+        model.weeklyScanEnabled = false
+        #expect(model.nextBackgroundScanDate == nil, "disabling removes the schedule")
+    }
+
+    @Test("Breakdowns load once per target and clear on rescan")
+    func breakdownLifecycle() async {
+        let store = TemporaryDefaults()
+        let cache = target("cache")
+        let computeCalls = Mutex(0)
+        let model = AppModel(
+            targets: [cache],
+            defaults: store.defaults,
+            scanExecutor: { _ in measured(100) },
+            breakdownExecutor: { _ in
+                computeCalls.withLock { $0 += 1 }
+                return [BreakdownEntry(name: "big", bytes: 80)]
+            }
+        )
+
+        model.loadBreakdown(for: cache)
+        #expect(model.breakdowns["cache"] == nil, "nothing to break down before a scan")
+
+        model.scanAll()
+        await model.scanTask?.value
+        model.loadBreakdown(for: cache)
+        for _ in 0..<10_000 where model.breakdowns["cache"] == nil {
+            await Task.yield()
+        }
+        #expect(model.breakdowns["cache"]?.first?.name == "big")
+
+        model.loadBreakdown(for: cache)
+        #expect(computeCalls.withLock { $0 } == 1, "cached breakdowns are not recomputed")
+
+        model.scanAll()
+        #expect(model.breakdowns.isEmpty, "a new scan invalidates every breakdown")
+        await model.scanTask?.value
+    }
+
     @Test("The disposal chosen in Settings reaches the clean executor")
     func disposalSnapshot() async {
         let store = TemporaryDefaults()
@@ -337,7 +522,8 @@ struct AppModelTests {
             cleanExecutor: { _, _, disposal in
                 usedDisposal.withLock { $0 = disposal }
                 return CleanOutcome(removedItems: 1)
-            }
+            },
+            historyStore: temporaryHistoryStore()
         )
         model.disposal = .delete
 

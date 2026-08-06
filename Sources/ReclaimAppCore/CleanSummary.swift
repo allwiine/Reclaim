@@ -10,8 +10,27 @@ import ReclaimKit
 
 /// Aggregated outcome of cleaning the selected targets.
 public struct CleanSummary: Equatable, Sendable {
+    /// One target processed by the pass, for the results list.
+    public struct CleanedTarget: Equatable, Sendable, Identifiable {
+        public let id: String
+        public let name: String
+        public let category: ToolCategory
+        /// Measurably freed space (post-clean rescan), or the size that
+        /// would be freed on a dry run.
+        public let bytesFreed: Int64
+
+        public init(id: String, name: String, category: ToolCategory, bytesFreed: Int64) {
+            self.id = id
+            self.name = name
+            self.category = category
+            self.bytesFreed = bytesFreed
+        }
+    }
+
     /// How removals were performed (affects the wording of the alert).
     public let disposal: Disposal
+    /// True when nothing was touched and the numbers are projections.
+    public var isDryRun: Bool = false
     public var reclaimedBytes: Int64 = 0
     /// Targets where at least one item was actually removed.
     public var cleanedTargets: Int = 0
@@ -23,6 +42,8 @@ public struct CleanSummary: Equatable, Sendable {
     public var wasStopped: Bool = false
     /// Human-readable failure lines, empty on full success.
     public var failures: [String] = []
+    /// Per-target results for targets that had removals, pass order.
+    public var cleaned: [CleanedTarget] = []
 
     public init(disposal: Disposal) {
         self.disposal = disposal
@@ -31,6 +52,12 @@ public struct CleanSummary: Equatable, Sendable {
     /// Alert body text.
     public var message: String {
         var lines: [String] = []
+
+        if isDryRun {
+            let space = reclaimedBytes.formatted(.byteCount(style: .file))
+            lines.append("Dry run — nothing was touched. Cleaning this selection would free about \(space).")
+            return lines.joined(separator: "\n")
+        }
 
         if wasStopped {
             lines.append("Cleaning was stopped early — not every selected item was processed.")
