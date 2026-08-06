@@ -120,6 +120,26 @@ public enum TargetRegistry {
             )),
             note: "Size is only known after cleaning — simctl decides what qualifies."
         ),
+        CleanupTarget(
+            id: "xcode-device-logs",
+            name: "Device logs",
+            summary: "Console logs collected from physical devices in Xcode's Devices window.",
+            category: .xcode,
+            safety: .safe,
+            pathPatterns: ["~/Library/Developer/Xcode/iOS Device Logs"],
+            strategy: .removeContents,
+            relatedAppBundleIDs: ["com.apple.dt.Xcode"]
+        ),
+        CleanupTarget(
+            id: "xcode-xctest-devices",
+            name: "Test simulator clones",
+            summary: "Simulator clones created for parallel testing. Recreated on the next test run.",
+            category: .xcode,
+            safety: .safe,
+            pathPatterns: ["~/Library/Developer/XCTestDevices"],
+            strategy: .removeContents,
+            relatedAppBundleIDs: ["com.apple.dt.Xcode"]
+        ),
     ]
 
     // MARK: - Android Studio & Gradle
@@ -198,6 +218,26 @@ public enum TargetRegistry {
             strategy: .removeContents,
             note: "Deletes the emulators themselves, not just caches. Recreate them from Device Manager afterwards.",
             relatedAppBundleIDs: ["com.google.android.studio"]
+        ),
+        CleanupTarget(
+            id: "gradle-build-scan",
+            name: "Gradle build-scan data",
+            summary: "Build-scan payloads staged locally by the Gradle build scan plugin.",
+            category: .android,
+            safety: .safe,
+            pathPatterns: ["~/.gradle/build-scan-data"],
+            strategy: .removeContents,
+            relatedAppBundleIDs: ["com.google.android.studio"]
+        ),
+        CleanupTarget(
+            id: "kotlin-native-cache",
+            name: "Kotlin/Native toolchains",
+            summary: "Toolchains and dependency caches for Kotlin/Native builds. Each version is hundreds of megabytes.",
+            category: .android,
+            safety: .safe,
+            pathPatterns: ["~/.konan"],
+            strategy: .removeContents,
+            note: "Gradle re-downloads what it needs on the next Kotlin/Native build."
         ),
     ]
 
@@ -390,6 +430,51 @@ public enum TargetRegistry {
             pathPatterns: ["~/go/pkg/mod"],
             strategy: .manual(instructions: "Run `go clean -modcache` in Terminal.")
         ),
+        CleanupTarget(
+            id: "deno-cache",
+            name: "Deno cache",
+            summary: "Remote modules and generated code cached by Deno. Re-downloaded on demand.",
+            category: .packageManagers,
+            safety: .safe,
+            pathPatterns: ["~/Library/Caches/deno"],
+            strategy: .removeContents
+        ),
+        CleanupTarget(
+            id: "npm-logs",
+            name: "npm logs",
+            summary: "Debug logs npm writes for every invocation. They are never pruned.",
+            category: .packageManagers,
+            safety: .safe,
+            pathPatterns: ["~/.npm/_logs"],
+            strategy: .removeContents
+        ),
+        CleanupTarget(
+            id: "yarn-berry-cache",
+            name: "Yarn Berry cache",
+            summary: "Yarn Berry's global compressed package cache.",
+            category: .packageManagers,
+            safety: .safe,
+            pathPatterns: ["~/.yarn/berry/cache"],
+            strategy: .removeContents
+        ),
+        CleanupTarget(
+            id: "node-gyp-cache",
+            name: "node-gyp headers",
+            summary: "Node.js headers and libraries downloaded for building native addons.",
+            category: .packageManagers,
+            safety: .safe,
+            pathPatterns: ["~/Library/Caches/node-gyp", "~/.node-gyp"],
+            strategy: .removeContents
+        ),
+        CleanupTarget(
+            id: "poetry-cache",
+            name: "Poetry cache",
+            summary: "Package artifacts and metadata cached by the Poetry package manager.",
+            category: .packageManagers,
+            safety: .safe,
+            pathPatterns: ["~/Library/Caches/pypoetry"],
+            strategy: .removeContents
+        ),
     ]
 
     // MARK: - Other developer tools
@@ -431,6 +516,55 @@ public enum TargetRegistry {
                 "~/Library/Containers/com.docker.docker/Data/vms/0/data/Docker.qcow2",
             ],
             strategy: .manual(instructions: "Run `docker system prune -a` (and optionally `--volumes`) in Terminal, then let Docker Desktop compact the disk.")
+        ),
+        CleanupTarget(
+            id: "vscode-workspace-storage",
+            name: "VS Code workspace storage",
+            summary: "Per-workspace UI state, history and extension data for every folder you have ever opened — entries for deleted projects linger forever.",
+            category: .otherTools,
+            safety: .caution,
+            pathPatterns: ["~/Library/Application Support/Code/User/workspaceStorage"],
+            strategy: .removeContents,
+            note: "Open workspaces recreate their entry, but per-workspace history and unsaved editor state are lost.",
+            relatedAppBundleIDs: ["com.microsoft.VSCode"]
+        ),
+        CleanupTarget(
+            id: "playwright-browsers",
+            name: "Playwright browsers",
+            summary: "Browser builds downloaded by Playwright for testing. Each version set is over a gigabyte.",
+            category: .otherTools,
+            safety: .caution,
+            pathPatterns: ["~/Library/Caches/ms-playwright"],
+            strategy: .removeContents,
+            note: "Run `npx playwright install` to restore browsers before the next test run."
+        ),
+        CleanupTarget(
+            id: "puppeteer-cache",
+            name: "Puppeteer browsers",
+            summary: "Chrome builds downloaded by Puppeteer.",
+            category: .otherTools,
+            safety: .caution,
+            pathPatterns: ["~/.cache/puppeteer"],
+            strategy: .removeContents,
+            note: "Re-downloaded the next time Puppeteer installs its browser."
+        ),
+        CleanupTarget(
+            id: "pre-commit-cache",
+            name: "pre-commit environments",
+            summary: "Hook environments built by pre-commit. Recreated on the next run in each repository.",
+            category: .otherTools,
+            safety: .safe,
+            pathPatterns: ["~/.cache/pre-commit"],
+            strategy: .removeContents
+        ),
+        CleanupTarget(
+            id: "jetbrains-logs",
+            name: "JetBrains IDE logs",
+            summary: "Log files for IntelliJ, PyCharm, WebStorm and friends, kept per IDE version.",
+            category: .otherTools,
+            safety: .safe,
+            pathPatterns: ["~/Library/Logs/JetBrains"],
+            strategy: .removeContents
         ),
     ]
 }
