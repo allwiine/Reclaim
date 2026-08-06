@@ -20,6 +20,7 @@ struct DoneView: View {
     @State private var shownBytes: Int64 = 0
     @State private var trashState: TrashButtonState = .ready
     @State private var isEmptyingTrash = false
+    @State private var isConfirmingEmptyTrash = false
 
     private enum TrashButtonState: Equatable {
         case ready, emptied
@@ -58,6 +59,17 @@ struct DoneView: View {
             withAnimation(.smooth(duration: 1.0).delay(0.25)) {
                 shownBytes = summary.reclaimedBytes
             }
+        }
+        .confirmationDialog(
+            "Empty the Trash?",
+            isPresented: $isConfirmingEmptyTrash,
+            titleVisibility: .visible
+        ) {
+            Button("Empty Trash", role: .destructive) {
+                emptyTrash()
+            }
+        } message: {
+            Text("This empties everything in the Trash — including items Reclaim didn't put there. This cannot be undone.")
         }
     }
 
@@ -209,7 +221,7 @@ struct DoneView: View {
 
             if summary.disposal == .trash, !summary.isDryRun, summary.itemsRemoved > 0 {
                 Button {
-                    emptyTrash()
+                    isConfirmingEmptyTrash = true
                 } label: {
                     HStack(spacing: 6) {
                         if isEmptyingTrash {
@@ -244,7 +256,7 @@ struct DoneView: View {
     private func emptyTrash() {
         isEmptyingTrash = true
         Task {
-            let outcome = await TrashService.emptyTrash()
+            let outcome = TrashService.emptyTrash()
             isEmptyingTrash = false
             withAnimation(Theme.quick) {
                 switch outcome {

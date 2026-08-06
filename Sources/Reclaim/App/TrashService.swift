@@ -6,6 +6,10 @@
 //  there is actually released. Uses Apple events (the supported way
 //  to do this); the first use prompts for Automation permission.
 //
+//  OSA/Cocoa scripting is main-thread-only, so the script runs on the
+//  main actor — a brief main-thread block while Finder empties the
+//  Trash is an acceptable trade-off for correctness.
+//
 
 import AppKit
 import Foundation
@@ -20,25 +24,20 @@ enum TrashService {
         case failed(message: String)
     }
 
-    /// Empty the Trash via Finder. Runs the Apple event off the main
-    /// thread; the outcome arrives back on the main actor.
-    static func emptyTrash() async -> Outcome {
-        let result: Outcome = await withCheckedContinuation { continuation in
-            DispatchQueue.global(qos: .userInitiated).async {
-                let script = NSAppleScript(
-                    source: "tell application \"Finder\" to empty trash"
-                )
-                var errorInfo: NSDictionary?
-                script?.executeAndReturnError(&errorInfo)
-                if let errorInfo,
-                   let message = errorInfo[NSAppleScript.errorMessage] as? String {
-                    Log.app.error("Empty Trash failed: \(message, privacy: .public)")
-                    continuation.resume(returning: .failed(message: message))
-                } else {
-                    continuation.resume(returning: .emptied)
-                }
-            }
+    /// Empty the Trash via Finder. Must run on the main actor — Apple
+    /// events require it.
+    @MainActor
+    static func emptyTrash() -> Outcome {
+        let script = NSAppleScript(
+            source: "tell application \"Finder\" to empty trash"
+        )
+        var errorInfo: NSDictionary?
+        script?.executeAndReturnError(&errorInfo)
+        if let errorInfo,
+           let message = errorInfo[NSAppleScript.errorMessage] as? String {
+            Log.app.error("Empty Trash failed: \(message, privacy: .public)")
+            return .failed(message: message)
         }
-        return result
+        return .emptied
     }
 }
