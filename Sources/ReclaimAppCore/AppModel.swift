@@ -31,6 +31,9 @@ public final class AppModel {
     public typealias ScanExecutor = @Sendable (CleanupTarget) -> TargetStatus
     /// Cleans one target's scan-time paths. Blocking; called off-main.
     public typealias CleanExecutor = @Sendable (CleanupTarget, [URL], Disposal) -> CleanOutcome
+    /// Sizes a measured target's individual contents. Blocking; called
+    /// off-main. `nil` means the computation was cancelled.
+    public typealias BreakdownExecutor = @Sendable (TargetStatus) -> [BreakdownEntry]?
 
     // MARK: - Constants
 
@@ -54,6 +57,24 @@ public final class AppModel {
     public private(set) var isScanning = false
     public private(set) var isCleaning = false
     public private(set) var lastScan: Date?
+
+    /// Live progress of the running scan pass, for the scanning screen.
+    public struct ScanProgress: Equatable, Sendable {
+        /// Targets fully measured so far.
+        public let completed: Int
+        public let total: Int
+        /// Name of the most recently started target.
+        public let currentTargetName: String
+        /// Tilde-form location being walked, or the command being probed.
+        public let currentPath: String
+
+        public var fraction: Double {
+            total > 0 ? Double(completed) / Double(total) : 0
+        }
+    }
+
+    /// Non-nil while a scan pass is running.
+    public private(set) var scanProgress: ScanProgress?
     /// Whether the most recent scan ran to completion. `false` means it
     /// was stopped early: measurements on screen are real but partial.
     /// Meaningful only once `lastScan` is non-nil.
@@ -66,9 +87,15 @@ public final class AppModel {
     /// The target currently being cleaned, for progress UI.
     public struct CleanProgress: Equatable, Sendable {
         public let targetName: String
+        /// Tilde-form location being cleaned, when known.
+        public let targetPath: String?
         /// 1-based position within this pass.
         public let index: Int
         public let total: Int
+
+        public var fraction: Double {
+            total > 0 ? Double(index - 1) / Double(total) : 0
+        }
     }
 
     /// Non-nil while a clean pass is processing a target.
@@ -78,17 +105,35 @@ public final class AppModel {
     /// at scan time; `nil` before the first scan or when indeterminate.
     public private(set) var hasFullDiskAccess: Bool?
 
+    /// Capacity of the volume holding the user's data, for the disk
+    /// card. Refreshed around scans and cleans.
+    public private(set) var volumeSpace: VolumeSpace?
+
+    /// Past clean passes, newest first.
+    public private(set) var history: [CleanHistoryEntry]
+
+    /// On-demand "largest contents" per target, cached per scan.
+    public private(set) var breakdowns: [CleanupTarget.ID: [BreakdownEntry]] = [:]
+
     @ObservationIgnored
     private(set) var scanTask: Task<Void, Never>?
     @ObservationIgnored
     private(set) var cleanTask: Task<Void, Never>?
+    @ObservationIgnored
+    private var breakdownTasks: [CleanupTarget.ID: Task<Void, Never>] = [:]
 
     @ObservationIgnored
     private let scanExecutor: ScanExecutor
     @ObservationIgnored
     private let cleanExecutor: CleanExecutor
     @ObservationIgnored
+    private let breakdownExecutor: BreakdownExecutor
+    @ObservationIgnored
     private let fullDiskAccessProbe: @Sendable () -> Bool?
+    @ObservationIgnored
+    private let volumeProbe: @Sendable () -> VolumeSpace?
+    @ObservationIgnored
+    private let historyStore: CleanHistoryStore
 
     // MARK: - Persisted settings
 
@@ -97,6 +142,34 @@ public final class AppModel {
     private enum DefaultsKey {
         static let disposal = "settings.disposal"
         static let showNotInstalled = "settings.showNotInstalled"
+        static let preselectCaution = "settings.preselectCaution"
+        static let dryRun = "settings.dryRun"
+        static let weeklyScan = "settings.weeklyScan"
+        static let notifyLargeReclaimable = "settings.notifyLargeReclaimable"
+        static let menuBarExtra = "settings.menuBarExtra"
+        static let lastScanDate = "state.lastScanDate"
+    }
+
+    /// Reads a Bool setting through the ObservationRegistrar so views
+    /// update when it changes; `fallback` applies when never set.
+    private func boolSetting<Member>(
+        _ keyPath: KeyPath<AppModel, Member>, key: String, fallback: Bool
+    ) -> Bool {
+        access(keyPath: keyPath)
+        return defaults.object(forKey: key) as? Bool ?? fallback
+    }
+
+    private func setBoolSetting<Member>(
+        _ keyPath: KeyPath<AppModel, Member>, key: String, to newValue: Bool
+    ) {
+        // Skip no-op writes: SwiftUI bindings (e.g. MenuBarExtra's
+        // isInserted) can re-assign the current value during scene
+        // evaluation, and an unconditional withMutation would spin an
+        // invalidate-reevaluate loop.
+        guard (defaults.object(forKey: key) as? Bool) != newValue else { return }
+        withMutation(keyPath: keyPath) {
+            defaults.set(newValue, forKey: key)
+        }
     }
 
     /// Trash (default) or permanent deletion. Backed by UserDefaults via
@@ -108,6 +181,7 @@ public final class AppModel {
             return Disposal(rawValue: raw) ?? .trash
         }
         set {
+            guard newValue != disposal else { return }
             withMutation(keyPath: \.disposal) {
                 defaults.set(newValue.rawValue, forKey: DefaultsKey.disposal)
             }
@@ -116,16 +190,47 @@ public final class AppModel {
 
     /// Whether tools that were not found on this Mac stay visible.
     public var showNotInstalled: Bool {
-        get {
-            access(keyPath: \.showNotInstalled)
-            return defaults.object(forKey: DefaultsKey.showNotInstalled) as? Bool ?? false
-        }
-        set {
-            withMutation(keyPath: \.showNotInstalled) {
-                defaults.set(newValue, forKey: DefaultsKey.showNotInstalled)
-            }
-        }
+        get { boolSetting(\.showNotInstalled, key: DefaultsKey.showNotInstalled, fallback: false) }
+        set { setBoolSetting(\.showNotInstalled, key: DefaultsKey.showNotInstalled, to: newValue) }
     }
+
+    /// Whether Caution-rated items join the post-scan preselection.
+    /// Off by default — only Safe items come ticked after a scan.
+    public var preselectCaution: Bool {
+        get { boolSetting(\.preselectCaution, key: DefaultsKey.preselectCaution, fallback: false) }
+        set { setBoolSetting(\.preselectCaution, key: DefaultsKey.preselectCaution, to: newValue) }
+    }
+
+    /// Report what a clean pass would remove without touching anything.
+    public var dryRun: Bool {
+        get { boolSetting(\.dryRun, key: DefaultsKey.dryRun, fallback: false) }
+        set { setBoolSetting(\.dryRun, key: DefaultsKey.dryRun, to: newValue) }
+    }
+
+    /// Re-scan automatically once a week while Reclaim is running.
+    public var weeklyScanEnabled: Bool {
+        get { boolSetting(\.weeklyScanEnabled, key: DefaultsKey.weeklyScan, fallback: true) }
+        set { setBoolSetting(\.weeklyScanEnabled, key: DefaultsKey.weeklyScan, to: newValue) }
+    }
+
+    /// Post a notification when a background scan finds more than
+    /// ``notificationThresholdBytes`` reclaimable.
+    public var notifyLargeReclaimable: Bool {
+        get { boolSetting(\.notifyLargeReclaimable, key: DefaultsKey.notifyLargeReclaimable, fallback: false) }
+        set { setBoolSetting(\.notifyLargeReclaimable, key: DefaultsKey.notifyLargeReclaimable, to: newValue) }
+    }
+
+    /// Whether the compact menu bar summary is shown.
+    public var menuBarExtraEnabled: Bool {
+        get { boolSetting(\.menuBarExtraEnabled, key: DefaultsKey.menuBarExtra, fallback: true) }
+        set { setBoolSetting(\.menuBarExtraEnabled, key: DefaultsKey.menuBarExtra, to: newValue) }
+    }
+
+    /// Reclaimable size that qualifies as "worth a notification".
+    public static let notificationThresholdBytes: Int64 = 25_000_000_000
+
+    /// How often the background scan runs while the app is open.
+    public static let backgroundScanInterval: TimeInterval = 7 * 24 * 3600
 
     // MARK: - Init
 
@@ -136,15 +241,27 @@ public final class AppModel {
         cleanExecutor: @escaping CleanExecutor = {
             CleanupEngine().clean($0, resolvedPaths: $1, disposal: $2)
         },
+        breakdownExecutor: @escaping BreakdownExecutor = {
+            try? BreakdownSizer().largestContents(of: $0)
+        },
         fullDiskAccessProbe: @escaping @Sendable () -> Bool? = {
             FullDiskAccessProbe().check()
-        }
+        },
+        volumeProbe: @escaping @Sendable () -> VolumeSpace? = {
+            VolumeSpaceProbe().measure()
+        },
+        historyStore: CleanHistoryStore = CleanHistoryStore()
     ) {
         self.targets = targets
         self.defaults = defaults
         self.scanExecutor = scanExecutor
         self.cleanExecutor = cleanExecutor
+        self.breakdownExecutor = breakdownExecutor
         self.fullDiskAccessProbe = fullDiskAccessProbe
+        self.volumeProbe = volumeProbe
+        self.historyStore = historyStore
+        self.history = historyStore.load().sorted { $0.date > $1.date }
+        refreshVolumeSpace()
     }
 
     // MARK: - Derived state
@@ -212,6 +329,100 @@ public final class AppModel {
             .map { $0 }
     }
 
+    /// Measured bytes of one target (0 while unmeasured).
+    public func bytes(of target: CleanupTarget) -> Int64 {
+        status(of: target.id).bytes ?? 0
+    }
+
+    /// What the one-click "reclaim safe space" action covers: measured,
+    /// cleanable, Safe-rated bytes.
+    public var safeReclaimableBytes: Int64 {
+        targets.reduce(0) {
+            $1.safety == .safe && $1.strategy.isCleanable ? $0 + bytes(of: $1) : $0
+        }
+    }
+
+    /// Number of Safe-rated targets with something to clean.
+    public var safeReclaimableCount: Int {
+        targets.count { $0.safety == .safe && $0.strategy.isCleanable && bytes(of: $0) > 0 }
+    }
+
+    /// Measured bytes needing a decision first (Caution + Destructive,
+    /// including tool-managed items like Docker).
+    public var reviewBytes: Int64 {
+        targets.reduce(0) { $1.safety == .safe ? $0 : $0 + bytes(of: $1) }
+    }
+
+    /// Number of measured targets needing a decision first.
+    public var reviewCount: Int {
+        targets.count { $0.safety != .safe && bytes(of: $0) > 0 }
+    }
+
+    /// Measured targets Reclaim will not delete itself — their own tool
+    /// has to do it (Docker, the Go toolchain). Drives the "needs your
+    /// attention" cards.
+    public var manualTargets: [CleanupTarget] {
+        targets.filter { !$0.strategy.isCleanable && bytes(of: $0) > 0 }
+    }
+
+    /// All-time reclaimed space across recorded cleans.
+    public var reclaimedAllTimeBytes: Int64 {
+        history.reduce(0) { $0 + $1.reclaimedBytes }
+    }
+
+    // MARK: - Background scanning
+
+    /// When the next automatic scan is due, or `nil` when disabled or
+    /// no scan has happened yet.
+    public var nextBackgroundScanDate: Date? {
+        guard weeklyScanEnabled else { return nil }
+        guard let last = defaults.object(forKey: DefaultsKey.lastScanDate) as? Date else {
+            return nil
+        }
+        return last.addingTimeInterval(Self.backgroundScanInterval)
+    }
+
+    /// Start a scan if the weekly background scan is enabled and due.
+    /// Called periodically by the app layer while Reclaim is running.
+    public func runBackgroundScanIfDue(now: Date = .now) {
+        guard weeklyScanEnabled, !isScanning, !isCleaning else { return }
+        guard let next = nextBackgroundScanDate else { return }
+        if now >= next { scanAll() }
+    }
+
+    // MARK: - Contents breakdown
+
+    /// Kick off (or reuse) the "largest contents" computation for a
+    /// measured target. Results land in ``breakdowns``.
+    public func loadBreakdown(for target: CleanupTarget) {
+        guard breakdowns[target.id] == nil, breakdownTasks[target.id] == nil else { return }
+        let current = status(of: target.id)
+        guard case .measured = current else { return }
+
+        let compute = breakdownExecutor
+        breakdownTasks[target.id] = Task {
+            let entries = await Self.offMain { compute(current) }
+            if let entries {
+                self.breakdowns[target.id] = entries
+            }
+            self.breakdownTasks[target.id] = nil
+        }
+    }
+
+    /// Drop cached breakdowns (statuses changed, they may be stale).
+    private func invalidateBreakdowns() {
+        for task in breakdownTasks.values { task.cancel() }
+        breakdownTasks.removeAll()
+        breakdowns.removeAll()
+    }
+
+    private func refreshVolumeSpace() {
+        let probe = volumeProbe
+        Task {
+            self.volumeSpace = await Self.offMain { probe() }
+        }
+    }
+
     // MARK: - Selection
 
     /// Whether the row's checkbox is enabled.
@@ -260,6 +471,10 @@ public final class AppModel {
         isScanning = true
         selection.removeAll()
         lastCleanSummary = nil
+        invalidateBreakdowns()
+        scanProgress = ScanProgress(
+            completed: 0, total: targets.count, currentTargetName: "", currentPath: ""
+        )
         for target in targets {
             statuses[target.id] = .scanning
         }
@@ -274,8 +489,24 @@ public final class AppModel {
             }
             self.lastScan = .now
             self.lastScanWasComplete = !Task.isCancelled
+            self.defaults.set(Date.now, forKey: DefaultsKey.lastScanDate)
             self.isScanning = false
+            self.scanProgress = nil
             self.scanTask = nil
+            self.applyPostScanSelection()
+            self.refreshVolumeSpace()
+        }
+    }
+
+    /// Mirrors the design's post-scan behavior: Safe items come ticked
+    /// (plus Caution when the setting opts in), so one click cleans.
+    private func applyPostScanSelection() {
+        for target in targets where isSelectable(target) {
+            let wanted = target.safety == .safe
+                || (preselectCaution && target.safety == .caution)
+            if wanted {
+                selection.insert(target.id)
+            }
         }
     }
 
@@ -295,10 +526,20 @@ public final class AppModel {
         let scan = scanExecutor
         await withTaskGroup(of: (CleanupTarget.ID, TargetStatus).self) { group in
             var pending = targets.makeIterator()
+            var completed = 0
 
+            // Nested functions do not inherit the enclosing actor, so
+            // spell out the isolation this one needs to touch progress.
+            @MainActor
             @discardableResult
             func startNext() -> Bool {
                 guard let target = pending.next() else { return false }
+                scanProgress = ScanProgress(
+                    completed: completed,
+                    total: targets.count,
+                    currentTargetName: target.name,
+                    currentPath: Self.displayLocation(of: target)
+                )
                 group.addTask {
                     (target.id, scan(target))
                 }
@@ -310,9 +551,25 @@ public final class AppModel {
             }
             while let (id, resolvedStatus) = await group.next() {
                 statuses[id] = resolvedStatus
+                completed += 1
+                if let progress = scanProgress {
+                    scanProgress = ScanProgress(
+                        completed: completed,
+                        total: progress.total,
+                        currentTargetName: progress.currentTargetName,
+                        currentPath: progress.currentPath
+                    )
+                }
                 startNext()
             }
         }
+    }
+
+    /// Tilde-form location shown while a target is being processed.
+    private nonisolated static func displayLocation(of target: CleanupTarget) -> String {
+        if let pattern = target.pathPatterns.first { return pattern }
+        if case .command(let spec) = target.strategy { return spec.displayCommand }
+        return target.name
     }
 
     // MARK: - Cleaning
@@ -341,6 +598,27 @@ public final class AppModel {
         }
         guard !jobs.isEmpty else { return }
 
+        // A dry run is a report, not a pass: project the numbers from
+        // the scan-time snapshot and touch nothing — no engine, no
+        // rescan, and the selection stays intact.
+        if dryRun {
+            var summary = CleanSummary(disposal: disposal)
+            summary.isDryRun = true
+            for job in jobs {
+                summary.itemsRemoved += max(1, job.paths.count)
+                summary.cleanedTargets += 1
+                summary.reclaimedBytes += job.bytesBefore
+                summary.cleaned.append(CleanSummary.CleanedTarget(
+                    id: job.target.id,
+                    name: job.target.name,
+                    category: job.target.category,
+                    bytesFreed: job.bytesBefore
+                ))
+            }
+            lastCleanSummary = summary
+            return
+        }
+
         isCleaning = true
         let chosenDisposal = disposal
         let scan = scanExecutor
@@ -359,7 +637,10 @@ public final class AppModel {
                     break
                 }
                 self.cleanProgress = CleanProgress(
-                    targetName: job.target.name, index: index + 1, total: jobs.count
+                    targetName: job.target.name,
+                    targetPath: job.target.pathPatterns.first,
+                    index: index + 1,
+                    total: jobs.count
                 )
                 self.statuses[job.target.id] = .scanning
 
@@ -378,7 +659,19 @@ public final class AppModel {
 
                 let refreshed = await Self.offMain { scan(job.target) }
                 self.statuses[job.target.id] = refreshed
-                summary.reclaimedBytes += max(0, job.bytesBefore - (refreshed.bytes ?? 0))
+                self.breakdownTasks[job.target.id]?.cancel()
+                self.breakdownTasks[job.target.id] = nil
+                self.breakdowns[job.target.id] = nil
+                let freed = max(0, job.bytesBefore - (refreshed.bytes ?? 0))
+                summary.reclaimedBytes += freed
+                if outcome.removedItems > 0 {
+                    summary.cleaned.append(CleanSummary.CleanedTarget(
+                        id: job.target.id,
+                        name: job.target.name,
+                        category: job.target.category,
+                        bytesFreed: freed
+                    ))
+                }
                 self.selection.remove(job.target.id)
             }
 
@@ -386,6 +679,25 @@ public final class AppModel {
             self.lastCleanSummary = summary
             self.isCleaning = false
             self.cleanTask = nil
+            self.recordHistory(from: summary)
+            self.refreshVolumeSpace()
+        }
+    }
+
+    /// Append a real pass with removals to the persistent history.
+    private func recordHistory(from summary: CleanSummary) {
+        guard !summary.isDryRun, summary.itemsRemoved > 0 else { return }
+        let entry = CleanHistoryEntry(
+            date: .now,
+            targetNames: summary.cleaned.map(\.name),
+            itemsRemoved: summary.itemsRemoved,
+            reclaimedBytes: summary.reclaimedBytes
+        )
+        history.insert(entry, at: 0)
+        let store = historyStore
+        let snapshot = history
+        Task {
+            await Self.offMain { store.save(snapshot) }
         }
     }
 
@@ -400,4 +712,30 @@ public final class AppModel {
     ) async -> T {
         work()
     }
+
+    // MARK: - Preview support
+
+    #if DEBUG
+    /// Preview-only: install canned scan results so SwiftUI previews
+    /// can render every screen without touching the filesystem.
+    public func seedForPreview(
+        statuses: [CleanupTarget.ID: TargetStatus],
+        selection: Set<CleanupTarget.ID> = [],
+        history: [CleanHistoryEntry] = [],
+        breakdowns: [CleanupTarget.ID: [BreakdownEntry]] = [:],
+        volumeSpace: VolumeSpace? = nil,
+        hasFullDiskAccess: Bool? = true,
+        lastCleanSummary: CleanSummary? = nil
+    ) {
+        self.statuses = statuses
+        self.selection = selection
+        self.history = history
+        self.breakdowns = breakdowns
+        self.volumeSpace = volumeSpace
+        self.hasFullDiskAccess = hasFullDiskAccess
+        self.lastCleanSummary = lastCleanSummary
+        self.lastScan = .now
+        self.lastScanWasComplete = true
+    }
+    #endif
 }

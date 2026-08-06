@@ -1,0 +1,153 @@
+//
+//  Buttons.swift
+//  Reclaim
+//
+//  The app's three button voices: accent-filled primary, quiet
+//  secondary, and the destructive confirmation. All share the same
+//  hover/press motion so controls feel like one family.
+//
+
+import SwiftUI
+
+/// Emerald call-to-action. `prominent` is the hero size; the compact
+/// variant fits toolbars and cards.
+struct PrimaryButtonStyle: ButtonStyle {
+    var prominent = false
+    @State private var isHovered = false
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.system(size: prominent ? 14.5 : 13, weight: .semibold))
+            .foregroundStyle(Theme.onAccent)
+            .padding(.horizontal, prominent ? 22 : 15)
+            .frame(height: prominent ? 38 : 31)
+            .background(
+                Theme.accentGradient,
+                in: RoundedRectangle(cornerRadius: prominent ? 10 : Theme.radiusControl)
+            )
+            .overlay {
+                RoundedRectangle(cornerRadius: prominent ? 10 : Theme.radiusControl)
+                    .strokeBorder(.white.opacity(0.35), lineWidth: 0.5)
+                    .blendMode(.plusLighter)
+                    .mask(alignment: .top) {
+                        LinearGradient(
+                            colors: [.white, .clear],
+                            startPoint: .top, endPoint: .center
+                        )
+                    }
+            }
+            .shadow(
+                color: Theme.accent.opacity(prominent ? 0.45 : 0.3),
+                radius: prominent ? 12 : 6, y: prominent ? 8 : 3
+            )
+            .brightness(isHovered ? 0.05 : 0)
+            .scaleEffect(configuration.isPressed ? 0.97 : 1)
+            .animation(Theme.quick, value: configuration.isPressed)
+            .animation(Theme.quick, value: isHovered)
+            .onHover { isHovered = $0 }
+    }
+}
+
+/// Quiet, translucent counterpart to the primary button.
+struct SecondaryButtonStyle: ButtonStyle {
+    @State private var isHovered = false
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.system(size: 13, weight: .medium))
+            .foregroundStyle(Theme.textPrimary)
+            .padding(.horizontal, 15)
+            .frame(height: 31)
+            .background(
+                Color.white.opacity(isHovered ? 0.13 : 0.08),
+                in: RoundedRectangle(cornerRadius: Theme.radiusControl)
+            )
+            .overlay {
+                RoundedRectangle(cornerRadius: Theme.radiusControl)
+                    .strokeBorder(Theme.controlFill, lineWidth: 0.5)
+            }
+            .scaleEffect(configuration.isPressed ? 0.97 : 1)
+            .animation(Theme.quick, value: configuration.isPressed)
+            .animation(Theme.quick, value: isHovered)
+            .onHover { isHovered = $0 }
+    }
+}
+
+/// Red gradient for permanent-deletion confirmations.
+struct DangerButtonStyle: ButtonStyle {
+    @State private var isHovered = false
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.system(size: 13, weight: .semibold))
+            .foregroundStyle(.white)
+            .padding(.horizontal, 15)
+            .frame(height: 30)
+            .background(
+                Theme.dangerGradient,
+                in: RoundedRectangle(cornerRadius: Theme.radiusControl)
+            )
+            .brightness(isHovered ? 0.06 : 0)
+            .scaleEffect(configuration.isPressed ? 0.97 : 1)
+            .animation(Theme.quick, value: configuration.isPressed)
+            .animation(Theme.quick, value: isHovered)
+            .onHover { isHovered = $0 }
+    }
+}
+
+/// Small square icon button for the toolbar (rescan, etc.).
+struct IconButtonStyle: ButtonStyle {
+    @State private var isHovered = false
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.system(size: 11, weight: .medium))
+            .foregroundStyle(Color(hex: 0xC9C9D0))
+            .frame(width: 26, height: 26)
+            .background(
+                Color.white.opacity(isHovered ? 0.12 : 0.07),
+                in: RoundedRectangle(cornerRadius: Theme.radiusChip)
+            )
+            .overlay {
+                RoundedRectangle(cornerRadius: Theme.radiusChip)
+                    .strokeBorder(.white.opacity(0.06), lineWidth: 0.5)
+            }
+            .scaleEffect(configuration.isPressed ? 0.94 : 1)
+            .animation(Theme.quick, value: configuration.isPressed)
+            .animation(Theme.quick, value: isHovered)
+            .onHover { isHovered = $0 }
+    }
+}
+
+extension ButtonStyle where Self == PrimaryButtonStyle {
+    static var rcPrimary: PrimaryButtonStyle { PrimaryButtonStyle() }
+    static var rcPrimaryProminent: PrimaryButtonStyle { PrimaryButtonStyle(prominent: true) }
+}
+
+extension ButtonStyle where Self == SecondaryButtonStyle {
+    static var rcSecondary: SecondaryButtonStyle { SecondaryButtonStyle() }
+}
+
+extension ButtonStyle where Self == DangerButtonStyle {
+    static var rcDanger: DangerButtonStyle { DangerButtonStyle() }
+}
+
+extension ButtonStyle where Self == IconButtonStyle {
+    static var rcIcon: IconButtonStyle { IconButtonStyle() }
+}
+
+// MARK: - Previews
+
+#Preview("Buttons", traits: .sizeThatFitsLayout) {
+    VStack(spacing: 16) {
+        Button("Scan this Mac") {}.buttonStyle(.rcPrimaryProminent)
+        Button("Reclaim 82.6 GB") {}.buttonStyle(.rcPrimary)
+        Button("Review everything") {}.buttonStyle(.rcSecondary)
+        Button("Delete Permanently") {}.buttonStyle(.rcDanger)
+        Button {} label: { Image(systemName: "arrow.clockwise") }
+            .buttonStyle(.rcIcon)
+    }
+    .padding(40)
+    .background(Theme.background)
+    .preferredColorScheme(.dark)
+}

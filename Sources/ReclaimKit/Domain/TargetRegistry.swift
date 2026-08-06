@@ -25,7 +25,7 @@ import Foundation
 public enum TargetRegistry {
     /// All targets, in display order within their categories.
     public static let all: [CleanupTarget] =
-        xcode + android + aiTools + packageManagers + otherTools
+        xcode + android + dotNet + aiTools + packageManagers + otherTools
 
     /// Convenience: targets grouped by category, preserving order.
     public static func targets(in category: ToolCategory) -> [CleanupTarget] {
@@ -238,6 +238,77 @@ public enum TargetRegistry {
             pathPatterns: ["~/.konan"],
             strategy: .removeContents,
             note: "Gradle re-downloads what it needs on the next Kotlin/Native build."
+        ),
+    ]
+
+    // MARK: - .NET & Visual Studio
+
+    static let dotNet: [CleanupTarget] = [
+        CleanupTarget(
+            id: "nuget-packages",
+            name: "NuGet global packages",
+            summary: "Every package version any .NET project has ever restored, kept forever. Projects re-restore what they still use on the next build.",
+            category: .dotNet,
+            safety: .safe,
+            pathPatterns: ["~/.nuget/packages"],
+            strategy: .removeContents,
+            note: "Equivalent to `dotnet nuget locals global-packages --clear` — the next restore re-downloads what is needed.",
+            relatedAppBundleIDs: ["com.jetbrains.rider", "com.microsoft.VSCode"]
+        ),
+        CleanupTarget(
+            id: "nuget-http-cache",
+            name: "NuGet download caches",
+            summary: "HTTP responses and plugin output NuGet caches while restoring. Rebuilt on demand.",
+            category: .dotNet,
+            safety: .safe,
+            pathPatterns: ["~/.local/share/NuGet"],
+            strategy: .removeContents,
+            note: "Equivalent to `dotnet nuget locals http-cache --clear`."
+        ),
+        CleanupTarget(
+            id: "dotnet-workload-packs",
+            name: "Orphaned workload packs",
+            summary: "SDK workload packs (MAUI, wasm-tools and friends) left behind by updated or uninstalled SDKs. The .NET CLI removes them itself.",
+            category: .dotNet,
+            safety: .safe,
+            pathPatterns: [],
+            strategy: .command(CommandSpec(
+                executablePath: "/usr/local/share/dotnet/dotnet",
+                arguments: ["workload", "clean"],
+                displayCommand: "dotnet workload clean",
+                availabilityProbePattern: "/usr/local/share/dotnet/sdk"
+            )),
+            note: "Size is only known after cleaning — the .NET CLI decides what is orphaned. SDKs installed via Homebrew are not detected."
+        ),
+        CleanupTarget(
+            id: "azure-functions-bundles",
+            name: "Azure Functions extension bundles",
+            summary: "Extension bundles and templates downloaded by Azure Functions Core Tools. Re-downloaded the next time `func` runs.",
+            category: .dotNet,
+            safety: .safe,
+            pathPatterns: ["~/.azure-functions-core-tools"],
+            strategy: .removeContents
+        ),
+        CleanupTarget(
+            id: "vsmac-leftovers",
+            name: "Visual Studio for Mac leftovers",
+            summary: "Caches and logs from Visual Studio for Mac, retired in 2024. Nothing reads them anymore.",
+            category: .dotNet,
+            safety: .safe,
+            pathPatterns: [
+                "~/Library/Caches/VisualStudio",
+                "~/Library/Logs/VisualStudio",
+            ],
+            strategy: .removePaths
+        ),
+        CleanupTarget(
+            id: "xamarin-caches",
+            name: "Xamarin caches",
+            summary: "Build-agent and archive caches from the retired Xamarin toolchain.",
+            category: .dotNet,
+            safety: .safe,
+            pathPatterns: ["~/Library/Caches/Xamarin"],
+            strategy: .removePaths
         ),
     ]
 

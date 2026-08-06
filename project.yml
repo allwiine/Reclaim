@@ -36,9 +36,18 @@ targets:
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.utilities
         INFOPLIST_KEY_NSHumanReadableCopyright: ""
+        # Reclaim asks Finder (via Apple events) to empty the Trash so
+        # freed space becomes available; both the usage string and the
+        # automation entitlement below are required for that to work in
+        # a hardened-runtime build.
+        INFOPLIST_KEY_NSAppleEventsUsageDescription: "Reclaim asks Finder to empty the Trash so freed space becomes available."
         # Direct distribution: hardened runtime on, sandbox off (the app's
         # purpose is scanning arbitrary cache locations under $HOME).
         ENABLE_HARDENED_RUNTIME: YES
         ENABLE_APP_SANDBOX: NO
         SWIFT_UPCOMING_FEATURE_EXISTENTIAL_ANY: YES
         SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY: YES
+    entitlements:
+      path: Reclaim.entitlements
+      properties:
+        com.apple.security.automation.apple-events: true

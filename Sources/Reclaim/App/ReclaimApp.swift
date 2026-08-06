@@ -2,7 +2,8 @@
 //  ReclaimApp.swift
 //  Reclaim
 //
-//  App entry point. Deliberately thin: scene declarations only.
+//  App entry point: the main window (custom chrome, dark-committed),
+//  the optional menu bar summary, and the Settings scene.
 //
 
 import AppKit
@@ -23,16 +24,86 @@ struct ReclaimApp: App {
     }
 
     var body: some Scene {
-        WindowGroup {
+        WindowGroup(id: "main") {
             RootView()
                 .environment(model)
-                .frame(minWidth: 920, minHeight: 560)
+                .task {
+                    await BackgroundActivity.run(model: model)
+                }
         }
-        .defaultSize(width: 1080, height: 700)
+        .defaultSize(width: 1320, height: 856)
+        .windowStyle(.hiddenTitleBar)
+        .windowToolbarStyle(.unifiedCompact)
+        .commands { commands }
+
+        MenuBarExtra(
+            "Reclaim",
+            systemImage: "internaldrive",
+            isInserted: Binding(
+                get: { model.menuBarExtraEnabled },
+                set: { model.menuBarExtraEnabled = $0 }
+            )
+        ) {
+            MenuBarSummary()
+                .environment(model)
+        }
 
         Settings {
             SettingsView()
                 .environment(model)
+                .frame(width: 700, height: 560)
+                .background(Theme.background)
+                .preferredColorScheme(.dark)
+        }
+    }
+
+    @CommandsBuilder
+    private var commands: some Commands {
+        // Deliberately static: reading observable state here would
+        // rebuild the main menu on every model change.
+        CommandGroup(after: .newItem) {
+            Button("Scan This Mac") {
+                if !model.isScanning, !model.isCleaning {
+                    model.scanAll()
+                }
+            }
+            .keyboardShortcut("r", modifiers: .command)
+        }
+    }
+}
+
+/// Compact menu bar summary with quick actions. Cleaning always goes
+/// through the main window's confirmation — never one silent click.
+private struct MenuBarSummary: View {
+    @Environment(AppModel.self) private var model
+    @Environment(\.openWindow) private var openWindow
+
+    var body: some View {
+        Group {
+            if model.lastScan != nil {
+                Text("Reclaimable: \(model.totalFoundBytes.formattedBytesCompact)")
+                Text("Safe to remove: \(model.safeReclaimableBytes.formattedBytesCompact)")
+            } else {
+                Text("No scan yet")
+            }
+
+            Divider()
+
+            Button(model.isScanning ? "Scanning…" : "Scan Now") {
+                model.scanAll()
+            }
+            .disabled(model.isScanning || model.isCleaning)
+
+            Button("Review in Reclaim…") {
+                NSApp.activate()
+                openWindow(id: "main")
+            }
+
+            Divider()
+
+            Button("Quit Reclaim") {
+                NSApp.terminate(nil)
+            }
         }
     }
 }
