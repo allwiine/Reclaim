@@ -12,6 +12,7 @@ import Foundation
 public enum ToolCategory: String, CaseIterable, Identifiable, Sendable {
     case xcode
     case android
+    case dotNet
     case aiTools
     case packageManagers
     case otherTools
@@ -23,6 +24,7 @@ public enum ToolCategory: String, CaseIterable, Identifiable, Sendable {
         switch self {
         case .xcode: "Xcode & Simulators"
         case .android: "Android Studio"
+        case .dotNet: ".NET & Visual Studio"
         case .aiTools: "Claude & AI Tools"
         case .packageManagers: "Package Managers"
         case .otherTools: "Other Dev Tools"
@@ -34,6 +36,7 @@ public enum ToolCategory: String, CaseIterable, Identifiable, Sendable {
         switch self {
         case .xcode: "hammer"
         case .android: "iphone.gen1"
+        case .dotNet: "curlybraces"
         case .aiTools: "sparkles"
         case .packageManagers: "shippingbox"
         case .otherTools: "wrench.and.screwdriver"

@@ -157,6 +157,7 @@ extension ToolCategory {
         switch self {
         case .xcode: Color(hex: 0x67AAED)
         case .android: Color(hex: 0x69BA7C)
+        case .dotNet: Color(hex: 0xCF88C8)
         case .aiTools: Color(hex: 0xE4896A)
         case .packageManagers: Color(hex: 0xB093E5)
         case .otherTools: Color(hex: 0x14BBC2)
@@ -168,6 +169,7 @@ extension ToolCategory {
         switch self {
         case .xcode: "X"
         case .android: "A"
+        case .dotNet: "N"
         case .aiTools: "C"
         case .packageManagers: "P"
         case .otherTools: "D"
