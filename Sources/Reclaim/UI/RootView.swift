@@ -88,7 +88,7 @@ struct RootView: View {
         ToolbarItemGroup(placement: .primaryAction) {
             Menu {
                 Button("Select All Safe Items") { model.selectAllSafe() }
-                    .disabled(model.lastScan == nil)
+                    .disabled(model.lastScan == nil || model.isScanning || model.isCleaning)
                 Button("Deselect All") { model.clearSelection() }
                     .disabled(model.selection.isEmpty)
             } label: {
@@ -142,14 +142,14 @@ struct RootView: View {
     }
 
     private var confirmationMessage: String {
-        let size = model.selectedBytes > 0
-            ? "About \(model.selectedBytes.formattedBytes) will be reclaimed. "
-            : ""
+        let bytes = model.selectedBytes
         var message = switch model.disposal {
         case .trash:
-            size + "Items are moved to the Trash, so this can be undone until the Trash is emptied."
+            (bytes > 0 ? "About \(bytes.formattedBytes) will be moved to the Trash. " : "")
+                + "This can be undone until the Trash is emptied — the space is freed once you empty it."
         case .delete:
-            size + "Items are deleted permanently. This cannot be undone."
+            (bytes > 0 ? "About \(bytes.formattedBytes) will be freed. " : "")
+                + "Items are deleted permanently. This cannot be undone."
         }
         if let warning = RunningTools.warning(for: model.selectedTargets) {
             message += "\n\n⚠️ " + warning

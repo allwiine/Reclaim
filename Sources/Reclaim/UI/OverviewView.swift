@@ -101,20 +101,26 @@ struct OverviewView: View {
         HStack(spacing: 16) {
             StatCard(
                 title: "Cleanable now",
-                value: model.cleanableBytes.formattedBytes,
+                value: statValue(model.cleanableBytes),
                 subtitle: "What Reclaim can remove for you"
             )
             StatCard(
                 title: "Total found",
-                value: model.totalFoundBytes.formattedBytes,
+                value: statValue(model.totalFoundBytes),
                 subtitle: "Including tool-managed items like Docker"
             )
             StatCard(
                 title: "Selected",
-                value: model.selectedBytes.formattedBytes,
+                value: statValue(model.selectedBytes),
                 subtitle: "\(model.selection.count) item(s) ticked for cleaning"
             )
         }
+    }
+
+    /// "Zero KB" is misleading while the very first scan is still
+    /// streaming in — show a placeholder until a value exists.
+    private func statValue(_ bytes: Int64) -> String {
+        bytes == 0 && model.lastScan == nil ? "—" : bytes.formattedBytes
     }
 
     // MARK: - Chart
