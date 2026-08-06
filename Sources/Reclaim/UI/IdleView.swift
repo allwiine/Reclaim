@@ -141,11 +141,12 @@ struct IdleView: View {
                 .entrance(appeared, delay: 0.12)
 
             HStack(alignment: .firstTextBaseline, spacing: 9) {
-                Image(systemName: "checkmark")
-                    .font(.system(size: 8, weight: .bold))
-                    .foregroundStyle(Theme.textBody)
+                // A trust statement, not a setting: a sealed checkmark in
+                // the accent color, never anything that reads as a checkbox.
+                Image(systemName: "checkmark.seal.fill")
+                    .font(.system(size: 12.5))
+                    .foregroundStyle(Theme.accent)
                     .frame(width: 16, height: 16)
-                    .background(Theme.controlFill, in: RoundedRectangle(cornerRadius: 5))
                 Text(localized(
                     "idle.trustNote",
                     defaultValue: "Nothing is removed without your confirmation, and everything goes to the Trash by default. Credentials, settings and plugins are never in the catalogue."
