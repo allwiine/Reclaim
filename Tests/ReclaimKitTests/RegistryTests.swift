@@ -61,11 +61,30 @@ struct RegistryTests {
         }
     }
 
+    @Test("The .NET category has targets")
+    func dotNetCategoryPopulated() {
+        #expect(!TargetRegistry.targets(in: .dotNet).isEmpty)
+    }
+
+    @Test(".NET credentials and installed tools are never registered")
+    func dotNetUserDataIsProtected() {
+        for target in TargetRegistry.all {
+            for pattern in target.pathPatterns {
+                #expect(!pattern.contains(".aspnet"), "\(target.id) must not touch dev certs or DataProtection keys")
+                #expect(pattern != "~/.dotnet", "\(target.id) must not target the whole ~/.dotnet folder")
+                #expect(!pattern.contains(".dotnet/tools"), "\(target.id) must not touch installed global tools")
+                #expect(!pattern.contains(".nuget/plugins"), "\(target.id) must not touch credential providers")
+                #expect(pattern != "~/.nuget", "\(target.id) must not target the whole ~/.nuget folder")
+            }
+        }
+    }
+
     @Test("IDE cache targets declare their owning app for running-app warnings")
     func relatedAppsAreDeclared() {
         let expectations: [String: String] = [
             "xcode-derived-data": "com.apple.dt.Xcode",
             "gradle-caches": "com.google.android.studio",
+            "nuget-packages": "com.jetbrains.rider",
             "vscode-caches": "com.microsoft.VSCode",
             "claude-desktop-caches": "com.anthropic.claudefordesktop",
         ]
