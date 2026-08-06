@@ -24,6 +24,7 @@
 
 /* Tjenester */
 "engine.commandExitStatus" = "Avsluttet med status %lld.";
+"engine.commandTimedOut" = "Stoppet etter %@. Kommandoen ble aldri ferdig.";
 "engine.toolReported" = "Verktøyet meldte: «%@»";
 "sizer.unreadableRoot" = "«%@» finnes, men kunne ikke leses.";
 

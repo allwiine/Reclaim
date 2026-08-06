@@ -21,6 +21,7 @@
 
 /* Services */
 "engine.commandExitStatus" = "Exited with status %lld.";
+"engine.commandTimedOut" = "Stopped after %@ — the command never finished.";
 "engine.toolReported" = "The tool reported: “%@”";
 "sizer.unreadableRoot" = "“%@” exists but could not be read.";
 
