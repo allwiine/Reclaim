@@ -7,7 +7,7 @@
 "category.xcode.title" = "Xcode & Simulators";
 "category.android.title" = "Android Studio";
 "category.dotNet.title" = ".NET & Visual Studio";
-"category.aiTools.title" = "Claude & AI Tools";
+"category.aiTools.title" = "AI Tools";
 "category.packageManagers.title" = "Package Managers";
 "category.otherTools.title" = "Other Dev Tools";
 
@@ -89,7 +89,7 @@
 "target.xamarin-caches.name" = "Xamarin caches";
 "target.xamarin-caches.summary" = "Build-agent and archive caches from the retired Xamarin toolchain.";
 
-/* Targets — Claude & AI tooling */
+/* Targets — AI tooling */
 "target.claude-code-cli-caches.name" = "Claude Code CLI caches";
 "target.claude-code-cli-caches.summary" = "Per-project diagnostic output and MCP logs written by Claude Code's Node harness. This folder grows without bound under heavy use.";
 "target.claude-code-scratch.name" = "Claude Code logs & scratch data";

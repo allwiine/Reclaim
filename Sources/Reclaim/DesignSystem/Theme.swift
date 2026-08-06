@@ -170,7 +170,7 @@ extension ToolCategory {
         case .xcode: localized("category.xcode.letter", defaultValue: "X")
         case .android: localized("category.android.letter", defaultValue: "A")
         case .dotNet: localized("category.dotNet.letter", defaultValue: "N")
-        case .aiTools: localized("category.aiTools.letter", defaultValue: "C")
+        case .aiTools: localized("category.aiTools.letter", defaultValue: "AI")
         case .packageManagers: localized("category.packageManagers.letter", defaultValue: "P")
         case .otherTools: localized("category.otherTools.letter", defaultValue: "D")
         }

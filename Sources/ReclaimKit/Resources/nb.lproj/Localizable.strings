@@ -10,7 +10,7 @@
 "category.xcode.title" = "Xcode og simulatorer";
 "category.android.title" = "Android Studio";
 "category.dotNet.title" = ".NET og Visual Studio";
-"category.aiTools.title" = "Claude og AI-verktøy";
+"category.aiTools.title" = "AI-verktøy";
 "category.packageManagers.title" = "Pakkebehandlere";
 "category.otherTools.title" = "Andre utviklerverktøy";
 
@@ -92,7 +92,7 @@
 "target.xamarin-caches.name" = "Xamarin-cacher";
 "target.xamarin-caches.summary" = "Byggagent- og arkivcacher fra den avviklede Xamarin-verktøykjeden.";
 
-/* Mål, Claude og AI-verktøy */
+/* Mål, AI-verktøy */
 "target.claude-code-cli-caches.name" = "Claude Code CLI-cacher";
 "target.claude-code-cli-caches.summary" = "Diagnostikk per prosjekt og MCP-logger fra Claude Codes Node-harness. Denne mappen vokser uten grenser ved tung bruk.";
 "target.claude-code-scratch.name" = "Claude Code-logger og scratch-data";
