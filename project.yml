@@ -22,6 +22,9 @@ targets:
     platform: macOS
     sources:
       - path: Sources/Reclaim
+      # App icon — asset catalog lives at the repo root because the SPM
+      # targets never compile it; only the generated app target does.
+      - path: Assets.xcassets
     dependencies:
       - package: ReclaimPackage
         product: ReclaimKit
@@ -34,6 +37,7 @@ targets:
         CURRENT_PROJECT_VERSION: "1"
         SWIFT_VERSION: "6.2"
         GENERATE_INFOPLIST_FILE: YES
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.utilities
         INFOPLIST_KEY_NSHumanReadableCopyright: ""
         # Reclaim asks Finder (via Apple events) to empty the Trash so
