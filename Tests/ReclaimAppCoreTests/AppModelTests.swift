@@ -343,7 +343,8 @@ struct AppModelTests {
         let model = AppModel(
             targets: [safe, risky, manual],
             defaults: store.defaults,
-            scanExecutor: { _ in measured(100) }
+            scanExecutor: { _ in measured(100) },
+            historyStore: temporaryHistoryStore()
         )
 
         model.scanAll()
@@ -435,7 +436,8 @@ struct AppModelTests {
         let model = AppModel(
             targets: [target("a"), target("b")],
             defaults: store.defaults,
-            scanExecutor: { _ in measured(100) }
+            scanExecutor: { _ in measured(100) },
+            historyStore: temporaryHistoryStore()
         )
         #expect(model.scanProgress == nil)
 
@@ -452,7 +454,8 @@ struct AppModelTests {
         let model = AppModel(
             targets: [target("cache")],
             defaults: store.defaults,
-            scanExecutor: { _ in measured(100) }
+            scanExecutor: { _ in measured(100) },
+            historyStore: temporaryHistoryStore()
         )
 
         #expect(model.nextBackgroundScanDate == nil, "no schedule before the first scan")
@@ -487,7 +490,8 @@ struct AppModelTests {
             breakdownExecutor: { _ in
                 computeCalls.withLock { $0 += 1 }
                 return [BreakdownEntry(name: "big", bytes: 80)]
-            }
+            },
+            historyStore: temporaryHistoryStore()
         )
 
         model.loadBreakdown(for: cache)

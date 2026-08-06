@@ -50,7 +50,7 @@ struct SettingsView: View {
                     )
                     SettingRow(
                         "Notify when more than 25 GB is reclaimable",
-                        help: "A single notification after a background scan, never repeated for the same finding.",
+                        help: "A single notification after each background scan that finds that much.",
                         isOn: $model.notifyLargeReclaimable
                     )
                     SettingRow(

@@ -173,11 +173,8 @@ struct RootView: View {
             )
             .transition(.opacity)
         case .browser:
-            BrowserView(
-                mode: browserMode,
-                openConfirm: { isConfirmingClean = true }
-            )
-            .transition(.opacity)
+            BrowserView(mode: browserMode)
+                .transition(.opacity)
         case .history:
             HistoryView()
                 .transition(.opacity)

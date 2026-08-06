@@ -19,7 +19,6 @@ struct BrowserView: View {
 
     @Environment(AppModel.self) private var model
     let mode: Mode
-    let openConfirm: () -> Void
 
     @State private var inspectedID: CleanupTarget.ID?
 
@@ -347,14 +346,14 @@ private struct StripChipButtonStyle: ButtonStyle {
 
 #if DEBUG
 #Preview("Category", traits: .fixedLayout(width: 1060, height: 810)) {
-    BrowserView(mode: .category(.xcode), openConfirm: {})
+    BrowserView(mode: .category(.xcode))
         .background(Theme.background)
         .environment(PreviewData.scanned())
         .preferredColorScheme(.dark)
 }
 
 #Preview("Search", traits: .fixedLayout(width: 1060, height: 810)) {
-    BrowserView(mode: .search("cache"), openConfirm: {})
+    BrowserView(mode: .search("cache"))
         .background(Theme.background)
         .environment(PreviewData.scanned())
         .preferredColorScheme(.dark)
