@@ -87,4 +87,24 @@ struct BreakdownSizerTests {
             #expect(entries.first?.name == "ok")
         }
     }
+
+    @Test("Same-named items in different parent directories get distinct ids")
+    func distinctIdsForSameName() throws {
+        try withTemporaryDirectory { root in
+            try makeFile(in: root.appending(path: "parentA/VisualStudio"), name: "f", byteCount: 1_000)
+            try makeFile(in: root.appending(path: "parentB/VisualStudio"), name: "f", byteCount: 2_000)
+
+            let status = measuredStatus(cleanupPaths: [
+                root.appending(path: "parentA/VisualStudio"),
+                root.appending(path: "parentB/VisualStudio"),
+            ])
+            let entries = try BreakdownSizer().largestContents(of: status)
+
+            #expect(entries.map(\.name) == ["VisualStudio", "VisualStudio"])
+            #expect(
+                Set(entries.map(\.id)).count == 2,
+                "same-named items from different parents must not collide on id"
+            )
+        }
+    }
 }

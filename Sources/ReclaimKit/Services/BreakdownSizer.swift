@@ -11,15 +11,19 @@ import Foundation
 
 /// One row of a target's "largest contents" breakdown.
 public struct BreakdownEntry: Sendable, Equatable, Identifiable {
+    /// Stable identity, distinct from `name`: two entries with the same
+    /// display name (e.g. same-named roots under different parents) must
+    /// not collide in a `ForEach`. Defaults to `name` when no sharper
+    /// identity is available.
+    public let id: String
     /// Display name — the item's file name, or a "+ N more" aggregate.
     public let name: String
     public let bytes: Int64
     /// How many items this row stands for (1, except the aggregate tail).
     public let itemCount: Int
 
-    public var id: String { name }
-
-    public init(name: String, bytes: Int64, itemCount: Int = 1) {
+    public init(id: String? = nil, name: String, bytes: Int64, itemCount: Int = 1) {
+        self.id = id ?? name
         self.name = name
         self.bytes = bytes
         self.itemCount = itemCount
@@ -55,7 +59,7 @@ public struct BreakdownSizer: Sendable {
             do {
                 let measurement = try sizer.measure([url])
                 measured.append(BreakdownEntry(
-                    name: url.lastPathComponent, bytes: measurement.bytes
+                    id: url.path, name: url.lastPathComponent, bytes: measurement.bytes
                 ))
             } catch is CancellationError {
                 throw CancellationError()
