@@ -35,7 +35,7 @@ struct RootView: View {
 
     var body: some View {
         HStack(spacing: 0) {
-            SidebarView(destination: $destination)
+            SidebarView(destination: sidebarDestination)
                 .frame(width: Theme.sidebarWidth)
 
             Rectangle()
@@ -108,6 +108,24 @@ struct RootView: View {
         case .history, .settings: .overview
         default: destination
         }
+    }
+
+    /// The sidebar's route: a user click also leaves the post-clean
+    /// result screen, which otherwise occupies the content area for
+    /// overview/category destinations until dismissed. Only sidebar
+    /// sets travel through here — the programmatic destination change
+    /// when a pass finishes must not dismiss the screen it just showed.
+    private var sidebarDestination: Binding<Destination> {
+        Binding(
+            get: { destination },
+            set: { newValue in
+                destination = newValue
+                if isShowingDone {
+                    isShowingDone = false
+                    model.lastCleanSummary = nil
+                }
+            }
+        )
     }
 
     // MARK: - Content column
