@@ -94,6 +94,49 @@ struct AppModelTests {
         #expect(model.totalFoundBytes == 100)
     }
 
+    @Test("A completed scan is marked complete")
+    func completedScanIsComplete() async {
+        let store = TemporaryDefaults()
+        let model = AppModel(
+            targets: [target("cache")],
+            defaults: store.defaults,
+            scanExecutor: { _ in measured(100) }
+        )
+
+        model.scanAll()
+        await model.scanTask?.value
+
+        #expect(model.lastScanWasComplete)
+    }
+
+    @Test("A cancelled scan keeps partial results but is marked incomplete")
+    func cancelledScanIsPartial() async {
+        let store = TemporaryDefaults()
+        let gate = DispatchSemaphore(value: 0)
+        let fast = target("fast")
+        let slow = target("slow")
+        let model = AppModel(
+            targets: [fast, slow],
+            defaults: store.defaults,
+            scanExecutor: { t in
+                guard t.id == "slow" else { return measured(100) }
+                // Block until the test has cancelled, then behave like
+                // the real scanner does on cancellation.
+                gate.wait()
+                return Task.isCancelled ? .idle : measured(100)
+            }
+        )
+
+        model.scanAll()
+        model.cancelScan()
+        gate.signal()
+        await model.scanTask?.value
+
+        #expect(model.lastScan != nil, "partial data is real data — the scan still happened")
+        #expect(model.status(of: "fast").bytes == 100, "completed measurements survive")
+        #expect(!model.lastScanWasComplete, "a stopped scan must not present itself as complete")
+    }
+
     @Test("Only measured non-empty cleanable targets are selectable")
     func selectionRules() async {
         let store = TemporaryDefaults()

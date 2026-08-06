@@ -54,6 +54,10 @@ public final class AppModel {
     public private(set) var isScanning = false
     public private(set) var isCleaning = false
     public private(set) var lastScan: Date?
+    /// Whether the most recent scan ran to completion. `false` means it
+    /// was stopped early: measurements on screen are real but partial.
+    /// Meaningful only once `lastScan` is non-nil.
+    public private(set) var lastScanWasComplete = true
 
     /// Set when a cleanup pass finishes; the UI presents it as an alert
     /// and clears it by assigning `nil`.
@@ -241,6 +245,7 @@ public final class AppModel {
                 self.statuses[target.id] = .idle
             }
             self.lastScan = .now
+            self.lastScanWasComplete = !Task.isCancelled
             self.isScanning = false
             self.scanTask = nil
         }

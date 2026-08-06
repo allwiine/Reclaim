@@ -45,6 +45,9 @@ struct OverviewView: View {
     private var content: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
+                if model.lastScan != nil, !model.lastScanWasComplete, !model.isScanning {
+                    partialScanNotice
+                }
                 statCards
                 chartSection
                 largestSection
@@ -53,6 +56,17 @@ struct OverviewView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .navigationSubtitle("Overview")
+    }
+
+    /// Shown when the last scan was stopped early, so partial totals
+    /// are never mistaken for a full picture.
+    private var partialScanNotice: some View {
+        Label(
+            "Scan stopped early — the sizes below cover only what was measured before stopping.",
+            systemImage: "exclamationmark.circle"
+        )
+        .font(.callout)
+        .foregroundStyle(.orange)
     }
 
     private var statCards: some View {
