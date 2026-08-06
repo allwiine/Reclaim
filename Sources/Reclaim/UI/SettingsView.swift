@@ -124,6 +124,8 @@ struct SettingsView: View {
                 exclusionRow("~/.claude/settings.json", "never in catalogue")
                 exclusionRow("~/.claude/plugins", "never in catalogue")
                 exclusionRow("~/Library/Keychains", "never in catalogue")
+                exclusionRow("~/.aspnet", "dev certs & keys — never in catalogue")
+                exclusionRow("~/.dotnet/tools", "installed tools — never in catalogue")
 
                 Text("Reclaim's catalogue holds only caches, logs and scratch data. Credentials, settings and plugins are excluded structurally — they are not part of the catalogue and cannot be selected.")
                     .font(Theme.footnote)

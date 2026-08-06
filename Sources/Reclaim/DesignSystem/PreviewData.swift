@@ -49,6 +49,9 @@ enum PreviewData {
         "vscode-caches": 3.1,
         "jetbrains-caches": 2.6,
         "docker-vm-disk": 31.4,
+        "nuget-packages": 3.4,
+        "nuget-http-cache": 0.5,
+        "azure-functions-bundles": 1.1,
     ]
 
     private static let sampleHistory: [CleanHistoryEntry] = [

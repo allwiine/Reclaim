@@ -262,7 +262,7 @@ struct OverviewView: View {
 
     private var categoryGrid: some View {
         LazyVGrid(
-            columns: Array(repeating: GridItem(.flexible(), spacing: 12), count: 5),
+            columns: [GridItem(.adaptive(minimum: 150), spacing: 12)],
             spacing: 12
         ) {
             ForEach(ToolCategory.allCases) { category in
