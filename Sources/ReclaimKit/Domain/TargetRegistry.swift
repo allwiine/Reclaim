@@ -43,7 +43,8 @@ public enum TargetRegistry {
             safety: .safe,
             pathPatterns: ["~/Library/Developer/Xcode/DerivedData"],
             strategy: .removeContents,
-            note: "The next build of each project will be a clean build."
+            note: "The next build of each project will be a clean build.",
+            relatedAppBundleIDs: ["com.apple.dt.Xcode"]
         ),
         CleanupTarget(
             id: "xcode-device-support",
@@ -57,7 +58,8 @@ public enum TargetRegistry {
                 "~/Library/Developer/Xcode/tvOS DeviceSupport",
                 "~/Library/Developer/Xcode/visionOS DeviceSupport",
             ],
-            strategy: .removeContents
+            strategy: .removeContents,
+            relatedAppBundleIDs: ["com.apple.dt.Xcode"]
         ),
         CleanupTarget(
             id: "xcode-archives",
@@ -67,7 +69,8 @@ public enum TargetRegistry {
             safety: .caution,
             pathPatterns: ["~/Library/Developer/Xcode/Archives"],
             strategy: .removeContents,
-            note: "Keep archives for versions that are live on the App Store — you need their dSYMs to read crash reports."
+            note: "Keep archives for versions that are live on the App Store — you need their dSYMs to read crash reports.",
+            relatedAppBundleIDs: ["com.apple.dt.Xcode"]
         ),
         CleanupTarget(
             id: "xcode-simulator-caches",
@@ -76,7 +79,8 @@ public enum TargetRegistry {
             category: .xcode,
             safety: .safe,
             pathPatterns: ["~/Library/Developer/CoreSimulator/Caches"],
-            strategy: .removeContents
+            strategy: .removeContents,
+            relatedAppBundleIDs: ["com.apple.dt.Xcode", "com.apple.iphonesimulator"]
         ),
         CleanupTarget(
             id: "xcode-previews",
@@ -85,7 +89,8 @@ public enum TargetRegistry {
             category: .xcode,
             safety: .safe,
             pathPatterns: ["~/Library/Developer/Xcode/UserData/Previews"],
-            strategy: .removeContents
+            strategy: .removeContents,
+            relatedAppBundleIDs: ["com.apple.dt.Xcode"]
         ),
         CleanupTarget(
             id: "xcode-caches",
@@ -97,7 +102,8 @@ public enum TargetRegistry {
                 "~/Library/Caches/com.apple.dt.Xcode",
                 "~/Library/Caches/com.apple.dt.Xcode.DocumentationCache",
             ],
-            strategy: .removeContents
+            strategy: .removeContents,
+            relatedAppBundleIDs: ["com.apple.dt.Xcode"]
         ),
         CleanupTarget(
             id: "xcode-unavailable-simulators",
@@ -126,7 +132,8 @@ public enum TargetRegistry {
             safety: .safe,
             pathPatterns: ["~/.gradle/caches"],
             strategy: .removeContents,
-            note: "The next build re-downloads what it needs — expect it to be slower once."
+            note: "The next build re-downloads what it needs — expect it to be slower once.",
+            relatedAppBundleIDs: ["com.google.android.studio"]
         ),
         CleanupTarget(
             id: "gradle-daemon",
@@ -135,7 +142,8 @@ public enum TargetRegistry {
             category: .android,
             safety: .safe,
             pathPatterns: ["~/.gradle/daemon"],
-            strategy: .removeContents
+            strategy: .removeContents,
+            relatedAppBundleIDs: ["com.google.android.studio"]
         ),
         CleanupTarget(
             id: "gradle-wrapper-dists",
@@ -144,7 +152,8 @@ public enum TargetRegistry {
             category: .android,
             safety: .safe,
             pathPatterns: ["~/.gradle/wrapper/dists"],
-            strategy: .removeContents
+            strategy: .removeContents,
+            relatedAppBundleIDs: ["com.google.android.studio"]
         ),
         CleanupTarget(
             id: "android-studio-caches",
@@ -154,7 +163,8 @@ public enum TargetRegistry {
             safety: .safe,
             pathPatterns: ["~/Library/Caches/Google/AndroidStudio*"],
             strategy: .removePaths,
-            note: "Android Studio rebuilds its index on next launch."
+            note: "Android Studio rebuilds its index on next launch.",
+            relatedAppBundleIDs: ["com.google.android.studio"]
         ),
         CleanupTarget(
             id: "android-build-cache",
@@ -163,7 +173,8 @@ public enum TargetRegistry {
             category: .android,
             safety: .safe,
             pathPatterns: ["~/.android/build-cache", "~/.android/cache"],
-            strategy: .removeContents
+            strategy: .removeContents,
+            relatedAppBundleIDs: ["com.google.android.studio"]
         ),
         CleanupTarget(
             id: "android-system-images",
@@ -173,7 +184,8 @@ public enum TargetRegistry {
             safety: .caution,
             pathPatterns: ["~/Library/Android/sdk/system-images"],
             strategy: .removeContents,
-            note: "Existing emulators using a deleted image stop booting until it is re-downloaded from the SDK Manager."
+            note: "Existing emulators using a deleted image stop booting until it is re-downloaded from the SDK Manager.",
+            relatedAppBundleIDs: ["com.google.android.studio"]
         ),
         CleanupTarget(
             id: "android-avds",
@@ -183,7 +195,8 @@ public enum TargetRegistry {
             safety: .destructive,
             pathPatterns: ["~/.android/avd"],
             strategy: .removeContents,
-            note: "Deletes the emulators themselves, not just caches. Recreate them from Device Manager afterwards."
+            note: "Deletes the emulators themselves, not just caches. Recreate them from Device Manager afterwards.",
+            relatedAppBundleIDs: ["com.google.android.studio"]
         ),
     ]
 
@@ -235,7 +248,8 @@ public enum TargetRegistry {
                 "~/Library/Application Support/Claude/Code Cache",
                 "~/Library/Application Support/Claude/GPUCache",
             ],
-            strategy: .removeContents
+            strategy: .removeContents,
+            relatedAppBundleIDs: ["com.anthropic.claudefordesktop"]
         ),
         CleanupTarget(
             id: "ollama-models",
@@ -392,7 +406,8 @@ public enum TargetRegistry {
                 "~/Library/Application Support/Code/Code Cache",
                 "~/Library/Application Support/Code/CachedExtensionVSIXs",
             ],
-            strategy: .removeContents
+            strategy: .removeContents,
+            relatedAppBundleIDs: ["com.microsoft.VSCode"]
         ),
         CleanupTarget(
             id: "jetbrains-caches",

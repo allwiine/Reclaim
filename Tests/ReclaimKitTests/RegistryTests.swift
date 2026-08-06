@@ -61,6 +61,23 @@ struct RegistryTests {
         }
     }
 
+    @Test("IDE cache targets declare their owning app for running-app warnings")
+    func relatedAppsAreDeclared() {
+        let expectations: [String: String] = [
+            "xcode-derived-data": "com.apple.dt.Xcode",
+            "gradle-caches": "com.google.android.studio",
+            "vscode-caches": "com.microsoft.VSCode",
+            "claude-desktop-caches": "com.anthropic.claudefordesktop",
+        ]
+        for (id, bundleID) in expectations {
+            let target = TargetRegistry.all.first { $0.id == id }
+            #expect(
+                target?.relatedAppBundleIDs.contains(bundleID) == true,
+                "\(id) should declare \(bundleID)"
+            )
+        }
+    }
+
     @Test("Categories cover every target", arguments: ToolCategory.allCases)
     func categoryLookupIsConsistent(category: ToolCategory) {
         let viaLookup = TargetRegistry.targets(in: category).map(\.id)

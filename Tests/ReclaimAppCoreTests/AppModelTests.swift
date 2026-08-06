@@ -181,6 +181,13 @@ struct AppModelTests {
         #expect(!model.isSelectable(empty), "empty targets have nothing to clean")
         #expect(model.isSelectable(full))
         #expect(model.isSelectable(command), "command targets are cleanable while unmeasured")
+
+        model.setSelected(command, true)
+        model.setSelected(full, true)
+        #expect(
+            model.selectedTargets.map(\.id) == ["full", "command"],
+            "selected targets come back in registry order"
+        )
     }
 
     @Test("selectAllSafe skips caution-rated targets")

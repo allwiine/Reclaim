@@ -43,6 +43,11 @@ public struct CleanupTarget: Identifiable, Sendable {
     /// (e.g. "Prefer Claude Code's own `cleanupPeriodDays` setting.").
     public let note: String?
 
+    /// Bundle identifiers of apps that actively use this data. When one
+    /// is running, the pre-clean confirmation warns that cleaning may
+    /// disrupt in-progress work (a soft warning, never a hard block).
+    public let relatedAppBundleIDs: [String]
+
     public init(
         id: String,
         name: String,
@@ -51,7 +56,8 @@ public struct CleanupTarget: Identifiable, Sendable {
         safety: SafetyLevel,
         pathPatterns: [String],
         strategy: CleanupStrategy,
-        note: String? = nil
+        note: String? = nil,
+        relatedAppBundleIDs: [String] = []
     ) {
         self.id = id
         self.name = name
@@ -61,6 +67,7 @@ public struct CleanupTarget: Identifiable, Sendable {
         self.pathPatterns = pathPatterns
         self.strategy = strategy
         self.note = note
+        self.relatedAppBundleIDs = relatedAppBundleIDs
     }
 }
 

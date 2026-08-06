@@ -145,12 +145,16 @@ struct RootView: View {
         let size = model.selectedBytes > 0
             ? "About \(model.selectedBytes.formattedBytes) will be reclaimed. "
             : ""
-        return switch model.disposal {
+        var message = switch model.disposal {
         case .trash:
             size + "Items are moved to the Trash, so this can be undone until the Trash is emptied."
         case .delete:
             size + "Items are deleted permanently. This cannot be undone."
         }
+        if let warning = RunningTools.warning(for: model.selectedTargets) {
+            message += "\n\n⚠️ " + warning
+        }
+        return message
     }
 
     private var summaryIsPresented: Binding<Bool> {

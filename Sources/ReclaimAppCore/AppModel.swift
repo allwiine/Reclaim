@@ -228,6 +228,11 @@ public final class AppModel {
         selection.contains(target.id)
     }
 
+    /// The selected targets, in registry order.
+    public var selectedTargets: [CleanupTarget] {
+        targets.filter { selection.contains($0.id) }
+    }
+
     public func setSelected(_ target: CleanupTarget, _ selected: Bool) {
         if selected, isSelectable(target) {
             selection.insert(target.id)
