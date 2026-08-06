@@ -11,6 +11,7 @@
 "action.copy" = "Kopier";
 "action.copied" = "Kopiert";
 "action.revealInFinder" = "Vis i Finder";
+"action.scanAgain" = "Skann på nytt";
 
 /* Tilgjengelighet */
 "accessibility.notMeasuredYet" = "Ikke målt ennå";
@@ -86,6 +87,8 @@
 "overview.partialScanNotice" = "Skanningen ble stoppet tidlig — størrelsene nedenfor dekker bare det som ble målt før stopp.";
 "overview.reclaimableNow" = "Kan frigjøres nå";
 "overview.safeToRemove" = "%@ trygt å fjerne";
+"overview.nothingSafeLeft" = "Ingenting trygt igjen å fjerne";
+"overview.nothingSafeLeftSubtitle" = "Alt merket Trygt er allerede ryddet — skann på nytt for å måle igjen.";
 "overview.needsDecision" = "%@ trenger en avgjørelse";
 "overview.reclaimSafeButton" = "Frigjør trygg plass";
 "overview.reviewEverythingButton" = "Se gjennom alt";

@@ -13,6 +13,7 @@ import SwiftUI
 /// variant fits toolbars and cards.
 struct PrimaryButtonStyle: ButtonStyle {
     var prominent = false
+    @Environment(\.isEnabled) private var isEnabled
     @State private var isHovered = false
 
     func makeBody(configuration: Configuration) -> some View {
@@ -37,10 +38,12 @@ struct PrimaryButtonStyle: ButtonStyle {
                     }
             }
             .shadow(
-                color: Theme.accent.opacity(prominent ? 0.45 : 0.3),
+                color: Theme.accent.opacity(isEnabled ? (prominent ? 0.45 : 0.3) : 0),
                 radius: prominent ? 12 : 6, y: prominent ? 8 : 3
             )
-            .brightness(isHovered ? 0.05 : 0)
+            .brightness(isHovered && isEnabled ? 0.05 : 0)
+            .saturation(isEnabled ? 1 : 0.2)
+            .opacity(isEnabled ? 1 : 0.45)
             .scaleEffect(configuration.isPressed ? 0.97 : 1)
             .animation(Theme.quick, value: configuration.isPressed)
             .animation(Theme.quick, value: isHovered)
@@ -48,24 +51,28 @@ struct PrimaryButtonStyle: ButtonStyle {
     }
 }
 
-/// Quiet, translucent counterpart to the primary button.
+/// Quiet, translucent counterpart to the primary button. `compact`
+/// matches the 26 pt toolbar controls.
 struct SecondaryButtonStyle: ButtonStyle {
+    var compact = false
+    @Environment(\.isEnabled) private var isEnabled
     @State private var isHovered = false
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(.system(size: 13, weight: .medium))
+            .font(.system(size: compact ? 12.5 : 13, weight: .medium))
             .foregroundStyle(Theme.textPrimary)
-            .padding(.horizontal, 15)
-            .frame(height: 31)
+            .padding(.horizontal, compact ? 11 : 15)
+            .frame(height: compact ? 26 : 31)
             .background(
-                Color.white.opacity(isHovered ? 0.13 : 0.08),
-                in: RoundedRectangle(cornerRadius: Theme.radiusControl)
+                Color.white.opacity(isHovered && isEnabled ? 0.13 : 0.08),
+                in: RoundedRectangle(cornerRadius: compact ? Theme.radiusChip : Theme.radiusControl)
             )
             .overlay {
-                RoundedRectangle(cornerRadius: Theme.radiusControl)
+                RoundedRectangle(cornerRadius: compact ? Theme.radiusChip : Theme.radiusControl)
                     .strokeBorder(Theme.controlFill, lineWidth: 0.5)
             }
+            .opacity(isEnabled ? 1 : 0.45)
             .scaleEffect(configuration.isPressed ? 0.97 : 1)
             .animation(Theme.quick, value: configuration.isPressed)
             .animation(Theme.quick, value: isHovered)
@@ -126,6 +133,7 @@ extension ButtonStyle where Self == PrimaryButtonStyle {
 
 extension ButtonStyle where Self == SecondaryButtonStyle {
     static var rcSecondary: SecondaryButtonStyle { SecondaryButtonStyle() }
+    static var rcSecondaryCompact: SecondaryButtonStyle { SecondaryButtonStyle(compact: true) }
 }
 
 extension ButtonStyle where Self == DangerButtonStyle {

@@ -41,9 +41,13 @@ struct ToolbarView: View {
                 Button {
                     model.scanAll()
                 } label: {
-                    Image(systemName: "arrow.clockwise")
+                    HStack(spacing: 5) {
+                        Image(systemName: "arrow.clockwise")
+                            .font(.system(size: 10, weight: .medium))
+                        Text(localized("action.scanAgain", defaultValue: "Scan again"))
+                    }
                 }
-                .buttonStyle(.rcIcon)
+                .buttonStyle(.rcSecondaryCompact)
                 .help(localized("toolbar.scanAgainHelp", defaultValue: "Scan again"))
                 .keyboardShortcut("r", modifiers: .command)
 

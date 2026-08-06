@@ -12,6 +12,7 @@
 "action.copy" = "Copy";
 "action.copied" = "Copied";
 "action.revealInFinder" = "Reveal in Finder";
+"action.scanAgain" = "Scan again";
 
 /* Accessibility */
 "accessibility.notMeasuredYet" = "Not measured yet";
@@ -87,6 +88,8 @@
 "overview.partialScanNotice" = "Scan stopped early — the sizes below cover only what was measured before stopping.";
 "overview.reclaimableNow" = "Reclaimable now";
 "overview.safeToRemove" = "%@ safe to remove";
+"overview.nothingSafeLeft" = "Nothing safe left to remove";
+"overview.nothingSafeLeftSubtitle" = "Everything rated Safe is already clean — scan again to re-measure.";
 "overview.needsDecision" = "%@ needs a decision";
 "overview.reclaimSafeButton" = "Reclaim safe space";
 "overview.reviewEverythingButton" = "Review everything";

@@ -100,17 +100,34 @@ struct OverviewView: View {
                 SectionLabel(localized("overview.reclaimableNow", defaultValue: "Reclaimable now"))
 
                 VStack(alignment: .leading, spacing: 9) {
-                    breakdownRow(
-                        color: Theme.safe,
-                        title: localized(
-                            "overview.safeToRemove",
-                            defaultValue: "\(model.safeReclaimableBytes.formattedBytesCompact) safe to remove"
-                        ),
-                        subtitle: localized(
-                            "overview.safeItemsSubtitle",
-                            defaultValue: "\(model.safeReclaimableCount) safe items, regenerated automatically"
+                    // After a clean pass the safe bucket is often empty;
+                    // saying so beats formatting 0 bytes as "< 1 MB" and
+                    // offering a button that cannot do anything.
+                    if model.safeReclaimableBytes > 0 {
+                        breakdownRow(
+                            color: Theme.safe,
+                            title: localized(
+                                "overview.safeToRemove",
+                                defaultValue: "\(model.safeReclaimableBytes.formattedBytesCompact) safe to remove"
+                            ),
+                            subtitle: localized(
+                                "overview.safeItemsSubtitle",
+                                defaultValue: "\(model.safeReclaimableCount) safe items, regenerated automatically"
+                            )
                         )
-                    )
+                    } else {
+                        breakdownRow(
+                            color: Theme.safe,
+                            title: localized(
+                                "overview.nothingSafeLeft",
+                                defaultValue: "Nothing safe left to remove"
+                            ),
+                            subtitle: localized(
+                                "overview.nothingSafeLeftSubtitle",
+                                defaultValue: "Everything rated Safe is already clean — scan again to re-measure."
+                            )
+                        )
+                    }
                     breakdownRow(
                         color: Theme.cautionBright,
                         title: localized(
@@ -126,12 +143,18 @@ struct OverviewView: View {
                 .padding(.top, 13)
 
                 HStack(spacing: 9) {
-                    Button(
-                        localized("overview.reclaimSafeButton", defaultValue: "Reclaim safe space"),
-                        action: reclaimSafe
-                    )
-                    .buttonStyle(.rcPrimary)
-                    .disabled(model.safeReclaimableBytes == 0)
+                    if model.safeReclaimableBytes > 0 {
+                        Button(
+                            localized("overview.reclaimSafeButton", defaultValue: "Reclaim safe space"),
+                            action: reclaimSafe
+                        )
+                        .buttonStyle(.rcPrimary)
+                    } else {
+                        Button(localized("action.scanAgain", defaultValue: "Scan again")) {
+                            model.scanAll()
+                        }
+                        .buttonStyle(.rcPrimary)
+                    }
                     Button(localized("overview.reviewEverythingButton", defaultValue: "Review everything")) {
                         openCategory(largestCategory)
                     }
