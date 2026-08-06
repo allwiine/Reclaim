@@ -102,30 +102,6 @@ struct DangerButtonStyle: ButtonStyle {
     }
 }
 
-/// Small square icon button for the toolbar (rescan, etc.).
-struct IconButtonStyle: ButtonStyle {
-    @State private var isHovered = false
-
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .font(.system(size: 11, weight: .medium))
-            .foregroundStyle(Color(hex: 0xC9C9D0))
-            .frame(width: 26, height: 26)
-            .background(
-                Color.white.opacity(isHovered ? 0.12 : 0.07),
-                in: RoundedRectangle(cornerRadius: Theme.radiusChip)
-            )
-            .overlay {
-                RoundedRectangle(cornerRadius: Theme.radiusChip)
-                    .strokeBorder(.white.opacity(0.06), lineWidth: 0.5)
-            }
-            .scaleEffect(configuration.isPressed ? 0.94 : 1)
-            .animation(Theme.quick, value: configuration.isPressed)
-            .animation(Theme.quick, value: isHovered)
-            .onHover { isHovered = $0 }
-    }
-}
-
 extension ButtonStyle where Self == PrimaryButtonStyle {
     static var rcPrimary: PrimaryButtonStyle { PrimaryButtonStyle() }
     static var rcPrimaryProminent: PrimaryButtonStyle { PrimaryButtonStyle(prominent: true) }
@@ -140,10 +116,6 @@ extension ButtonStyle where Self == DangerButtonStyle {
     static var rcDanger: DangerButtonStyle { DangerButtonStyle() }
 }
 
-extension ButtonStyle where Self == IconButtonStyle {
-    static var rcIcon: IconButtonStyle { IconButtonStyle() }
-}
-
 // MARK: - Previews
 
 #Preview("Buttons", traits: .sizeThatFitsLayout) {
@@ -152,8 +124,6 @@ extension ButtonStyle where Self == IconButtonStyle {
         Button("Reclaim 82.6 GB") {}.buttonStyle(.rcPrimary)
         Button("Review everything") {}.buttonStyle(.rcSecondary)
         Button("Delete Permanently") {}.buttonStyle(.rcDanger)
-        Button {} label: { Image(systemName: "arrow.clockwise") }
-            .buttonStyle(.rcIcon)
     }
     .padding(40)
     .background(Theme.background)

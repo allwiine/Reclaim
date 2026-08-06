@@ -23,8 +23,6 @@ enum Theme {
     static let backgroundDeep = Color(hex: 0x1A1A1D)
     /// Elevated sheet/popover surface.
     static let surfaceRaised = Color(hex: 0x2A2A2E)
-    /// Ring hole / inset wells inside cards.
-    static let surfaceInset = Color(hex: 0x232326)
 
     /// Standard card fill on the content background.
     static let cardFill = Color.white.opacity(0.04)
@@ -59,7 +57,6 @@ enum Theme {
     // MARK: - Accent (emerald)
 
     static let accent = Color(hex: 0x4BC899)
-    static let accentBright = Color(hex: 0x5BD19F)
     static let accentSoft = Color(hex: 0x82D9B4)
     static let accentLabel = Color(hex: 0x66C7A0)
     /// Text color on top of accent-filled controls.
@@ -138,7 +135,6 @@ extension Theme {
     }
 
     static let rowTitle = Font.system(size: 13, weight: .medium)
-    static let rowValue = Font.system(size: 12, weight: .regular)
     static let cardTitle = Font.system(size: 13.5, weight: .medium)
     static let body = Font.system(size: 12.5)
     static let footnote = Font.system(size: 11.5)

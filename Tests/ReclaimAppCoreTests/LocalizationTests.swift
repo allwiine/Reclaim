@@ -2,9 +2,8 @@
 //  LocalizationTests.swift
 //  ReclaimAppCoreTests
 //
-//  The AppCore catalogues (clean-summary copy) must stay complete and
-//  in parity between English and Norwegian, and the plural-bearing
-//  summary message must render through the stringsdict rules.
+//  The AppCore catalogues must stay complete and in parity between
+//  English and Norwegian.
 //
 
 import Foundation
@@ -16,19 +15,9 @@ import Testing
 struct AppCoreLocalizationTests {
     static let locales = ["en", "nb"]
 
-    /// Every key CleanSummary/AppModel look up, split by table.
+    /// Every key AppModel looks up in this module's catalogues.
     static let stringKeys = [
-        "summary.dryRun",
-        "summary.stoppedEarly",
-        "summary.nothingCleaned",
-        "summary.failuresHeading",
-        "summary.failuresMore",
-        "summary.fullDiskAccessHint",
         "clean.failureLine",
-    ]
-    static let pluralKeys = [
-        "summary.movedToTrash",
-        "summary.deletedPermanently",
     ]
 
     private func lproj(_ locale: String) throws -> URL {
@@ -41,20 +30,12 @@ struct AppCoreLocalizationTests {
         return try #require(NSDictionary(contentsOf: url) as? [String: String])
     }
 
-    private func plurals(_ locale: String) throws -> Set<String> {
-        let url = try lproj(locale).appending(path: "Localizable.stringsdict")
-        let dictionary = try #require(NSDictionary(contentsOf: url) as? [String: Any])
-        return Set(dictionary.keys)
-    }
-
     @Test("en and nb define identical, complete key sets")
     func catalogueParity() throws {
         let en = try strings("en")
         let nb = try strings("nb")
         #expect(Set(en.keys) == Set(nb.keys))
         #expect(Set(en.keys) == Set(Self.stringKeys))
-        #expect(try plurals("en") == plurals("nb"))
-        #expect(try plurals("en") == Set(Self.pluralKeys))
         for table in [en, nb] {
             for (key, value) in table {
                 #expect(!value.isEmpty, "\(key) is empty")
@@ -62,23 +43,14 @@ struct AppCoreLocalizationTests {
         }
     }
 
-    @Test("The summary message pluralizes through the catalogue")
-    func summaryMessagePluralizes() {
-        var summary = CleanSummary(disposal: .trash)
-        summary.itemsRemoved = 1
-        summary.cleanedTargets = 1
-        summary.reclaimedBytes = 1_000_000_000
-
-        // The process runs under the default (English) localization in
-        // tests; singular forms must come out of the stringsdict rules.
-        let singular = summary.message
-        #expect(!singular.contains("1 items"), "plural rule not applied: \(singular)")
-        #expect(!singular.contains("summary."), "raw key leaked: \(singular)")
-
-        summary.itemsRemoved = 3
-        summary.cleanedTargets = 2
-        let plural = summary.message
-        #expect(!plural.contains("3 item ") && !plural.contains("2 location "), "singular leaked: \(plural)")
-        #expect(!plural.contains("%"), "unresolved format: \(plural)")
+    @Test("The failure line resolves with both arguments in place")
+    func failureLineResolves() {
+        let line = localized(
+            "clean.failureLine",
+            defaultValue: "\("Gradle caches") — \("locked")"
+        )
+        #expect(line.contains("Gradle caches"))
+        #expect(line.contains("locked"))
+        #expect(!line.contains("%"), "unresolved format: \(line)")
     }
 }
