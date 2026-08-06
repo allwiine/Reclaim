@@ -74,6 +74,10 @@ public final class AppModel {
     /// Non-nil while a clean pass is processing a target.
     public private(set) var cleanProgress: CleanProgress?
 
+    /// Whether the process can read TCC-protected locations. Evaluated
+    /// at scan time; `nil` before the first scan or when indeterminate.
+    public private(set) var hasFullDiskAccess: Bool?
+
     @ObservationIgnored
     private(set) var scanTask: Task<Void, Never>?
     @ObservationIgnored
@@ -83,6 +87,8 @@ public final class AppModel {
     private let scanExecutor: ScanExecutor
     @ObservationIgnored
     private let cleanExecutor: CleanExecutor
+    @ObservationIgnored
+    private let fullDiskAccessProbe: @Sendable () -> Bool?
 
     // MARK: - Persisted settings
 
@@ -129,12 +135,16 @@ public final class AppModel {
         scanExecutor: @escaping ScanExecutor = { TargetScanner().scan($0) },
         cleanExecutor: @escaping CleanExecutor = {
             CleanupEngine().clean($0, resolvedPaths: $1, disposal: $2)
+        },
+        fullDiskAccessProbe: @escaping @Sendable () -> Bool? = {
+            FullDiskAccessProbe().check()
         }
     ) {
         self.targets = targets
         self.defaults = defaults
         self.scanExecutor = scanExecutor
         self.cleanExecutor = cleanExecutor
+        self.fullDiskAccessProbe = fullDiskAccessProbe
     }
 
     // MARK: - Derived state
@@ -249,7 +259,9 @@ public final class AppModel {
             statuses[target.id] = .scanning
         }
 
+        let probe = fullDiskAccessProbe
         scanTask = Task { [targets] in
+            self.hasFullDiskAccess = await Self.offMain { probe() }
             await self.runScan(of: targets)
             // Any rows still marked scanning were cancelled mid-flight.
             for target in targets where self.statuses[target.id] == .scanning {

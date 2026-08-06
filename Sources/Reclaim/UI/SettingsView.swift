@@ -14,9 +14,6 @@ import SwiftUI
 struct SettingsView: View {
     @Environment(AppModel.self) private var model
 
-    /// Deep link to System Settings → Privacy & Security → Full Disk Access.
-    private static let fullDiskAccessURL =
-        URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles")!
 
     var body: some View {
         @Bindable var model = model
@@ -43,7 +40,7 @@ struct SettingsView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 Button("Open Privacy Settings…") {
-                    NSWorkspace.shared.open(Self.fullDiskAccessURL)
+                    NSWorkspace.shared.open(PrivacyLinks.fullDiskAccess)
                 }
             }
         }

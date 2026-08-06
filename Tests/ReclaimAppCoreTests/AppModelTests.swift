@@ -137,6 +137,23 @@ struct AppModelTests {
         #expect(!model.lastScanWasComplete, "a stopped scan must not present itself as complete")
     }
 
+    @Test("The Full Disk Access verdict is refreshed when scanning")
+    func fullDiskAccessVerdict() async {
+        let store = TemporaryDefaults()
+        let model = AppModel(
+            targets: [target("cache")],
+            defaults: store.defaults,
+            scanExecutor: { _ in measured(100) },
+            fullDiskAccessProbe: { false }
+        )
+        #expect(model.hasFullDiskAccess == nil, "no verdict before the first scan")
+
+        model.scanAll()
+        await model.scanTask?.value
+
+        #expect(model.hasFullDiskAccess == false)
+    }
+
     @Test("Only measured non-empty cleanable targets are selectable")
     func selectionRules() async {
         let store = TemporaryDefaults()

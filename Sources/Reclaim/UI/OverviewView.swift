@@ -7,6 +7,7 @@
 //  action instead.
 //
 
+import AppKit
 import Charts
 import ReclaimAppCore
 import ReclaimKit
@@ -45,6 +46,9 @@ struct OverviewView: View {
     private var content: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
+                if model.hasFullDiskAccess == false {
+                    fullDiskAccessBanner
+                }
                 if model.lastScan != nil, !model.lastScanWasComplete, !model.isScanning {
                     partialScanNotice
                 }
@@ -56,6 +60,30 @@ struct OverviewView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .navigationSubtitle("Overview")
+    }
+
+    /// Shown when the process cannot read TCC-protected locations, so
+    /// "Empty" rows are never silently caused by missing permissions.
+    private var fullDiskAccessBanner: some View {
+        GroupBox {
+            HStack(spacing: 12) {
+                Image(systemName: "lock.shield")
+                    .font(.title3)
+                    .foregroundStyle(.orange)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Full Disk Access is not granted")
+                        .fontWeight(.medium)
+                    Text("Some locations cannot be measured or cleaned, so results may be incomplete.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+                Button("Open Privacy Settings…") {
+                    NSWorkspace.shared.open(PrivacyLinks.fullDiskAccess)
+                }
+            }
+            .padding(4)
+        }
     }
 
     /// Shown when the last scan was stopped early, so partial totals
