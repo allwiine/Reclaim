@@ -1,19 +1,21 @@
 //
 //  AppModel.swift
-//  Reclaim
+//  ReclaimAppCore
 //
 //  The single observable source of truth for the UI. Owns per-target
 //  scan status, selection, settings, and orchestrates background work.
+//  Lives in a UI-free library target so the whole orchestration layer
+//  is unit-testable; the scan/clean executors are injectable seams.
 //
 //  Concurrency model
 //  ─────────────────
 //  The model is @MainActor: every property the UI reads is main-actor
-//  state. Blocking filesystem work (sizing, deleting) runs in
-//  `nonisolated` async helpers, which — with this package's settings
-//  (no NonisolatedNonsendingByDefault / no default MainActor isolation)
-//  — execute on the global concurrent executor, off the main thread.
-//  Scans fan out through a task group with bounded width so disk I/O
-//  never saturates the cooperative thread pool.
+//  state. Blocking filesystem work (sizing, deleting) runs through
+//  `offMain`, a `nonisolated` async helper, which — with this package's
+//  settings (no NonisolatedNonsendingByDefault / no default MainActor
+//  isolation) — executes on the global concurrent executor, off the
+//  main thread. Scans fan out through a task group with bounded width
+//  so disk I/O never saturates the cooperative thread pool.
 //
 
 import Foundation
@@ -22,7 +24,14 @@ import ReclaimKit
 
 @MainActor
 @Observable
-final class AppModel {
+public final class AppModel {
+    // MARK: - Seams
+
+    /// Produces a status for one target. Blocking; called off-main.
+    public typealias ScanExecutor = @Sendable (CleanupTarget) -> TargetStatus
+    /// Cleans one target's scan-time paths. Blocking; called off-main.
+    public typealias CleanExecutor = @Sendable (CleanupTarget, [URL], Disposal) -> CleanOutcome
+
     // MARK: - Constants
 
     /// Maximum directory walks in flight at once. Disk-bound work gains
@@ -32,26 +41,33 @@ final class AppModel {
     // MARK: - Catalogue
 
     /// All known targets, in registry order.
-    let targets: [CleanupTarget]
+    public let targets: [CleanupTarget]
 
     // MARK: - Session state
 
     /// Scan status per target id. Missing entry ⇒ `.idle`.
-    private(set) var statuses: [CleanupTarget.ID: TargetStatus] = [:]
+    public private(set) var statuses: [CleanupTarget.ID: TargetStatus] = [:]
 
     /// Targets the user has ticked for cleaning.
-    private(set) var selection: Set<CleanupTarget.ID> = []
+    public private(set) var selection: Set<CleanupTarget.ID> = []
 
-    private(set) var isScanning = false
-    private(set) var isCleaning = false
-    private(set) var lastScan: Date?
+    public private(set) var isScanning = false
+    public private(set) var isCleaning = false
+    public private(set) var lastScan: Date?
 
     /// Set when a cleanup pass finishes; the UI presents it as an alert
     /// and clears it by assigning `nil`.
-    var lastCleanSummary: CleanSummary?
+    public var lastCleanSummary: CleanSummary?
 
     @ObservationIgnored
-    private var scanTask: Task<Void, Never>?
+    private(set) var scanTask: Task<Void, Never>?
+    @ObservationIgnored
+    private(set) var cleanTask: Task<Void, Never>?
+
+    @ObservationIgnored
+    private let scanExecutor: ScanExecutor
+    @ObservationIgnored
+    private let cleanExecutor: CleanExecutor
 
     // MARK: - Persisted settings
 
@@ -64,7 +80,7 @@ final class AppModel {
 
     /// Trash (default) or permanent deletion. Backed by UserDefaults via
     /// the ObservationRegistrar so views update when Settings change it.
-    var disposal: Disposal {
+    public var disposal: Disposal {
         get {
             access(keyPath: \.disposal)
             let raw = defaults.string(forKey: DefaultsKey.disposal) ?? ""
@@ -78,7 +94,7 @@ final class AppModel {
     }
 
     /// Whether tools that were not found on this Mac stay visible.
-    var showNotInstalled: Bool {
+    public var showNotInstalled: Bool {
         get {
             access(keyPath: \.showNotInstalled)
             return defaults.object(forKey: DefaultsKey.showNotInstalled) as? Bool ?? false
@@ -92,35 +108,41 @@ final class AppModel {
 
     // MARK: - Init
 
-    init(
+    public init(
         targets: [CleanupTarget] = TargetRegistry.all,
-        defaults: UserDefaults = .standard
+        defaults: UserDefaults = .standard,
+        scanExecutor: @escaping ScanExecutor = { TargetScanner().scan($0) },
+        cleanExecutor: @escaping CleanExecutor = {
+            CleanupEngine().clean($0, resolvedPaths: $1, disposal: $2)
+        }
     ) {
         self.targets = targets
         self.defaults = defaults
+        self.scanExecutor = scanExecutor
+        self.cleanExecutor = cleanExecutor
     }
 
     // MARK: - Derived state
 
-    func status(of id: CleanupTarget.ID) -> TargetStatus {
+    public func status(of id: CleanupTarget.ID) -> TargetStatus {
         statuses[id] ?? .idle
     }
 
     /// Targets shown for a category, honoring the "hide not installed"
     /// setting once a scan has happened.
-    func visibleTargets(in category: ToolCategory) -> [CleanupTarget] {
+    public func visibleTargets(in category: ToolCategory) -> [CleanupTarget] {
         let all = targets.filter { $0.category == category }
         guard lastScan != nil, !showNotInstalled else { return all }
         return all.filter { status(of: $0.id) != .notInstalled }
     }
 
     /// Everything measured, including manual-only items like Docker.
-    var totalFoundBytes: Int64 {
+    public var totalFoundBytes: Int64 {
         targets.reduce(0) { $0 + (status(of: $1.id).bytes ?? 0) }
     }
 
     /// Only what Reclaim itself can clean.
-    var cleanableBytes: Int64 {
+    public var cleanableBytes: Int64 {
         targets.reduce(0) { sum, target in
             guard target.strategy.isCleanable else { return sum }
             return sum + (status(of: target.id).bytes ?? 0)
@@ -128,18 +150,18 @@ final class AppModel {
     }
 
     /// Bytes covered by the current selection.
-    var selectedBytes: Int64 {
+    public var selectedBytes: Int64 {
         selection.reduce(0) { $0 + (status(of: $1).bytes ?? 0) }
     }
 
-    struct CategoryTotal: Identifiable {
-        let category: ToolCategory
-        let bytes: Int64
-        var id: ToolCategory.ID { category.id }
+    public struct CategoryTotal: Identifiable {
+        public let category: ToolCategory
+        public let bytes: Int64
+        public var id: ToolCategory.ID { category.id }
     }
 
     /// Per-category measured totals in category display order.
-    func categoryTotals() -> [CategoryTotal] {
+    public func categoryTotals() -> [CategoryTotal] {
         ToolCategory.allCases.map { category in
             let bytes = targets
                 .filter { $0.category == category }
@@ -148,15 +170,16 @@ final class AppModel {
         }
     }
 
-    /// Formatted total for a sidebar badge, or `nil` before any scan.
-    func formattedCategoryTotal(_ category: ToolCategory) -> String? {
+    /// Measured total for a sidebar badge, or `nil` before any scan or
+    /// when nothing in the category was measured.
+    public func categoryTotalBytes(_ category: ToolCategory) -> Int64? {
         guard lastScan != nil else { return nil }
         let bytes = categoryTotals().first { $0.category == category }?.bytes ?? 0
-        return bytes > 0 ? bytes.formattedBytes : nil
+        return bytes > 0 ? bytes : nil
     }
 
     /// The largest measured targets, for the overview list.
-    func largestTargets(limit: Int) -> [CleanupTarget] {
+    public func largestTargets(limit: Int) -> [CleanupTarget] {
         targets
             .filter { (status(of: $0.id).bytes ?? 0) > 0 }
             .sorted { (status(of: $0.id).bytes ?? 0) > (status(of: $1.id).bytes ?? 0) }
@@ -167,7 +190,7 @@ final class AppModel {
     // MARK: - Selection
 
     /// Whether the row's checkbox is enabled.
-    func isSelectable(_ target: CleanupTarget) -> Bool {
+    public func isSelectable(_ target: CleanupTarget) -> Bool {
         guard target.strategy.isCleanable, !isScanning, !isCleaning else { return false }
         switch status(of: target.id) {
         case .measured(let measurement, _, _): return measurement.bytes > 0
@@ -176,11 +199,11 @@ final class AppModel {
         }
     }
 
-    func isSelected(_ target: CleanupTarget) -> Bool {
+    public func isSelected(_ target: CleanupTarget) -> Bool {
         selection.contains(target.id)
     }
 
-    func setSelected(_ target: CleanupTarget, _ selected: Bool) {
+    public func setSelected(_ target: CleanupTarget, _ selected: Bool) {
         if selected, isSelectable(target) {
             selection.insert(target.id)
         } else {
@@ -189,20 +212,20 @@ final class AppModel {
     }
 
     /// Select every selectable target rated ``SafetyLevel/safe``.
-    func selectAllSafe() {
+    public func selectAllSafe() {
         for target in targets where target.safety == .safe && isSelectable(target) {
             selection.insert(target.id)
         }
     }
 
-    func clearSelection() {
+    public func clearSelection() {
         selection.removeAll()
     }
 
     // MARK: - Scanning
 
     /// Scan every target with bounded parallelism.
-    func scanAll() {
+    public func scanAll() {
         guard !isScanning, !isCleaning else { return }
         isScanning = true
         selection.removeAll()
@@ -223,7 +246,7 @@ final class AppModel {
         }
     }
 
-    func cancelScan() {
+    public func cancelScan() {
         scanTask?.cancel()
     }
 
@@ -231,6 +254,7 @@ final class AppModel {
     /// main actor; the blocking work happens inside the child tasks,
     /// which execute nonisolated on the global executor.
     private func runScan(of targets: [CleanupTarget]) async {
+        let scan = scanExecutor
         await withTaskGroup(of: (CleanupTarget.ID, TargetStatus).self) { group in
             var pending = targets.makeIterator()
 
@@ -238,7 +262,7 @@ final class AppModel {
             func startNext() -> Bool {
                 guard let target = pending.next() else { return false }
                 group.addTask {
-                    (target.id, TargetScanner().scan(target))
+                    (target.id, scan(target))
                 }
                 return true
             }
@@ -263,7 +287,7 @@ final class AppModel {
 
     /// Clean everything currently selected, then re-scan those targets
     /// so the numbers on screen stay truthful.
-    func cleanSelected() {
+    public func cleanSelected() {
         guard !isCleaning, !isScanning, !selection.isEmpty else { return }
 
         let jobs: [CleanJob] = targets.compactMap { target in
@@ -281,8 +305,10 @@ final class AppModel {
 
         isCleaning = true
         let chosenDisposal = disposal
+        let scan = scanExecutor
+        let clean = cleanExecutor
 
-        Task {
+        cleanTask = Task {
             var summary = CleanSummary(disposal: chosenDisposal)
 
             // Sequential on purpose: cleanup should be predictable and
@@ -290,15 +316,15 @@ final class AppModel {
             for job in jobs {
                 self.statuses[job.target.id] = .scanning
 
-                let outcome = await Self.backgroundClean(
-                    job.target, paths: job.paths, disposal: chosenDisposal
-                )
+                let outcome = await Self.offMain {
+                    clean(job.target, job.paths, chosenDisposal)
+                }
                 summary.cleanedTargets += 1
                 summary.failures.append(contentsOf: outcome.failures.map {
                     "\(job.target.name) — \($0.message)"
                 })
 
-                let refreshed = await Self.backgroundScan(job.target)
+                let refreshed = await Self.offMain { scan(job.target) }
                 self.statuses[job.target.id] = refreshed
                 summary.reclaimedBytes += max(0, job.bytesBefore - (refreshed.bytes ?? 0))
                 self.selection.remove(job.target.id)
@@ -306,27 +332,19 @@ final class AppModel {
 
             self.lastCleanSummary = summary
             self.isCleaning = false
+            self.cleanTask = nil
         }
     }
 
     // MARK: - Background helpers
 
-    // Nonisolated async: with this package's settings these hop to the
-    // global concurrent executor, keeping blocking I/O off the main
-    // thread. If `NonisolatedNonsendingByDefault` is ever enabled,
-    // annotate these `@concurrent` to preserve that behavior.
-
-    private nonisolated static func backgroundScan(
-        _ target: CleanupTarget
-    ) async -> TargetStatus {
-        TargetScanner().scan(target)
-    }
-
-    private nonisolated static func backgroundClean(
-        _ target: CleanupTarget,
-        paths: [URL],
-        disposal: Disposal
-    ) async -> CleanOutcome {
-        CleanupEngine().clean(target, resolvedPaths: paths, disposal: disposal)
+    /// Runs blocking work off the main actor. With this package's
+    /// settings a `nonisolated` async function hops to the global
+    /// concurrent executor. If `NonisolatedNonsendingByDefault` is ever
+    /// enabled, annotate this `@concurrent` to preserve that behavior.
+    private nonisolated static func offMain<T: Sendable>(
+        _ work: @Sendable @escaping () -> T
+    ) async -> T {
+        work()
     }
 }

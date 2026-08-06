@@ -6,6 +6,7 @@
 //  a scan has run.
 //
 
+import ReclaimAppCore
 import ReclaimKit
 import SwiftUI
 
@@ -21,7 +22,7 @@ struct SidebarView: View {
             Section("Categories") {
                 ForEach(ToolCategory.allCases) { category in
                     Label(category.title, systemImage: category.systemImage)
-                        .badge(Text(model.formattedCategoryTotal(category) ?? ""))
+                        .badge(Text(model.categoryTotalBytes(category)?.formattedBytes ?? ""))
                         .tag(SidebarItem.category(category))
                 }
             }

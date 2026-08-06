@@ -6,6 +6,7 @@
 //  the pre-clean confirmation dialog, and the post-clean summary alert.
 //
 
+import ReclaimAppCore
 import ReclaimKit
 import SwiftUI
 

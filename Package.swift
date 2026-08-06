@@ -7,10 +7,13 @@
 //
 //  Layout
 //  ──────
-//  • ReclaimKit  – UI-free core: domain model, target registry, scanning
-//                  and cleanup services. Fully unit-tested.
-//  • Reclaim     – The SwiftUI app. Thin layer: state (AppModel) + views.
-//  • ReclaimKitTests – Swift Testing suite for the core library.
+//  • ReclaimKit     – UI-free core: domain model, target registry,
+//                     scanning and cleanup services. Fully unit-tested.
+//  • ReclaimAppCore – UI-free app state: AppModel + CleanSummary.
+//                     Imports ReclaimKit + Observation only, so the
+//                     whole orchestration layer is unit-testable.
+//  • Reclaim        – The SwiftUI app. Views only.
+//  • ReclaimKitTests / ReclaimAppCoreTests – Swift Testing suites.
 //
 //  The package builds and runs directly ("open Package.swift" in Xcode,
 //  or `swift run Reclaim`). An optional XcodeGen spec (project.yml) is
@@ -43,20 +46,31 @@ let package = Package(
     products: [
         .executable(name: "Reclaim", targets: ["Reclaim"]),
         .library(name: "ReclaimKit", targets: ["ReclaimKit"]),
+        .library(name: "ReclaimAppCore", targets: ["ReclaimAppCore"]),
     ],
     targets: [
         .target(
             name: "ReclaimKit",
             swiftSettings: sharedSwiftSettings
         ),
+        .target(
+            name: "ReclaimAppCore",
+            dependencies: ["ReclaimKit"],
+            swiftSettings: sharedSwiftSettings
+        ),
         .executableTarget(
             name: "Reclaim",
-            dependencies: ["ReclaimKit"],
+            dependencies: ["ReclaimKit", "ReclaimAppCore"],
             swiftSettings: sharedSwiftSettings
         ),
         .testTarget(
             name: "ReclaimKitTests",
             dependencies: ["ReclaimKit"],
+            swiftSettings: sharedSwiftSettings
+        ),
+        .testTarget(
+            name: "ReclaimAppCoreTests",
+            dependencies: ["ReclaimAppCore"],
             swiftSettings: sharedSwiftSettings
         ),
     ]

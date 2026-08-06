@@ -5,6 +5,7 @@
 //  A category's targets as a selectable list.
 //
 
+import ReclaimAppCore
 import ReclaimKit
 import SwiftUI
 

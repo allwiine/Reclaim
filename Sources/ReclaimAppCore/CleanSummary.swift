@@ -1,6 +1,6 @@
 //
 //  CleanSummary.swift
-//  Reclaim
+//  ReclaimAppCore
 //
 //  Result of one cleanup pass, presented as an alert.
 //
@@ -9,19 +9,23 @@ import Foundation
 import ReclaimKit
 
 /// Aggregated outcome of cleaning the selected targets.
-struct CleanSummary: Equatable {
+public struct CleanSummary: Equatable, Sendable {
     /// How removals were performed (affects the wording of the alert).
-    let disposal: Disposal
-    var reclaimedBytes: Int64 = 0
-    var cleanedTargets: Int = 0
+    public let disposal: Disposal
+    public var reclaimedBytes: Int64 = 0
+    public var cleanedTargets: Int = 0
     /// Human-readable failure lines, empty on full success.
-    var failures: [String] = []
+    public var failures: [String] = []
+
+    public init(disposal: Disposal) {
+        self.disposal = disposal
+    }
 
     /// Alert body text.
-    var message: String {
+    public var message: String {
         var lines: [String] = []
 
-        let space = reclaimedBytes.formattedBytes
+        let space = reclaimedBytes.formatted(.byteCount(style: .file))
         switch disposal {
         case .trash:
             lines.append("Moved \(space) to the Trash from \(cleanedTargets) item(s). Empty the Trash to free the space permanently.")

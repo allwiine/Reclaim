@@ -7,6 +7,7 @@
 
 import AppKit
 import os
+import ReclaimAppCore
 import ReclaimKit
 import SwiftUI
 

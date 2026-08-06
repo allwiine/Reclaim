@@ -25,6 +25,8 @@ targets:
     dependencies:
       - package: ReclaimPackage
         product: ReclaimKit
+      - package: ReclaimPackage
+        product: ReclaimAppCore
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.allwiine.reclaim

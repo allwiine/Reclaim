@@ -8,6 +8,7 @@
 //
 
 import Charts
+import ReclaimAppCore
 import ReclaimKit
 import SwiftUI
 
