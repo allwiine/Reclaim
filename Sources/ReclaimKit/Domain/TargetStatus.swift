@@ -14,18 +14,23 @@ public struct DiskMeasurement: Sendable, Equatable {
     public var bytes: Int64
     /// Number of regular files counted.
     public var fileCount: Int
+    /// Entries the walk could not read (usually missing Full Disk
+    /// Access). Non-zero means `bytes` is a lower bound.
+    public var inaccessibleItems: Int
 
     public static let zero = DiskMeasurement(bytes: 0, fileCount: 0)
 
-    public init(bytes: Int64, fileCount: Int) {
+    public init(bytes: Int64, fileCount: Int, inaccessibleItems: Int = 0) {
         self.bytes = bytes
         self.fileCount = fileCount
+        self.inaccessibleItems = inaccessibleItems
     }
 
     /// Accumulate another measurement into this one.
     public mutating func add(_ other: DiskMeasurement) {
         bytes += other.bytes
         fileCount += other.fileCount
+        inaccessibleItems += other.inaccessibleItems
     }
 }
 

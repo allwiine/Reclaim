@@ -59,4 +59,62 @@ struct DiskSizerTests {
             #expect(combined.fileCount == 2)
         }
     }
+
+    @Test("Unreadable subdirectories are skipped but counted as inaccessible")
+    func inaccessibleSubdirectory() throws {
+        try withTemporaryDirectory { root in
+            try makeFile(in: root, name: "visible.bin", byteCount: 1_000)
+            let locked = root.appending(path: "locked")
+            try makeFile(in: locked, name: "hidden.bin", byteCount: 1_000)
+            try FileManager.default.setAttributes(
+                [.posixPermissions: 0o000], ofItemAtPath: locked.path
+            )
+            defer {
+                try? FileManager.default.setAttributes(
+                    [.posixPermissions: 0o755], ofItemAtPath: locked.path
+                )
+            }
+
+            let measurement = try DiskSizer().measure([root])
+
+            #expect(measurement.fileCount == 1)
+            #expect(measurement.inaccessibleItems == 1)
+        }
+    }
+
+    @Test("An unreadable root throws instead of measuring zero")
+    func unreadableRoot() throws {
+        try withTemporaryDirectory { root in
+            let locked = root.appending(path: "locked")
+            try makeFile(in: locked, name: "secret.bin", byteCount: 1_000)
+            try FileManager.default.setAttributes(
+                [.posixPermissions: 0o000], ofItemAtPath: locked.path
+            )
+            defer {
+                try? FileManager.default.setAttributes(
+                    [.posixPermissions: 0o755], ofItemAtPath: locked.path
+                )
+            }
+
+            #expect(throws: (any Error).self) {
+                try DiskSizer().measure([locked])
+            }
+        }
+    }
+
+    @Test("Hard-linked files are counted once by size")
+    func hardLinkDeduplication() throws {
+        try withTemporaryDirectory { root in
+            let original = try makeFile(in: root, name: "original.bin", byteCount: 4_096)
+            try FileManager.default.linkItem(
+                at: original, to: root.appending(path: "alias.bin")
+            )
+
+            let measurement = try DiskSizer().measure([root])
+
+            // Two directory entries, but the allocation exists once on disk.
+            #expect(measurement.fileCount == 2)
+            #expect(measurement.bytes < 8_192)
+        }
+    }
 }

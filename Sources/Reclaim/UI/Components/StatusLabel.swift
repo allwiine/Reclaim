@@ -23,7 +23,7 @@ struct StatusLabel: View {
                 .controlSize(.small)
 
         case .measured(let measurement, _):
-            if measurement.bytes == 0 {
+            if measurement.bytes == 0 && measurement.inaccessibleItems == 0 {
                 Text("Empty")
                     .foregroundStyle(.secondary)
             } else {
@@ -34,6 +34,12 @@ struct StatusLabel: View {
                     Text("\(measurement.fileCount.formatted()) file\(measurement.fileCount == 1 ? "" : "s")")
                         .font(.caption2)
                         .foregroundStyle(.secondary)
+                    if measurement.inaccessibleItems > 0 {
+                        Label("\(measurement.inaccessibleItems) unreadable", systemImage: "lock")
+                            .font(.caption2)
+                            .foregroundStyle(.orange)
+                            .help("Some entries could not be read, so the size shown is a lower bound. Granting Full Disk Access may reveal more.")
+                    }
                 }
             }
 
