@@ -13,7 +13,12 @@ public struct CleanSummary: Equatable, Sendable {
     /// How removals were performed (affects the wording of the alert).
     public let disposal: Disposal
     public var reclaimedBytes: Int64 = 0
+    /// Targets where at least one item was actually removed.
     public var cleanedTargets: Int = 0
+    /// Targets where nothing could be removed at all.
+    public var failedTargets: Int = 0
+    /// Files and folders disposed of across all targets.
+    public var itemsRemoved: Int = 0
     /// Human-readable failure lines, empty on full success.
     public var failures: [String] = []
 
@@ -25,12 +30,26 @@ public struct CleanSummary: Equatable, Sendable {
     public var message: String {
         var lines: [String] = []
 
-        let space = reclaimedBytes.formatted(.byteCount(style: .file))
-        switch disposal {
-        case .trash:
-            lines.append("Moved \(space) to the Trash from \(cleanedTargets) item(s). Empty the Trash to free the space permanently.")
-        case .delete:
-            lines.append("Freed \(space) from \(cleanedTargets) item(s).")
+        if itemsRemoved == 0 {
+            lines.append("Nothing was cleaned.")
+        } else {
+            let space = reclaimedBytes.formatted(.byteCount(style: .file))
+            // Automatic grammar agreement keeps "1 item" / "3 items"
+            // correct without manual pluralization. AttributedString
+            // (not String(localized:)) processes the inflection even
+            // without a strings catalog.
+            let items = String(AttributedString(
+                localized: "^[\(itemsRemoved) item](inflect: true)"
+            ).characters)
+            let locations = String(AttributedString(
+                localized: "^[\(cleanedTargets) location](inflect: true)"
+            ).characters)
+            switch disposal {
+            case .trash:
+                lines.append("Moved \(items) (\(space)) from \(locations) to the Trash. Empty the Trash to free the space permanently.")
+            case .delete:
+                lines.append("Freed \(space) by permanently deleting \(items) from \(locations).")
+            }
         }
 
         if !failures.isEmpty {

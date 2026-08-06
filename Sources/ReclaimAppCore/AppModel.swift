@@ -324,7 +324,12 @@ public final class AppModel {
                 let outcome = await Self.offMain {
                     clean(job.target, job.paths, chosenDisposal)
                 }
-                summary.cleanedTargets += 1
+                summary.itemsRemoved += outcome.removedItems
+                if outcome.removedItems > 0 {
+                    summary.cleanedTargets += 1
+                } else if !outcome.failures.isEmpty {
+                    summary.failedTargets += 1
+                }
                 summary.failures.append(contentsOf: outcome.failures.map {
                     "\(job.target.name) — \($0.message)"
                 })

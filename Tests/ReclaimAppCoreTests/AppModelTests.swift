@@ -223,6 +223,40 @@ struct AppModelTests {
         #expect(model.status(of: "cache").bytes == 0, "post-clean rescan must be reflected")
     }
 
+    @Test("Summary counts only targets that actually had removals")
+    func summaryAccuracy() async {
+        let store = TemporaryDefaults()
+        let ok = target("ok")
+        let broken = target("broken")
+
+        let model = AppModel(
+            targets: [ok, broken],
+            defaults: store.defaults,
+            scanExecutor: { _ in measured(100) },
+            cleanExecutor: { t, _, _ in
+                t.id == "ok"
+                    ? CleanOutcome(removedItems: 2)
+                    : CleanOutcome(
+                        removedItems: 0,
+                        failures: [CleanFailure(path: "/x", message: "locked")]
+                    )
+            }
+        )
+
+        model.scanAll()
+        await model.scanTask?.value
+        model.setSelected(ok, true)
+        model.setSelected(broken, true)
+        model.cleanSelected()
+        await model.cleanTask?.value
+
+        let summary = model.lastCleanSummary
+        #expect(summary?.itemsRemoved == 2)
+        #expect(summary?.cleanedTargets == 1, "a target with zero removals was not cleaned")
+        #expect(summary?.failedTargets == 1)
+        #expect(summary?.failures.count == 1)
+    }
+
     @Test("The disposal chosen in Settings reaches the clean executor")
     func disposalSnapshot() async {
         let store = TemporaryDefaults()
