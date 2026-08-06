@@ -14,22 +14,27 @@ import SwiftUI
 
 @main
 struct ReclaimApp: App {
-    @State private var model = AppModel()
+    @State private var model: AppModel
 
     init() {
         // When launched via `swift run` (no app bundle), make the
         // process a regular foreground app so the window activates.
         NSApplication.shared.setActivationPolicy(.regular)
         Log.app.info("Reclaim launched")
+        let model = AppModel()
+        _model = State(initialValue: model)
+        // The weekly-scan loop belongs to the app, not a window: it must
+        // keep running when the main window is closed and only the menu
+        // bar extra remains.
+        Task { await BackgroundActivity.run(model: model) }
     }
 
     var body: some Scene {
-        WindowGroup(id: "main") {
+        // A single Window (not a WindowGroup): Reclaim's state is one
+        // shared model, so a second main window would just mirror it.
+        Window(localized("app.name", defaultValue: "Reclaim"), id: "main") {
             RootView()
                 .environment(model)
-                .task {
-                    await BackgroundActivity.run(model: model)
-                }
         }
         .defaultSize(width: 1320, height: 856)
         .windowStyle(.hiddenTitleBar)
@@ -81,9 +86,11 @@ private struct MenuBarSummary: View {
     var body: some View {
         Group {
             if model.lastScan != nil {
+                // Only what Reclaim itself can clean — tool-managed
+                // items (Docker, Go modules) don't count as reclaimable.
                 Text(localized(
                     "menu.reclaimable",
-                    defaultValue: "Reclaimable: \(model.totalFoundBytes.formattedBytesCompact)"
+                    defaultValue: "Reclaimable: \(model.cleanableBytes.formattedBytesCompact)"
                 ))
                 Text(localized(
                     "menu.safeToRemove",

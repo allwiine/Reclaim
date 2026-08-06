@@ -112,10 +112,10 @@ struct BrowserView: View {
         guard picked > 0 else {
             return localized("browser.noItemsSelected", defaultValue: "No items selected")
         }
-        let measured = model.targets.count { model.bytes(of: $0) > 0 }
+        let selectable = model.selectableItemCount
         return localized(
             "browser.selectionSummary",
-            defaultValue: "\(picked) of \(measured) items selected · \(model.selectedBytes.formattedBytesCompact)"
+            defaultValue: "\(picked) of \(selectable) items selected · \(model.selectedBytes.formattedBytesCompact)"
         )
     }
 
@@ -328,6 +328,16 @@ private struct TargetRow: View {
                     forType: .string
                 )
             }
+        }
+        if target.strategy.isCleanable {
+            if !paths.isEmpty { Divider() }
+            Toggle(
+                localized("browser.keepOutOfAutoSelect", defaultValue: "Keep out of automatic selection"),
+                isOn: Binding(
+                    get: { model.isExcludedFromAutoSelect(target) },
+                    set: { model.setExcludedFromAutoSelect(target, $0) }
+                )
+            )
         }
     }
 }

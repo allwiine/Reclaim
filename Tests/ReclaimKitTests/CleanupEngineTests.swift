@@ -224,4 +224,28 @@ struct CommandExecutionTests {
         #expect(outcome.removedItems == 1)
         #expect(outcome.failures.isEmpty)
     }
+
+    @Test("A hung command is stopped at the deadline instead of pinning the pass")
+    func hungCommandTimesOut() {
+        let spec = CommandSpec(
+            executablePath: "/bin/sleep",
+            arguments: ["30"],
+            displayCommand: "sleep 30"
+        )
+        let engine = CleanupEngine(remover: MockRemover(), commandTimeout: 0.4)
+
+        let start = Date.now
+        let outcome = engine.clean(
+            makeTarget(strategy: .command(spec)),
+            resolvedPaths: [],
+            disposal: .trash
+        )
+
+        #expect(outcome.removedItems == 0)
+        #expect(outcome.failures.count == 1)
+        #expect(
+            Date.now.timeIntervalSince(start) < 10,
+            "the engine must return promptly after the deadline, not after the command"
+        )
+    }
 }

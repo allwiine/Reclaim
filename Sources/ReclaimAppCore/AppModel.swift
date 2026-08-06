@@ -58,6 +58,17 @@ public final class AppModel {
     public private(set) var isCleaning = false
     public private(set) var lastScan: Date?
 
+    /// True while the pre-clean confirmation is on screen (set by the
+    /// view layer). The background scan defers while it is up so it can
+    /// never clear the selection the user is reviewing.
+    public var isReviewingSelection = false
+
+    /// True from the moment the user asks to stop a scan until the pass
+    /// actually unwinds — drives the "Stopping…" button state.
+    public private(set) var isCancellingScan = false
+    /// Same, for a running clean pass.
+    public private(set) var isCancellingClean = false
+
     /// Live progress of the running scan pass, for the scanning screen.
     public struct ScanProgress: Equatable, Sendable {
         /// Targets fully measured so far.
@@ -93,8 +104,10 @@ public final class AppModel {
         public let index: Int
         public let total: Int
 
+        /// Counts the in-flight target as underway so the bar visibly
+        /// moves on the first item and reaches the end during the last.
         public var fraction: Double {
-            total > 0 ? Double(index - 1) / Double(total) : 0
+            total > 0 ? Double(index) / Double(total) : 0
         }
     }
 
@@ -112,6 +125,11 @@ public final class AppModel {
     /// Past clean passes, newest first.
     public private(set) var history: [CleanHistoryEntry]
 
+    /// Target ids the user chose to keep out of automatic selection
+    /// (the post-scan preselection and "select all safe"). Ticking them
+    /// manually still works. Persisted across launches.
+    public private(set) var autoSelectExclusions: Set<CleanupTarget.ID>
+
     /// On-demand "largest contents" per target, cached per scan.
     public private(set) var breakdowns: [CleanupTarget.ID: [BreakdownEntry]] = [:]
 
@@ -121,6 +139,15 @@ public final class AppModel {
     private(set) var cleanTask: Task<Void, Never>?
     @ObservationIgnored
     private var breakdownTasks: [CleanupTarget.ID: Task<Void, Never>] = [:]
+    /// Invalidation tokens for in-flight breakdown computations. A task
+    /// may only publish its result while its token is still current —
+    /// a result computed for an old scan must never overwrite fresh state.
+    @ObservationIgnored
+    private var breakdownTokens: [CleanupTarget.ID: UUID] = [:]
+    /// Chains history saves so a later write can never lose to an
+    /// earlier one still in flight.
+    @ObservationIgnored
+    private var historyPersistTask: Task<Void, Never>?
 
     @ObservationIgnored
     private let scanExecutor: ScanExecutor
@@ -147,6 +174,7 @@ public final class AppModel {
         static let weeklyScan = "settings.weeklyScan"
         static let notifyLargeReclaimable = "settings.notifyLargeReclaimable"
         static let menuBarExtra = "settings.menuBarExtra"
+        static let autoSelectExclusions = "settings.autoSelectExclusions"
         static let lastScanDate = "state.lastScanDate"
     }
 
@@ -261,6 +289,9 @@ public final class AppModel {
         self.volumeProbe = volumeProbe
         self.historyStore = historyStore
         self.history = historyStore.load().sorted { $0.date > $1.date }
+        self.autoSelectExclusions = Set(
+            defaults.stringArray(forKey: DefaultsKey.autoSelectExclusions) ?? []
+        )
         refreshVolumeSpace()
     }
 
@@ -303,10 +334,12 @@ public final class AppModel {
     }
 
     /// Per-category measured totals in category display order.
-    public func categoryTotals() -> [CategoryTotal] {
+    /// `cleanableOnly` restricts the sum to what Reclaim itself can
+    /// clean — the honest figure for anything labeled "reclaimable".
+    public func categoryTotals(cleanableOnly: Bool = false) -> [CategoryTotal] {
         ToolCategory.allCases.map { category in
             let bytes = targets
-                .filter { $0.category == category }
+                .filter { $0.category == category && (!cleanableOnly || $0.strategy.isCleanable) }
                 .reduce(Int64(0)) { $0 + (status(of: $1.id).bytes ?? 0) }
             return CategoryTotal(category: category, bytes: bytes)
         }
@@ -384,8 +417,10 @@ public final class AppModel {
 
     /// Start a scan if the weekly background scan is enabled and due.
     /// Called periodically by the app layer while Reclaim is running.
+    /// Defers while the confirmation sheet is up — a background scan
+    /// must never clear a selection the user is actively reviewing.
     public func runBackgroundScanIfDue(now: Date = .now) {
-        guard weeklyScanEnabled, !isScanning, !isCleaning else { return }
+        guard weeklyScanEnabled, !isScanning, !isCleaning, !isReviewingSelection else { return }
         guard let next = nextBackgroundScanDate else { return }
         if now >= next { scanAll() }
     }
@@ -400,12 +435,18 @@ public final class AppModel {
         guard case .measured = current else { return }
 
         let compute = breakdownExecutor
+        let token = UUID()
+        breakdownTokens[target.id] = token
         breakdownTasks[target.id] = Task {
             let entries = await Self.offMain { compute(current) }
+            // A computation that finished just before an invalidation
+            // cancelled it must not publish its (stale) result.
+            guard self.breakdownTokens[target.id] == token else { return }
             if let entries {
                 self.breakdowns[target.id] = entries
             }
             self.breakdownTasks[target.id] = nil
+            self.breakdownTokens[target.id] = nil
         }
     }
 
@@ -413,7 +454,16 @@ public final class AppModel {
     private func invalidateBreakdowns() {
         for task in breakdownTasks.values { task.cancel() }
         breakdownTasks.removeAll()
+        breakdownTokens.removeAll()
         breakdowns.removeAll()
+    }
+
+    /// Invalidate one target's breakdown (after cleaning re-measured it).
+    private func invalidateBreakdown(of id: CleanupTarget.ID) {
+        breakdownTasks[id]?.cancel()
+        breakdownTasks[id] = nil
+        breakdownTokens[id] = nil
+        breakdowns[id] = nil
     }
 
     private func refreshVolumeSpace() {
@@ -444,6 +494,35 @@ public final class AppModel {
         targets.filter { selection.contains($0.id) }
     }
 
+    /// How many targets could be ticked right now — the denominator for
+    /// "N of M selected". Manual-only targets never count.
+    public var selectableItemCount: Int {
+        targets.count { target in
+            guard target.strategy.isCleanable else { return false }
+            switch status(of: target.id) {
+            case .measured(let measurement, _, _): return measurement.bytes > 0
+            case .unmeasurable: return true
+            default: return false
+            }
+        }
+    }
+
+    public func isExcludedFromAutoSelect(_ target: CleanupTarget) -> Bool {
+        autoSelectExclusions.contains(target.id)
+    }
+
+    /// Keep a target out of (or return it to) automatic selection.
+    /// Excluding a currently ticked target unticks it immediately.
+    public func setExcludedFromAutoSelect(_ target: CleanupTarget, _ excluded: Bool) {
+        if excluded {
+            autoSelectExclusions.insert(target.id)
+            selection.remove(target.id)
+        } else {
+            autoSelectExclusions.remove(target.id)
+        }
+        defaults.set(autoSelectExclusions.sorted(), forKey: DefaultsKey.autoSelectExclusions)
+    }
+
     public func setSelected(_ target: CleanupTarget, _ selected: Bool) {
         if selected, isSelectable(target) {
             selection.insert(target.id)
@@ -452,9 +531,12 @@ public final class AppModel {
         }
     }
 
-    /// Select every selectable target rated ``SafetyLevel/safe``.
+    /// Select every selectable target rated ``SafetyLevel/safe``,
+    /// honoring the user's auto-select exclusions.
     public func selectAllSafe() {
-        for target in targets where target.safety == .safe && isSelectable(target) {
+        for target in targets where target.safety == .safe
+            && isSelectable(target)
+            && !autoSelectExclusions.contains(target.id) {
             selection.insert(target.id)
         }
     }
@@ -469,6 +551,7 @@ public final class AppModel {
     public func scanAll() {
         guard !isScanning, !isCleaning else { return }
         isScanning = true
+        isCancellingScan = false
         selection.removeAll()
         lastCleanSummary = nil
         invalidateBreakdowns()
@@ -491,6 +574,7 @@ public final class AppModel {
             self.lastScanWasComplete = !Task.isCancelled
             self.defaults.set(Date.now, forKey: DefaultsKey.lastScanDate)
             self.isScanning = false
+            self.isCancellingScan = false
             self.scanProgress = nil
             self.scanTask = nil
             self.applyPostScanSelection()
@@ -500,8 +584,10 @@ public final class AppModel {
 
     /// Mirrors the design's post-scan behavior: Safe items come ticked
     /// (plus Caution when the setting opts in), so one click cleans.
+    /// Targets the user excluded from automatic selection stay unticked.
     private func applyPostScanSelection() {
         for target in targets where isSelectable(target) {
+            guard !autoSelectExclusions.contains(target.id) else { continue }
             let wanted = target.safety == .safe
                 || (preselectCaution && target.safety == .caution)
             if wanted {
@@ -511,11 +597,15 @@ public final class AppModel {
     }
 
     public func cancelScan() {
+        guard scanTask != nil else { return }
+        isCancellingScan = true
         scanTask?.cancel()
     }
 
     /// Stop the running clean pass after the in-flight target finishes.
     public func cancelClean() {
+        guard cleanTask != nil else { return }
+        isCancellingClean = true
         cleanTask?.cancel()
     }
 
@@ -527,19 +617,29 @@ public final class AppModel {
         await withTaskGroup(of: (CleanupTarget.ID, TargetStatus).self) { group in
             var pending = targets.makeIterator()
             var completed = 0
+            // Started but not yet finished, oldest first. The head is
+            // the longest-running walk — the honest thing for the
+            // progress line to show while several run concurrently.
+            var inFlight: [CleanupTarget] = []
 
             // Nested functions do not inherit the enclosing actor, so
-            // spell out the isolation this one needs to touch progress.
+            // spell out the isolation these need to touch progress.
+            @MainActor
+            func publishProgress() {
+                let current = inFlight.first
+                scanProgress = ScanProgress(
+                    completed: completed,
+                    total: targets.count,
+                    currentTargetName: current?.name ?? "",
+                    currentPath: current.map(Self.displayLocation(of:)) ?? ""
+                )
+            }
+
             @MainActor
             @discardableResult
             func startNext() -> Bool {
                 guard let target = pending.next() else { return false }
-                scanProgress = ScanProgress(
-                    completed: completed,
-                    total: targets.count,
-                    currentTargetName: target.name,
-                    currentPath: Self.displayLocation(of: target)
-                )
+                inFlight.append(target)
                 group.addTask {
                     (target.id, scan(target))
                 }
@@ -549,18 +649,13 @@ public final class AppModel {
             for _ in 0..<Self.maxConcurrentScans {
                 startNext()
             }
+            publishProgress()
             while let (id, resolvedStatus) = await group.next() {
                 statuses[id] = resolvedStatus
                 completed += 1
-                if let progress = scanProgress {
-                    scanProgress = ScanProgress(
-                        completed: completed,
-                        total: progress.total,
-                        currentTargetName: progress.currentTargetName,
-                        currentPath: progress.currentPath
-                    )
-                }
+                inFlight.removeAll { $0.id == id }
                 startNext()
+                publishProgress()
             }
         }
     }
@@ -612,7 +707,8 @@ public final class AppModel {
                     id: job.target.id,
                     name: job.target.name,
                     category: job.target.category,
-                    bytesFreed: job.bytesBefore
+                    // Command targets have no measurable projection.
+                    bytesFreed: job.paths.isEmpty ? nil : job.bytesBefore
                 ))
             }
             lastCleanSummary = summary
@@ -620,6 +716,7 @@ public final class AppModel {
         }
 
         isCleaning = true
+        isCancellingClean = false
         let chosenDisposal = disposal
         let scan = scanExecutor
         let clean = cleanExecutor
@@ -662,11 +759,12 @@ public final class AppModel {
 
                 let refreshed = await Self.offMain { scan(job.target) }
                 self.statuses[job.target.id] = refreshed
-                self.breakdownTasks[job.target.id]?.cancel()
-                self.breakdownTasks[job.target.id] = nil
-                self.breakdowns[job.target.id] = nil
-                let freed = max(0, job.bytesBefore - (refreshed.bytes ?? 0))
-                summary.reclaimedBytes += freed
+                self.invalidateBreakdown(of: job.target.id)
+                // Freed space is only claimed when the rescan could
+                // measure it — command targets and failed rescans
+                // report "unknown", never a guess.
+                let freed = refreshed.bytes.map { max(0, job.bytesBefore - $0) }
+                summary.reclaimedBytes += freed ?? 0
                 if outcome.removedItems > 0 {
                     summary.cleaned.append(CleanSummary.CleanedTarget(
                         id: job.target.id,
@@ -681,6 +779,7 @@ public final class AppModel {
             self.cleanProgress = nil
             self.lastCleanSummary = summary
             self.isCleaning = false
+            self.isCancellingClean = false
             self.cleanTask = nil
             self.recordHistory(from: summary)
             self.refreshVolumeSpace()
@@ -697,9 +796,23 @@ public final class AppModel {
             reclaimedBytes: summary.reclaimedBytes
         )
         history.insert(entry, at: 0)
+        persistHistory()
+    }
+
+    /// Erase the recorded clean history. Files on disk are unaffected.
+    public func clearHistory() {
+        history.removeAll()
+        persistHistory()
+    }
+
+    /// Saves are chained so a clear issued right after a clean pass can
+    /// never lose the race against the pass's own (earlier) save.
+    private func persistHistory() {
         let store = historyStore
         let snapshot = history
-        Task {
+        let previous = historyPersistTask
+        historyPersistTask = Task {
+            await previous?.value
             await Self.offMain { store.save(snapshot) }
         }
     }

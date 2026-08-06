@@ -60,10 +60,14 @@ struct ScanningView: View {
             .frame(width: 420)
             .padding(.top, 28)
 
-            Button(localized("scanning.stopButton", defaultValue: "Stop")) {
+            Button(model.isCancellingScan
+                ? localized("scanning.stoppingButton", defaultValue: "Stopping…")
+                : localized("scanning.stopButton", defaultValue: "Stop")
+            ) {
                 model.cancelScan()
             }
             .buttonStyle(.rcSecondary)
+            .disabled(model.isCancellingScan)
             .padding(.top, 30)
             .help(localized(
                 "scanning.stopHelp",

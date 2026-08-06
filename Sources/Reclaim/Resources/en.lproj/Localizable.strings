@@ -78,15 +78,17 @@
 "progress.finishingUp" = "Finishing up…";
 "scanning.foundSoFar" = "%@ found so far";
 "scanning.stopButton" = "Stop";
+"scanning.stoppingButton" = "Stopping…";
 "scanning.stopHelp" = "Keep what has been measured so far";
 
 /* Cleaning */
 "cleaning.stopButton" = "Stop after this item";
+"cleaning.stoppingButton" = "Stopping after this item…";
 "cleaning.stopHelp" = "The item being cleaned finishes; the rest are skipped";
 
 /* Overview */
 "overview.partialScanNotice" = "Scan stopped early — the sizes below cover only what was measured before stopping.";
-"overview.reclaimableNow" = "Reclaimable now";
+"overview.foundOnThisMac" = "Found on this Mac";
 "overview.safeToRemove" = "%@ safe to remove";
 "overview.nothingSafeLeft" = "Nothing safe left to remove";
 "overview.nothingSafeLeftSubtitle" = "Everything rated Safe is already clean — scan again to re-measure.";
@@ -129,6 +131,7 @@
 "browser.emptySearchDetail" = "No catalogue entry matches that search — try a tool name or a path fragment.";
 "browser.emptyCategoryDetail" = "None of these tools were found on this Mac. Enable “Show tools that are not installed” in Settings to list them anyway.";
 "browser.selectAccessibility" = "Select %@";
+"browser.keepOutOfAutoSelect" = "Keep out of automatic selection";
 
 /* Row statuses */
 "status.empty" = "Empty";
@@ -145,6 +148,7 @@
 "inspector.cleansByRunning" = "Cleans by running";
 "inspector.largestContents" = "Largest contents";
 "inspector.measuringContents" = "Measuring contents…";
+"inspector.excludedNote" = "Kept out of automatic selection — tick it manually to clean it.";
 
 /* Confirmation sheet */
 "confirm.moveToTrash" = "Move to Trash";
@@ -165,6 +169,8 @@
 "done.emptyTrashMessage" = "This empties everything in the Trash — including items Reclaim didn't put there. This cannot be undone.";
 "done.unitReclaimed" = "%@ reclaimed";
 "done.unitWouldBeReclaimed" = "%@ would be reclaimed";
+"done.nothingCleanedTitle" = "Nothing was cleaned";
+"done.noteNothingCleaned" = "No items could be removed — the failures below explain why.";
 "done.noteDryRun" = "Dry run — nothing was touched. Turn off Dry run in Settings to clean for real.";
 "done.noteStopped" = "Stopped early — not every selected item was processed.";
 "done.noteTrashEmptied" = "Trash emptied. The space is available now.";
@@ -175,8 +181,10 @@
 "done.fullDiskAccessHint" = "If access was denied, grant Reclaim Full Disk Access in System Settings → Privacy & Security.";
 "done.backToOverview" = "Back to overview";
 "done.emptyTrashFailed" = "Couldn't empty the Trash: %@";
+"done.emptyTrashAutomationHint" = "Reclaim needs permission to control Finder — check System Settings → Privacy & Security → Automation.";
 "done.trashEmptied" = "Trash emptied";
 "done.tryAgain" = "Try again";
+"trash.unknownError" = "Finder did not empty the Trash.";
 
 /* History */
 "history.emptyTitle" = "No cleans yet";
@@ -187,8 +195,16 @@
 "history.columnWhat" = "What";
 "history.columnItems" = "Items";
 "history.columnFreed" = "Freed";
+"history.clearButton" = "Clear History…";
+"history.clearConfirmTitle" = "Clear all clean history?";
+"history.clearConfirmAction" = "Clear History";
+"history.clearConfirmMessage" = "Removes the record of every clean pass and resets the lifetime statistics. No files on disk are affected.";
 
 /* Settings */
+"settings.sectionGeneral" = "General";
+"settings.launchAtLogin" = "Open Reclaim at login";
+"settings.launchAtLoginHelp" = "Keeps the menu bar summary and weekly background scans running without opening the app yourself.";
+"settings.launchAtLoginFailed" = "Couldn't change the login item — manage it under System Settings → General → Login Items.";
 "settings.sectionCleaning" = "Cleaning";
 "settings.moveToTrash" = "Move items to the Trash";
 "settings.moveToTrashHelp" = "The default. Nothing leaves your Mac until you empty the Trash.";
@@ -201,6 +217,8 @@
 "settings.weeklyScanHelp" = "Runs quietly while Reclaim is open, once a week has passed.";
 "settings.notifyLarge" = "Notify when more than %@ is reclaimable";
 "settings.notifyLargeHelp" = "A single notification after each background scan that finds that much.";
+"settings.notificationsDenied" = "Notifications for Reclaim are turned off in System Settings, so this alert cannot appear.";
+"settings.openNotificationSettings" = "Open Notification Settings…";
 "settings.showNotInstalled" = "Show tools that are not installed";
 "settings.showNotInstalledHelp" = "Keep catalogue entries visible even when the tool was not found on this Mac.";
 "settings.sectionMenuBar" = "Menu bar";
@@ -209,6 +227,9 @@
 "settings.sectionPermissions" = "Permissions";
 "settings.fullDiskAccess" = "Full Disk Access";
 "settings.fullDiskAccessHelp" = "Some locations (for example parts of ~/Library) may require Full Disk Access to scan or clean.";
+"settings.fdaStatusGranted" = "Granted";
+"settings.fdaStatusDenied" = "Not granted";
+"settings.fdaStatusUnknown" = "Checked when a scan runs";
 "settings.sectionExclusions" = "Excluded from scans";
 "settings.exclusionAuth" = "auth — never in catalogue";
 "settings.exclusionNever" = "never in catalogue";

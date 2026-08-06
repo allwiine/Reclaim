@@ -45,7 +45,9 @@ public struct DiskSizer: Sendable {
     public func measure(_ urls: [URL]) throws -> DiskMeasurement {
         var total = DiskMeasurement.zero
         // Spans all roots so a file hard-linked into two of a target's
-        // paths is still only counted once.
+        // paths is still only counted once. (Deduplication is per-target
+        // by design: registry targets never overlap on disk, and scans
+        // run concurrently, so a cross-target set would buy nothing.)
         var seenHardLinks = Set<NSObject>()
         for url in urls {
             total.add(try measureOne(url, seenHardLinks: &seenHardLinks))

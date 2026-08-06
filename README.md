@@ -6,7 +6,7 @@ A native macOS app for finding and cleaning wasted developer storage — with a 
 
 Reclaim scans a curated catalogue of known cache and scratch locations, shows what each one is, how risky it is to remove, and cleans your selection — to the Trash by default, so mistakes are recoverable.
 
-Built with **Swift 6.2**, **SwiftUI**, the **Observation** framework, strict concurrency, **Swift Charts**, and **Swift Testing**.
+Built with **Swift 6.2**, **SwiftUI**, the **Observation** framework, strict concurrency, and **Swift Testing**.
 
 ## What it covers
 

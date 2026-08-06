@@ -83,7 +83,9 @@ struct SidebarView: View {
             SectionLabel(localized("sidebar.reclaimable", defaultValue: "Reclaimable"))
 
             if hasMeasurements {
-                let parts = model.totalFoundBytes.byteParts
+                // Only what Reclaim itself can clean — tool-managed
+                // items (Docker, Go modules) are found, not reclaimable.
+                let parts = model.cleanableBytes.byteParts
                 HStack(alignment: .firstTextBaseline, spacing: 6) {
                     Text(parts.value)
                         .font(Theme.heroNumber(31))
@@ -120,7 +122,7 @@ struct SidebarView: View {
     }
 
     private var categorySegments: [MeterSegment] {
-        let totals = model.categoryTotals()
+        let totals = model.categoryTotals(cleanableOnly: true)
         let sum = max(1, totals.reduce(Int64(0)) { $0 + $1.bytes })
         return totals.map { total in
             MeterSegment(
@@ -138,7 +140,6 @@ struct SidebarView: View {
         let isSelected = destination == .category(category)
 
         return Button {
-            guard hasMeasurements else { return }
             destination = .category(category)
         } label: {
             HStack(spacing: 10) {
@@ -163,7 +164,6 @@ struct SidebarView: View {
                 in: RoundedRectangle(cornerRadius: Theme.radiusControl)
             )
             .contentShape(RoundedRectangle(cornerRadius: Theme.radiusControl))
-            .opacity(hasMeasurements ? 1 : 0.45)
         }
         .buttonStyle(.plain)
         .hoverHighlight()

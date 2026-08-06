@@ -9,6 +9,7 @@
 
 import Foundation
 import os
+import Synchronization
 
 // MARK: - File operations abstraction
 
@@ -70,9 +71,17 @@ public struct CleanOutcome: Sendable, Equatable {
 /// Stateless executor of cleanup strategies.
 public struct CleanupEngine: Sendable {
     private let remover: any FileRemoving
+    /// Hard deadline for external commands. A hung tool must not pin
+    /// the clean pass forever — the UI's "stop" only takes effect
+    /// between targets, so the in-flight one has to be bounded.
+    private let commandTimeout: TimeInterval
 
-    public init(remover: any FileRemoving = FileManagerRemover()) {
+    public init(
+        remover: any FileRemoving = FileManagerRemover(),
+        commandTimeout: TimeInterval = 10 * 60
+    ) {
         self.remover = remover
+        self.commandTimeout = commandTimeout
     }
 
     /// Clean one target. Blocking; run off the main actor.
@@ -143,13 +152,45 @@ public struct CleanupEngine: Sendable {
 
         do {
             try process.run()
+
+            // Watchdog: terminates (then kills) the child at the
+            // deadline. Killing it also closes its stderr, so the
+            // blocking drain below always reaches EOF.
+            let timedOut = Mutex(false)
+            let deadline = Date.now.addingTimeInterval(commandTimeout)
+            Thread.detachNewThread {
+                while process.isRunning, Date.now < deadline {
+                    Thread.sleep(forTimeInterval: 0.05)
+                }
+                guard process.isRunning else { return }
+                timedOut.withLock { $0 = true }
+                process.terminate()
+                let killDeadline = Date.now.addingTimeInterval(5)
+                while process.isRunning, Date.now < killDeadline {
+                    Thread.sleep(forTimeInterval: 0.05)
+                }
+                if process.isRunning {
+                    kill(process.processIdentifier, SIGKILL)
+                }
+            }
+
             // Drain stderr to EOF *before* waiting: a child that writes
             // more than the pipe buffer (~64 KB) would otherwise block on
             // write while we block in waitUntilExit — a deadlock.
             let stderrData = stderrPipe.fileHandleForReading.readDataToEndOfFile()
             process.waitUntilExit()
 
-            if process.terminationStatus == 0 {
+            if timedOut.withLock({ $0 }) {
+                let limit = Duration.seconds(commandTimeout)
+                    .formatted(.units(allowed: [.minutes, .seconds], width: .wide))
+                outcome.failures.append(CleanFailure(
+                    path: spec.displayCommand,
+                    message: localized(
+                        "engine.commandTimedOut",
+                        defaultValue: "Stopped after \(limit) — the command never finished."
+                    )
+                ))
+            } else if process.terminationStatus == 0 {
                 outcome.removedItems += 1
             } else {
                 let stderrText = String(data: stderrData, encoding: .utf8)?

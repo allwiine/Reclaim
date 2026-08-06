@@ -44,12 +44,15 @@ struct ToolbarView: View {
                     HStack(spacing: 5) {
                         Image(systemName: "arrow.clockwise")
                             .font(.system(size: 10, weight: .medium))
-                        Text(localized("action.scanAgain", defaultValue: "Scan again"))
+                        Text(model.lastScan == nil
+                            ? localized("idle.scanButton", defaultValue: "Scan this Mac")
+                            : localized("action.scanAgain", defaultValue: "Scan again"))
                     }
                 }
                 .buttonStyle(.rcSecondaryCompact)
                 .help(localized("toolbar.scanAgainHelp", defaultValue: "Scan again"))
-                .keyboardShortcut("r", modifiers: .command)
+                // ⌘R lives on the File-menu "Scan This Mac" command —
+                // registering it here as well would collide.
 
                 Button(reclaimLabel) {
                     onReclaim()
@@ -158,6 +161,11 @@ struct ToolbarView: View {
             if !searchText.isEmpty { return "" }
             guard case .category(let category) = destination else { return "" }
             let targets = model.visibleTargets(in: category)
+            // Before the first scan there is no size to report — a
+            // formatted zero would read as a (wrong) measurement.
+            guard model.lastScan != nil else {
+                return localized("count.items", defaultValue: "\(targets.count) items")
+            }
             let bytes = targets.reduce(Int64(0)) { $0 + model.bytes(of: $1) }
             return localized(
                 "toolbar.categorySubtitle",

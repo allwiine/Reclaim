@@ -57,6 +57,11 @@ struct RootView: View {
                 )
                 .transition(.opacity)
                 .zIndex(1)
+                // While the sheet is up the background scan defers, so
+                // it cannot clear the selection under review. Covers
+                // window close too — onDisappear fires either way.
+                .onAppear { model.isReviewingSelection = true }
+                .onDisappear { model.isReviewingSelection = false }
             }
         }
         .animation(Theme.flow, value: isConfirmingClean)
@@ -66,6 +71,11 @@ struct RootView: View {
                 isShowingDone = true
                 destination = flowDestination
             }
+        }
+        .onChange(of: model.isScanning) { _, isScanning in
+            // A scan (manual ⌘R, menu bar) clears the selection; a
+            // confirmation left open would show an empty, dead sheet.
+            if isScanning { isConfirmingClean = false }
         }
         .preferredColorScheme(.dark)
         .frame(minWidth: 1100, minHeight: 660)
@@ -112,14 +122,17 @@ struct RootView: View {
 
     /// The sidebar's route: a user click also leaves the post-clean
     /// result screen, which otherwise occupies the content area for
-    /// overview/category destinations until dismissed. Only sidebar
-    /// sets travel through here — the programmatic destination change
-    /// when a pass finishes must not dismiss the screen it just showed.
+    /// overview/category destinations until dismissed, and clears any
+    /// active search — otherwise "Overview" would appear to do nothing
+    /// while search results keep the content area. Only sidebar sets
+    /// travel through here — the programmatic destination change when
+    /// a pass finishes must not dismiss the screen it just showed.
     private var sidebarDestination: Binding<Destination> {
         Binding(
             get: { destination },
             set: { newValue in
                 destination = newValue
+                searchText = ""
                 if isShowingDone {
                     isShowingDone = false
                     model.lastCleanSummary = nil
@@ -157,9 +170,12 @@ struct RootView: View {
             if model.isCleaning { return .cleaning }
             if isShowingDone, model.lastCleanSummary != nil { return .done }
             if model.isScanning { return .scanning }
-            if model.lastScan == nil { return .idle }
+            // Categories and search are browsable before the first scan
+            // too — the catalogue itself is worth exploring; only the
+            // overview needs measurements and shows the hero instead.
             if !searchText.isEmpty { return .browser }
             if case .category = destination { return .browser }
+            if model.lastScan == nil { return .idle }
             return .overview
         }
     }
