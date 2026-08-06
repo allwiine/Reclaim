@@ -140,13 +140,12 @@ struct IdleView: View {
             catalogueCard
                 .entrance(appeared, delay: 0.12)
 
-            HStack(alignment: .firstTextBaseline, spacing: 9) {
+            HStack(alignment: .center, spacing: 10) {
                 // A trust statement, not a setting: a sealed checkmark in
                 // the accent color, never anything that reads as a checkbox.
                 Image(systemName: "checkmark.seal.fill")
-                    .font(.system(size: 12.5))
+                    .font(.system(size: 17))
                     .foregroundStyle(Theme.accent)
-                    .frame(width: 16, height: 16)
                 Text(localized(
                     "idle.trustNote",
                     defaultValue: "Nothing is removed without your confirmation, and everything goes to the Trash by default. Credentials, settings and plugins are never in the catalogue."
