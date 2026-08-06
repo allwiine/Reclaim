@@ -66,3 +66,7 @@ targets:
         CFBundleDevelopmentRegion: en
         CFBundleLocalizations: [en, nb]
         CFBundleAllowMixedLocalizations: true
+        # Track the build settings — a hardcoded number here would let
+        # MARKETING_VERSION and the visible version drift apart.
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
