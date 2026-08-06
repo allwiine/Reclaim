@@ -1,0 +1,42 @@
+# XcodeGen spec — optional. Generates Reclaim.xcodeproj for building a
+# distributable .app bundle. Day-to-day development works without it:
+# `open Package.swift` or `swift run Reclaim`.
+#
+#   brew install xcodegen && xcodegen
+
+name: Reclaim
+
+options:
+  bundleIdPrefix: com.example
+  deploymentTarget:
+    macOS: "15.0"
+  createIntermediateGroups: true
+
+packages:
+  ReclaimPackage:
+    path: .
+
+targets:
+  Reclaim:
+    type: application
+    platform: macOS
+    sources:
+      - path: Sources/Reclaim
+    dependencies:
+      - package: ReclaimPackage
+        product: ReclaimKit
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.example.reclaim
+        MARKETING_VERSION: "1.0.0"
+        CURRENT_PROJECT_VERSION: "1"
+        SWIFT_VERSION: "6.2"
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.utilities
+        INFOPLIST_KEY_NSHumanReadableCopyright: ""
+        # Direct distribution: hardened runtime on, sandbox off (the app's
+        # purpose is scanning arbitrary cache locations under $HOME).
+        ENABLE_HARDENED_RUNTIME: YES
+        ENABLE_APP_SANDBOX: NO
+        SWIFT_UPCOMING_FEATURE_EXISTENTIAL_ANY: YES
+        SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY: YES
