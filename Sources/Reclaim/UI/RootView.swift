@@ -32,6 +32,10 @@ struct RootView: View {
     @State private var searchText = ""
     @State private var isConfirmingClean = false
     @State private var isShowingDone = false
+    /// The specific target a tap navigated to (overview rows), so the
+    /// browser anchors its inspector on that row and not the first one.
+    /// Cleared by plain category/sidebar navigation.
+    @State private var inspectedTargetID: CleanupTarget.ID?
 
     var body: some View {
         HStack(spacing: 0) {
@@ -133,6 +137,7 @@ struct RootView: View {
             set: { newValue in
                 destination = newValue
                 searchText = ""
+                inspectedTargetID = nil
                 if isShowingDone {
                     isShowingDone = false
                     model.lastCleanSummary = nil
@@ -203,7 +208,14 @@ struct RootView: View {
             }
         case .overview:
             OverviewView(
-                openCategory: { destination = .category($0) },
+                openCategory: { category in
+                    inspectedTargetID = nil
+                    destination = .category(category)
+                },
+                openTarget: { target in
+                    inspectedTargetID = target.id
+                    destination = .category(target.category)
+                },
                 reclaimSafe: {
                     model.selectAllSafe()
                     isConfirmingClean = true
@@ -211,7 +223,7 @@ struct RootView: View {
             )
             .transition(.opacity)
         case .browser:
-            BrowserView(mode: browserMode)
+            BrowserView(mode: browserMode, initialInspectedID: inspectedTargetID)
                 .transition(.opacity)
         case .history:
             HistoryView()

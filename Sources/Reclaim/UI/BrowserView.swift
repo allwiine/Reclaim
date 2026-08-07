@@ -19,6 +19,10 @@ struct BrowserView: View {
 
     @Environment(AppModel.self) private var model
     let mode: Mode
+    /// Row to anchor the inspector on when arriving from a tap on a
+    /// specific target elsewhere (overview lists); `nil` falls back to
+    /// the first row.
+    var initialInspectedID: CleanupTarget.ID?
 
     @State private var inspectedID: CleanupTarget.ID?
 
@@ -49,9 +53,10 @@ struct BrowserView: View {
                 .frame(width: 336)
         }
         .onChange(of: mode, initial: true) { _, _ in
-            // Entering a category (or refining a search) re-anchors the
-            // inspector on the first row.
-            inspectedID = visibleTargets.first?.id
+            // Entering a category (or refining a search) anchors the
+            // inspector on the tapped target when one was passed in,
+            // otherwise on the first row.
+            inspectedID = initialInspectedID ?? visibleTargets.first?.id
         }
     }
 
@@ -122,21 +127,30 @@ struct BrowserView: View {
     // MARK: - List
 
     private func list(_ targets: [CleanupTarget]) -> some View {
-        ScrollView {
-            LazyVStack(spacing: 0) {
-                ForEach(targets) { target in
-                    TargetRow(
-                        target: target,
-                        isInspected: inspectedTarget(in: targets)?.id == target.id,
-                        maxBytes: targets.map { model.bytes(of: $0) }.max() ?? 0
-                    ) {
-                        inspectedID = target.id
+        ScrollViewReader { proxy in
+            ScrollView {
+                LazyVStack(spacing: 0) {
+                    ForEach(targets) { target in
+                        TargetRow(
+                            target: target,
+                            isInspected: inspectedTarget(in: targets)?.id == target.id,
+                            maxBytes: targets.map { model.bytes(of: $0) }.max() ?? 0
+                        ) {
+                            inspectedID = target.id
+                        }
                     }
                 }
+                .padding(.horizontal, 8)
+                .padding(.top, 6)
+                .padding(.bottom, 20)
             }
-            .padding(.horizontal, 8)
-            .padding(.top, 6)
-            .padding(.bottom, 20)
+            // A target tapped elsewhere may sit below the fold in long
+            // categories — reveal it. (Rows clicked in this list are
+            // already visible, so this is a no-op for them.)
+            .onChange(of: inspectedID, initial: true) { _, id in
+                guard let id else { return }
+                proxy.scrollTo(id)
+            }
         }
     }
 

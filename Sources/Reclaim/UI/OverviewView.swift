@@ -17,6 +17,8 @@ struct OverviewView: View {
 
     /// Jumps to a category browser.
     let openCategory: (ToolCategory) -> Void
+    /// Jumps to a specific target's row in its category browser.
+    let openTarget: (CleanupTarget) -> Void
     /// Selects everything safe and opens the confirmation.
     let reclaimSafe: () -> Void
 
@@ -346,7 +348,7 @@ struct OverviewView: View {
                         fraction: ceiling > 0
                             ? Double(model.bytes(of: target)) / Double(ceiling) : 0
                     ) {
-                        openCategory(target.category)
+                        openTarget(target)
                     }
                 }
             }
@@ -365,7 +367,7 @@ struct OverviewView: View {
             VStack(spacing: 10) {
                 ForEach(model.manualTargets) { target in
                     AttentionCard(target: target) {
-                        openCategory(target.category)
+                        openTarget(target)
                     }
                 }
             }
@@ -659,7 +661,7 @@ struct FullDiskAccessBanner: View {
 
 #if DEBUG
 #Preview(traits: .fixedLayout(width: 1060, height: 900)) {
-    OverviewView(openCategory: { _ in }, reclaimSafe: {})
+    OverviewView(openCategory: { _ in }, openTarget: { _ in }, reclaimSafe: {})
         .background(Theme.background)
         .environment(PreviewData.scanned())
         .preferredColorScheme(.dark)
