@@ -8,6 +8,25 @@
 //
 
 import Foundation
+import ReclaimKit
+
+/// One target cleaned in a pass, for the history detail pane.
+public struct CleanedHistoryItem: Sendable, Equatable, Codable {
+    /// Registry id — resolved against the live registry at display time
+    /// for the icon, badge, path and "since then" regrowth.
+    public let targetID: String
+    /// Display name at record time, so the entry stays readable even if
+    /// the registry renames or drops the target later.
+    public let name: String
+    /// Measurably freed space, or `nil` when unknown (command targets).
+    public let bytesFreed: Int64?
+
+    public init(targetID: String, name: String, bytesFreed: Int64?) {
+        self.targetID = targetID
+        self.name = name
+        self.bytesFreed = bytesFreed
+    }
+}
 
 /// One completed clean pass.
 public struct CleanHistoryEntry: Sendable, Equatable, Codable, Identifiable {
@@ -20,18 +39,43 @@ public struct CleanHistoryEntry: Sendable, Equatable, Codable, Identifiable {
     /// Space measurably freed (post-clean rescan, never assumed).
     public let reclaimedBytes: Int64
 
+    // Detail-pane fields, added later — all optional so history files
+    // written by earlier versions still decode.
+
+    /// Per-target results, pass order.
+    public let items: [CleanedHistoryItem]?
+    /// How the pass disposed of items.
+    public let disposal: Disposal?
+    /// Wall-clock length of the pass, including the post-clean rescans.
+    public let duration: TimeInterval?
+    /// Free space on the volume measured right after the pass.
+    public let freeAfterBytes: Int64?
+    /// When the user emptied the Trash through Reclaim afterwards, if
+    /// they did. Emptying outside Reclaim is unknowable and stays `nil`.
+    public var trashEmptiedDate: Date?
+
     public init(
         id: UUID = UUID(),
         date: Date,
         targetNames: [String],
         itemsRemoved: Int,
-        reclaimedBytes: Int64
+        reclaimedBytes: Int64,
+        items: [CleanedHistoryItem]? = nil,
+        disposal: Disposal? = nil,
+        duration: TimeInterval? = nil,
+        freeAfterBytes: Int64? = nil,
+        trashEmptiedDate: Date? = nil
     ) {
         self.id = id
         self.date = date
         self.targetNames = targetNames
         self.itemsRemoved = itemsRemoved
         self.reclaimedBytes = reclaimedBytes
+        self.items = items
+        self.disposal = disposal
+        self.duration = duration
+        self.freeAfterBytes = freeAfterBytes
+        self.trashEmptiedDate = trashEmptiedDate
     }
 }
 

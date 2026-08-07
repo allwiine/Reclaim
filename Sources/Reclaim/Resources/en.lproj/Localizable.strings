@@ -9,6 +9,7 @@
 
 /* Shared actions */
 "action.cancel" = "Cancel";
+"action.close" = "Close";
 "action.copy" = "Copy";
 "action.copied" = "Copied";
 "action.revealInFinder" = "Reveal in Finder";
@@ -200,6 +201,21 @@
 "history.clearConfirmTitle" = "Clear all clean history?";
 "history.clearConfirmAction" = "Clear History";
 "history.clearConfirmMessage" = "Removes the record of every clean pass and resets the lifetime statistics. No files on disk are affected.";
+"history.detail.trigger" = "Manual clean";
+"history.detail.unitFreed" = "%@ freed";
+"history.detail.movedToTrash" = "Moved to Trash";
+"history.detail.deletedPermanently" = "Deleted permanently";
+"history.detail.metaLine" = "%1$@ · %2$@";
+"history.detail.permanentNote" = "Removed immediately; not recoverable.";
+"history.detail.trashEmptiedNote" = "Trash emptied %@.";
+"history.detail.trashUnknownNote" = "Moved to the Trash — if you haven't emptied it since, the files can still be put back.";
+"history.detail.diskAfter" = "Disk after";
+"history.detail.freeAfterLabel" = "%@ free after this clean";
+"history.detail.whatWasRemoved" = "What was removed";
+"history.detail.sinceThen" = "Since then";
+"history.detail.againNow" = "%@ again now";
+"history.detail.stillClean" = "still clean";
+"history.detail.regrowthFootnote" = "Caches rebuild as you work. The percentage is today's size measured against what this clean removed.";
 
 /* Settings */
 "settings.sectionGeneral" = "General";

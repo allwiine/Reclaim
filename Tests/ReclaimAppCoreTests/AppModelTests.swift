@@ -658,6 +658,89 @@ struct AppModelTests {
         #expect(second.lastCleanSummary?.cleaned.first?.bytesFreed == nil)
     }
 
+    @Test("History entries carry the detail the history pane shows")
+    func historyDetailRecording() async {
+        let store = TemporaryDefaults()
+        let cache = target("cache")
+        let scanCount = Mutex(0)
+        let model = AppModel(
+            targets: [cache],
+            defaults: store.defaults,
+            scanExecutor: { _ in
+                let calls = scanCount.withLock { $0 += 1; return $0 }
+                return calls == 1 ? measured(100) : measured(0)
+            },
+            cleanExecutor: { _, _, _ in CleanOutcome(removedItems: 2) },
+            volumeProbe: {
+                VolumeSpace(totalBytes: 1_000, availableBytes: 400, localizedName: "Test")
+            },
+            historyStore: temporaryHistoryStore()
+        )
+
+        model.scanAll()
+        await model.scanTask?.value
+        model.cleanSelected()
+        await model.cleanTask?.value
+
+        let entry = model.history.first
+        #expect(entry?.items?.map(\.targetID) == ["cache"])
+        #expect(entry?.items?.first?.bytesFreed == 100)
+        #expect(entry?.disposal == .trash)
+        #expect(entry?.duration != nil)
+        #expect(entry?.freeAfterBytes == 400, "free space is measured right after the pass")
+        #expect(entry?.trashEmptiedDate == nil, "emptying is only known when done through Reclaim")
+    }
+
+    @Test("Emptying the Trash stamps every unmarked trash pass")
+    func trashEmptiedStamping() async {
+        let store = TemporaryDefaults()
+        let historyStore = temporaryHistoryStore()
+        let cache = target("cache")
+        let scanCount = Mutex(0)
+        let model = AppModel(
+            targets: [cache],
+            defaults: store.defaults,
+            scanExecutor: { _ in
+                let calls = scanCount.withLock { $0 += 1; return $0 }
+                return calls % 2 == 1 ? measured(100) : measured(0)
+            },
+            cleanExecutor: { _, _, _ in CleanOutcome(removedItems: 1) },
+            historyStore: historyStore
+        )
+
+        model.scanAll()
+        await model.scanTask?.value
+        model.cleanSelected()
+        await model.cleanTask?.value
+        #expect(model.history.first?.trashEmptiedDate == nil)
+
+        // Whole seconds: the store's ISO8601 coding drops fractions.
+        let emptied = Date(timeIntervalSince1970: Date.now.timeIntervalSince1970.rounded())
+        model.markTrashEmptied(at: emptied)
+        #expect(model.history.first?.trashEmptiedDate == emptied)
+
+        // Idempotent: a later emptying never rewrites an earlier stamp.
+        model.markTrashEmptied(at: emptied.addingTimeInterval(3_600))
+        #expect(model.history.first?.trashEmptiedDate == emptied)
+
+        // Permanent-delete passes are never stamped.
+        model.disposal = .delete
+        model.scanAll()
+        await model.scanTask?.value
+        model.setSelected(cache, true)
+        model.cleanSelected()
+        await model.cleanTask?.value
+        model.markTrashEmptied()
+        #expect(model.history.first?.disposal == .delete)
+        #expect(model.history.first?.trashEmptiedDate == nil)
+
+        // The stamps persist.
+        for _ in 0..<10_000 where historyStore.load().count < 2 {
+            await Task.yield()
+        }
+        #expect(historyStore.load().last?.trashEmptiedDate == emptied)
+    }
+
     @Test("Clearing history empties memory and the persistent store")
     func clearHistory() async {
         let store = TemporaryDefaults()

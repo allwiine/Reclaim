@@ -335,8 +335,11 @@ struct DoneView: View {
             isEmptyingTrash = false
             withAnimation(Theme.quick) {
                 switch outcome {
-                case .emptied: trashState = .emptied
-                case .failed(let message): trashState = .failed(message)
+                case .emptied:
+                    trashState = .emptied
+                    model.markTrashEmptied()
+                case .failed(let message):
+                    trashState = .failed(message)
                 }
             }
         }
