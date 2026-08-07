@@ -27,6 +27,11 @@ struct ReclaimApp: App {
         // keep running when the main window is closed and only the menu
         // bar extra remains.
         Task { await BackgroundActivity.run(model: model) }
+        #if canImport(Sparkle)
+        // Start Sparkle at launch so scheduled checks run even if the
+        // user never opens the menu.
+        _ = UpdaterModel.shared
+        #endif
     }
 
     var body: some Scene {
@@ -74,6 +79,15 @@ struct ReclaimApp: App {
             }
             .keyboardShortcut("r", modifiers: .command)
         }
+
+        #if canImport(Sparkle)
+        // Static like the group above: no observable reads in menu builders.
+        CommandGroup(after: .appInfo) {
+            Button(localized("menu.checkForUpdates", defaultValue: "Check for Updates…")) {
+                UpdaterModel.shared.checkForUpdates()
+            }
+        }
+        #endif
     }
 }
 

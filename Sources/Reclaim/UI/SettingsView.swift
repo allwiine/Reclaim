@@ -10,6 +10,9 @@
 import AppKit
 import ReclaimAppCore
 import ReclaimKit
+#if canImport(Sparkle)
+import Sparkle
+#endif
 import SwiftUI
 import UserNotifications
 
@@ -25,6 +28,25 @@ struct SettingsView: View {
 
         ScrollView {
             VStack(alignment: .leading, spacing: 26) {
+                #if canImport(Sparkle)
+                section(localized("settings.sectionUpdates", defaultValue: "Updates")) {
+                    SettingRow(
+                        localized(
+                            "settings.autoUpdateCheck",
+                            defaultValue: "Check for updates automatically"
+                        ),
+                        help: localized(
+                            "settings.autoUpdateCheckHelp",
+                            defaultValue: "Reclaim checks for new versions in the background and offers them when they are ready."
+                        ),
+                        isOn: Binding(
+                            get: { UpdaterModel.shared.updater.automaticallyChecksForUpdates },
+                            set: { UpdaterModel.shared.updater.automaticallyChecksForUpdates = $0 }
+                        )
+                    )
+                }
+                #endif
+
                 if LoginItemService.isAvailable {
                     section(localized("settings.sectionGeneral", defaultValue: "General")) {
                         launchAtLoginRow

@@ -234,6 +234,11 @@
 "history.detail.stillClean" = "fortsatt ryddet";
 "history.detail.regrowthFootnote" = "Cacher bygges opp igjen mens du jobber. Prosenten er dagens størrelse målt mot det denne ryddingen fjernet.";
 
+/* Innstillinger — Oppdateringer */
+"settings.sectionUpdates" = "Oppdateringer";
+"settings.autoUpdateCheck" = "Se etter oppdateringer automatisk";
+"settings.autoUpdateCheckHelp" = "Reclaim ser etter nye versjoner i bakgrunnen og tilbyr dem når de er klare.";
+
 /* Innstillinger */
 "settings.sectionGeneral" = "Generelt";
 "settings.launchAtLogin" = "Åpne Reclaim ved pålogging";
@@ -281,6 +286,7 @@
 "menu.scanNow" = "Skann nå";
 "menu.reviewInReclaim" = "Se gjennom i Reclaim …";
 "menu.quit" = "Avslutt Reclaim";
+"menu.checkForUpdates" = "Se etter oppdateringer …";
 
 /* Varsler */
 "notification.title" = "Reclaim fant %@";
