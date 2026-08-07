@@ -76,12 +76,14 @@ jobs:
           rm "$RUNNER_TEMP/cert.p12"
 
       - name: Archive and export
+        env:
+          BUILD_VERSION: ${{ steps.version.outputs.build_version }}
         run: |
           xcodegen
           xcodebuild -project Reclaim.xcodeproj -scheme Reclaim -configuration Release \
             archive -archivePath "$RUNNER_TEMP/Reclaim.xcarchive" \
-            MARKETING_VERSION="${{ steps.version.outputs.build_version }}" \
-            CURRENT_PROJECT_VERSION="${{ steps.version.outputs.build_version }}" \
+            MARKETING_VERSION="$BUILD_VERSION" \
+            CURRENT_PROJECT_VERSION="$BUILD_VERSION" \
             CODE_SIGN_STYLE=Manual \
             CODE_SIGN_IDENTITY="Developer ID Application" \
             DEVELOPMENT_TEAM=TCLGG8K74Z
