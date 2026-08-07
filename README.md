@@ -1,6 +1,8 @@
 # Reclaim
 
 [![CI](https://github.com/allwiine/Reclaim/actions/workflows/ci.yml/badge.svg)](https://github.com/allwiine/Reclaim/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Platform: macOS 15+](https://img.shields.io/badge/platform-macOS%2015%2B-lightgrey.svg)](#requirements)
 
 A native macOS app for finding and cleaning wasted developer storage — with a focus on the space quietly retained by **Xcode**, **Android Studio**, **Claude Code** and similar tools.
 
@@ -38,7 +40,7 @@ Items Reclaim should *not* delete itself (Docker's VM disk, Go's read-only modul
 The project is a Swift package that Xcode opens directly:
 
 ```bash
-git clone <this repo>
+git clone https://github.com/allwiine/Reclaim.git
 cd Reclaim
 open Package.swift        # then select the "Reclaim" scheme and Run
 # or, without Xcode's UI:
@@ -115,6 +117,20 @@ docs/ARCHITECTURE.md        Design and concurrency documentation
 ```
 
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full design rationale.
+
+## Contributing
+
+Contributions are welcome — new cleanup targets especially (one struct plus
+two localized strings). Start with [CONTRIBUTING.md](CONTRIBUTING.md), or
+[propose a target](https://github.com/allwiine/Reclaim/issues/new?template=new_target.yml)
+without writing any code. This project follows the
+[Contributor Covenant](CODE_OF_CONDUCT.md).
+
+## Security
+
+Please report vulnerabilities privately — see [SECURITY.md](SECURITY.md).
+Anything that could make Reclaim touch data outside the confirmed selection
+counts, even if it isn't a classic vulnerability.
 
 ## License
 
