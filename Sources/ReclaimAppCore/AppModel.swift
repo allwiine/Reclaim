@@ -309,6 +309,13 @@ public final class AppModel {
         return all.filter { status(of: $0.id) != .notInstalled }
     }
 
+    /// Every visible target across all categories, in registry order —
+    /// what the "Review everything" browser lists.
+    public var allVisibleTargets: [CleanupTarget] {
+        guard lastScan != nil, !showNotInstalled else { return targets }
+        return targets.filter { status(of: $0.id) != .notInstalled }
+    }
+
     /// Everything measured, including manual-only items like Docker.
     public var totalFoundBytes: Int64 {
         targets.reduce(0) { $0 + (status(of: $1.id).bytes ?? 0) }

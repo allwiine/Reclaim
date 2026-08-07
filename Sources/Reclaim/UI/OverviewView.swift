@@ -19,6 +19,8 @@ struct OverviewView: View {
     let openCategory: (ToolCategory) -> Void
     /// Jumps to a specific target's row in its category browser.
     let openTarget: (CleanupTarget) -> Void
+    /// Opens the cross-category "all findings" browser.
+    let reviewEverything: () -> Void
     /// Selects everything safe and opens the confirmation.
     let reclaimSafe: () -> Void
 
@@ -160,7 +162,7 @@ struct OverviewView: View {
                         .buttonStyle(.rcPrimary)
                     }
                     Button(localized("overview.reviewEverythingButton", defaultValue: "Review everything")) {
-                        openCategory(largestCategory)
+                        reviewEverything()
                     }
                     .buttonStyle(.rcSecondary)
                 }
@@ -201,10 +203,6 @@ struct OverviewView: View {
                 color: $0.category.color
             )
         }
-    }
-
-    private var largestCategory: ToolCategory {
-        model.categoryTotals().max { $0.bytes < $1.bytes }?.category ?? .xcode
     }
 
     private func breakdownRow(color: Color, title: String, subtitle: String) -> some View {
@@ -661,7 +659,7 @@ struct FullDiskAccessBanner: View {
 
 #if DEBUG
 #Preview(traits: .fixedLayout(width: 1060, height: 900)) {
-    OverviewView(openCategory: { _ in }, openTarget: { _ in }, reclaimSafe: {})
+    OverviewView(openCategory: { _ in }, openTarget: { _ in }, reviewEverything: {}, reclaimSafe: {})
         .background(Theme.background)
         .environment(PreviewData.scanned())
         .preferredColorScheme(.dark)

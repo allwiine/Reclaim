@@ -13,10 +13,12 @@ import ReclaimAppCore
 import ReclaimKit
 import SwiftUI
 
-/// Sidebar destinations.
+/// Content destinations (the sidebar routes to all but `allFindings`,
+/// which only the overview's "Review everything" button reaches).
 enum Destination: Hashable {
     case overview
     case category(ToolCategory)
+    case allFindings
     case history
     case settings
 }
@@ -106,6 +108,7 @@ struct RootView: View {
                 switch String(raw) {
                 case "history": destination = .history
                 case "settings": destination = .settings
+                case "all": destination = .allFindings
                 default:
                     if let category = ToolCategory(rawValue: String(raw)) {
                         destination = .category(category)
@@ -171,7 +174,7 @@ struct RootView: View {
         switch destination {
         case .history: return .history
         case .settings: return .settings
-        case .overview, .category:
+        case .overview, .category, .allFindings:
             if model.isCleaning { return .cleaning }
             if isShowingDone, model.lastCleanSummary != nil { return .done }
             if model.isScanning { return .scanning }
@@ -180,6 +183,7 @@ struct RootView: View {
             // overview needs measurements and shows the hero instead.
             if !searchText.isEmpty { return .browser }
             if case .category = destination { return .browser }
+            if destination == .allFindings { return .browser }
             if model.lastScan == nil { return .idle }
             return .overview
         }
@@ -216,6 +220,10 @@ struct RootView: View {
                     inspectedTargetID = target.id
                     destination = .category(target.category)
                 },
+                reviewEverything: {
+                    inspectedTargetID = nil
+                    destination = .allFindings
+                },
                 reclaimSafe: {
                     model.selectAllSafe()
                     isConfirmingClean = true
@@ -237,6 +245,7 @@ struct RootView: View {
     private var browserMode: BrowserView.Mode {
         if !searchText.isEmpty { return .search(searchText) }
         if case .category(let category) = destination { return .category(category) }
+        if destination == .allFindings { return .all }
         return .search("")
     }
 }

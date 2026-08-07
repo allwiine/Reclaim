@@ -142,6 +142,9 @@ struct ToolbarView: View {
     private var browserTitle: String {
         if !searchText.isEmpty { return localized("title.search", defaultValue: "Search") }
         if case .category(let category) = destination { return category.title }
+        if destination == .allFindings {
+            return localized("title.allFindings", defaultValue: "All findings")
+        }
         return localized("title.results", defaultValue: "Results")
     }
 
@@ -159,8 +162,12 @@ struct ToolbarView: View {
             )
         case .browser:
             if !searchText.isEmpty { return "" }
-            guard case .category(let category) = destination else { return "" }
-            let targets = model.visibleTargets(in: category)
+            let targets: [CleanupTarget]
+            switch destination {
+            case .category(let category): targets = model.visibleTargets(in: category)
+            case .allFindings: targets = model.allVisibleTargets
+            default: return ""
+            }
             // Before the first scan there is no size to report — a
             // formatted zero would read as a (wrong) measurement.
             guard model.lastScan != nil else {

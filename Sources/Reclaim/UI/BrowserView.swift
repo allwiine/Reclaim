@@ -14,6 +14,8 @@ import SwiftUI
 struct BrowserView: View {
     enum Mode: Equatable {
         case category(ToolCategory)
+        /// Every visible target across categories ("Review everything").
+        case all
         case search(String)
     }
 
@@ -66,6 +68,8 @@ struct BrowserView: View {
         switch mode {
         case .category(let category):
             return model.visibleTargets(in: category)
+        case .all:
+            return model.allVisibleTargets
         case .search(let query):
             let trimmed = query.trimmingCharacters(in: .whitespaces)
             guard !trimmed.isEmpty else { return [] }
@@ -190,7 +194,7 @@ struct BrowserView: View {
                 "browser.emptySearchDetail",
                 defaultValue: "No catalogue entry matches that search — try a tool name or a path fragment."
             )
-        case .category:
+        case .category, .all:
             localized(
                 "browser.emptyCategoryDetail",
                 defaultValue: "None of these tools were found on this Mac. Enable “Show tools that are not installed” in Settings to list them anyway."
