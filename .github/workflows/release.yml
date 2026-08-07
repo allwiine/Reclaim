@@ -81,6 +81,7 @@ jobs:
         run: |
           xcodegen
           xcodebuild -project Reclaim.xcodeproj -scheme Reclaim -configuration Release \
+            -destination "generic/platform=macOS" \
             archive -archivePath "$RUNNER_TEMP/Reclaim.xcarchive" \
             MARKETING_VERSION="$BUILD_VERSION" \
             CURRENT_PROJECT_VERSION="$BUILD_VERSION" \
