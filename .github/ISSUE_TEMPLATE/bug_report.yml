@@ -1,0 +1,66 @@
+name: Bug report
+description: Something misbehaved — a wrong size, a failed clean, a crash.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report! Reclaim never deletes outside the confirmed
+        selection — if you believe it did, or any user data was touched,
+        please use the security form instead (Security tab).
+  - type: input
+    id: app-version
+    attributes:
+      label: Reclaim version
+      description: Reclaim → About Reclaim, or the release you downloaded.
+      placeholder: "1.0.0"
+    validations:
+      required: true
+  - type: input
+    id: macos-version
+    attributes:
+      label: macOS version
+      placeholder: "15.5 / 26.0"
+    validations:
+      required: true
+  - type: dropdown
+    id: install-method
+    attributes:
+      label: How did you install Reclaim?
+      options:
+        - Downloaded release (DMG)
+        - Built from source
+    validations:
+      required: true
+  - type: dropdown
+    id: fda
+    attributes:
+      label: Is Full Disk Access granted?
+      description: System Settings → Privacy & Security → Full Disk Access.
+      options:
+        - "Yes"
+        - "No"
+        - Not sure
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Scan
+        2. Select "Xcode derived data"
+        3. …
+    validations:
+      required: true
+  - type: textarea
+    id: expected-actual
+    attributes:
+      label: Expected vs. actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else?
+      description: Screenshots, Console.app messages, partial-scan banners…

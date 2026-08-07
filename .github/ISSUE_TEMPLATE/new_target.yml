@@ -1,0 +1,48 @@
+name: Propose a new cleanup target
+description: A tool hoarding disk space that Reclaim should know about.
+labels: [new-target]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The best kind of contribution! If you'd rather send a PR: it's one
+        struct in `TargetRegistry.swift` plus two localized strings — see
+        CONTRIBUTING.md.
+  - type: input
+    id: tool
+    attributes:
+      label: Which tool owns the data?
+      placeholder: "e.g. Unity, Bazel, Zig"
+    validations:
+      required: true
+  - type: textarea
+    id: paths
+    attributes:
+      label: Where does the data live?
+      description: Absolute paths or ~/ paths, one per line. Globs welcome.
+      placeholder: "~/Library/Caches/SomeTool"
+    validations:
+      required: true
+  - type: textarea
+    id: regeneration
+    attributes:
+      label: What happens after deleting it?
+      description: Is it re-downloaded / rebuilt automatically? What does it cost to get back?
+    validations:
+      required: true
+  - type: dropdown
+    id: safety
+    attributes:
+      label: Proposed safety level
+      options:
+        - Safe (regenerated automatically)
+        - Caution (restorable, but costs time/bandwidth/history)
+        - Destructive (removes things the user created)
+        - Not sure
+    validations:
+      required: true
+  - type: input
+    id: related-app
+    attributes:
+      label: Related running app, if any
+      description: An app that actively uses this data while running (bundle ID if you know it).
