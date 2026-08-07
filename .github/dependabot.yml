@@ -1,0 +1,8 @@
+# Keep GitHub Actions current. The Swift package has zero external
+# dependencies today — add a `swift` ecosystem entry when the first one lands.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
