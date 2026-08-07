@@ -231,6 +231,11 @@
 "history.detail.stillClean" = "still clean";
 "history.detail.regrowthFootnote" = "Caches rebuild as you work. The percentage is today's size measured against what this clean removed.";
 
+/* Settings — Updates */
+"settings.sectionUpdates" = "Updates";
+"settings.autoUpdateCheck" = "Check for updates automatically";
+"settings.autoUpdateCheckHelp" = "Reclaim checks for new versions in the background and offers them when they are ready.";
+
 /* Settings */
 "settings.sectionGeneral" = "General";
 "settings.launchAtLogin" = "Open Reclaim at login";
@@ -278,6 +283,7 @@
 "menu.scanNow" = "Scan Now";
 "menu.reviewInReclaim" = "Review in Reclaim…";
 "menu.quit" = "Quit Reclaim";
+"menu.checkForUpdates" = "Check for Updates…";
 
 /* Notifications */
 "notification.title" = "Reclaim found %@";
