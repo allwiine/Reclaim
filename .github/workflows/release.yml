@@ -10,11 +10,9 @@ on:
   push:
     tags: ["v*"]
   workflow_dispatch:
-    inputs:
-      dry_run:
-        description: Build, sign and notarize but do not publish
-        type: boolean
-        default: true
+    # Dispatch runs are always rehearsals and never publish, regardless of
+    # any input parameters (a dispatch has no tag, so it would publish a
+    # bogus v0.0.0).
 
 permissions:
   contents: write
@@ -91,11 +89,16 @@ jobs:
             -archivePath "$RUNNER_TEMP/Reclaim.xcarchive" \
             -exportOptionsPlist .github/ExportOptions.plist \
             -exportPath "$RUNNER_TEMP/export"
+          codesign --verify --strict --verbose=2 "$RUNNER_TEMP/export/Reclaim.app"
+          codesign -d --verbose=2 "$RUNNER_TEMP/export/Reclaim.app" 2>&1 | grep -q "flags=.*runtime" \
+            || { echo "::error::Hardened runtime missing on exported app"; exit 1; }
 
       - name: Package DMG
         id: dmg
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
         run: |
-          DMG="Reclaim-${{ steps.version.outputs.version }}.dmg"
+          DMG="Reclaim-$VERSION.dmg"
           create-dmg \
             --volname "Reclaim" \
             --window-size 540 380 \
@@ -112,59 +115,83 @@ jobs:
           ASC_KEY_P8: ${{ secrets.ASC_API_KEY_P8 }}
           ASC_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.ASC_API_ISSUER_ID }}
+          DMG: ${{ steps.dmg.outputs.dmg }}
         run: |
           printf '%s' "$ASC_KEY_P8" > "$RUNNER_TEMP/AuthKey.p8"
-          RESULT="$(xcrun notarytool submit "${{ steps.dmg.outputs.dmg }}" \
+          set +e
+          RESULT="$(xcrun notarytool submit "$DMG" \
             --key "$RUNNER_TEMP/AuthKey.p8" --key-id "$ASC_KEY_ID" --issuer "$ASC_ISSUER_ID" \
             --wait --timeout 30m --output-format json)"
+          SUBMIT_EXIT=$?
+          set -e
           echo "$RESULT"
-          STATUS="$(echo "$RESULT" | jq -r .status)"
-          SUBMISSION_ID="$(echo "$RESULT" | jq -r .id)"
-          if [ "$STATUS" != "Accepted" ]; then
-            echo "::error::Notarization $STATUS — full log follows"
-            xcrun notarytool log "$SUBMISSION_ID" \
-              --key "$RUNNER_TEMP/AuthKey.p8" --key-id "$ASC_KEY_ID" --issuer "$ASC_ISSUER_ID"
+          STATUS="$(echo "$RESULT" | jq -r '.status // empty')"
+          SUBMISSION_ID="$(echo "$RESULT" | jq -r '.id // empty')"
+          if [ "$SUBMIT_EXIT" -ne 0 ] || [ "$STATUS" != "Accepted" ]; then
+            echo "::error::Notarization failed (exit $SUBMIT_EXIT, status ${STATUS:-unknown}) — full log follows"
+            if [ -n "$SUBMISSION_ID" ]; then
+              xcrun notarytool log "$SUBMISSION_ID" \
+                --key "$RUNNER_TEMP/AuthKey.p8" --key-id "$ASC_KEY_ID" --issuer "$ASC_ISSUER_ID" || true
+            fi
+            rm -f "$RUNNER_TEMP/AuthKey.p8"
             exit 1
           fi
-          xcrun stapler staple "${{ steps.dmg.outputs.dmg }}"
+          rm -f "$RUNNER_TEMP/AuthKey.p8"
+          xcrun stapler staple "$DMG"
 
       - name: Generate appcast
         env:
           SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
+          TAG: ${{ steps.version.outputs.tag }}
+          DMG: ${{ steps.dmg.outputs.dmg }}
         run: |
           curl -fsSL -o "$RUNNER_TEMP/Sparkle.tar.xz" \
             https://github.com/sparkle-project/Sparkle/releases/download/2.9.5/Sparkle-2.9.5.tar.xz
           mkdir -p "$RUNNER_TEMP/sparkle" && tar -xf "$RUNNER_TEMP/Sparkle.tar.xz" -C "$RUNNER_TEMP/sparkle"
           printf '%s' "$SPARKLE_PRIVATE_KEY" > "$RUNNER_TEMP/sparkle_key"
           mkdir -p "$RUNNER_TEMP/appcast"
-          cp "${{ steps.dmg.outputs.dmg }}" "$RUNNER_TEMP/appcast/"
+          cp "$DMG" "$RUNNER_TEMP/appcast/"
           "$RUNNER_TEMP/sparkle/bin/generate_appcast" \
             --ed-key-file "$RUNNER_TEMP/sparkle_key" \
-            --download-url-prefix "https://github.com/allwiine/Reclaim/releases/download/${{ steps.version.outputs.tag }}/" \
+            --download-url-prefix "https://github.com/allwiine/Reclaim/releases/download/$TAG/" \
             --link "https://github.com/allwiine/Reclaim/releases" \
-            --full-release-notes-url "https://github.com/allwiine/Reclaim/releases/tag/${{ steps.version.outputs.tag }}" \
+            --full-release-notes-url "https://github.com/allwiine/Reclaim/releases/tag/$TAG" \
             -o "$RUNNER_TEMP/appcast/appcast.xml" \
             "$RUNNER_TEMP/appcast"
           rm "$RUNNER_TEMP/sparkle_key"
           cat "$RUNNER_TEMP/appcast/appcast.xml"
 
+      - name: Upload rehearsal artifacts
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: rehearsal-dmg-and-appcast
+          path: |
+            Reclaim-*.dmg
+            ${{ runner.temp }}/appcast/appcast.xml
+
       - name: Publish release
         # Only real tag pushes publish — workflow_dispatch is always a
-        # rehearsal regardless of the dry_run input (a dispatch has no
-        # tag, so it would publish a bogus v0.0.0).
+        # rehearsal and never publishes.
         if: github.event_name == 'push'
         env:
           GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.version.outputs.tag }}
+          VERSION: ${{ steps.version.outputs.version }}
+          PRERELEASE: ${{ steps.version.outputs.prerelease }}
+          DMG: ${{ steps.dmg.outputs.dmg }}
         run: |
           EXTRA=""
-          if [ "${{ steps.version.outputs.prerelease }}" = "true" ]; then
+          if [ "$PRERELEASE" = "true" ]; then
             EXTRA="--prerelease"
           fi
-          gh release create "${{ steps.version.outputs.tag }}" \
-            --title "Reclaim ${{ steps.version.outputs.version }}" \
+          gh release create "$TAG" \
+            --draft \
+            --title "Reclaim $VERSION" \
             --generate-notes $EXTRA \
-            "${{ steps.dmg.outputs.dmg }}" \
+            "$DMG" \
             "$RUNNER_TEMP/appcast/appcast.xml"
+          gh release edit "$TAG" --draft=false
 
       - name: Remove signing keychain
         if: always()
@@ -173,3 +200,4 @@ jobs:
             security list-keychains -d user -s login.keychain-db
             security delete-keychain "$KEYCHAIN"
           fi
+          rm -f "$RUNNER_TEMP/AuthKey.p8" "$RUNNER_TEMP/cert.p12" "$RUNNER_TEMP/sparkle_key"
