@@ -64,6 +64,7 @@
 "title.finished" = "Ferdig";
 "title.search" = "Søk";
 "title.results" = "Resultater";
+"title.allFindings" = "Alle funn";
 
 /* Startskjerm */
 "idle.versionBadge" = "Reclaim %@";

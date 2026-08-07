@@ -513,6 +513,31 @@ struct AppModelTests {
         await model.scanTask?.value
     }
 
+    @Test("All-findings visibility spans categories and honors the hide rule")
+    func allVisibleTargets() async {
+        let store = TemporaryDefaults()
+        let found = target("found")
+        let missing = target("missing")
+        let model = AppModel(
+            targets: [found, missing],
+            defaults: store.defaults,
+            scanExecutor: { t in t.id == "found" ? measured(100) : .notInstalled },
+            historyStore: temporaryHistoryStore()
+        )
+
+        #expect(model.allVisibleTargets.map(\.id) == ["found", "missing"],
+                "everything is listed before a scan")
+
+        model.scanAll()
+        await model.scanTask?.value
+        #expect(model.allVisibleTargets.map(\.id) == ["found"],
+                "not-installed targets hide after a scan by default")
+
+        model.showNotInstalled = true
+        #expect(model.allVisibleTargets.map(\.id) == ["found", "missing"],
+                "the setting brings them back")
+    }
+
     @Test("The background scan defers while a confirmation is open")
     func backgroundScanDefersWhileReviewing() async {
         let store = TemporaryDefaults()
