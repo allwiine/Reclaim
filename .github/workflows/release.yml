@@ -1,0 +1,175 @@
+# Tag-triggered release: sign (Developer ID), notarize, package a DMG,
+# generate the Sparkle appcast, publish a GitHub release. A hyphenated
+# tag (v1.0.0-rc.1) publishes as a prerelease, which the stable
+# releases/latest/download/appcast.xml URL ignores — safe end-to-end
+# rehearsal. workflow_dispatch runs everything except publishing.
+
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Build, sign and notarize but do not publish
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Build, notarize & publish
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select newest Xcode
+        run: sudo xcode-select -s "$(ls -d /Applications/Xcode*.app | sort -V | tail -1)/Contents/Developer"
+
+      - name: Test
+        run: swift test
+
+      - name: Install tools
+        run: brew install xcodegen create-dmg
+
+      - name: Derive version from tag
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            TAG="${GITHUB_REF_NAME}"
+          else
+            TAG="v0.0.0"
+          fi
+          VERSION="${TAG#v}"
+          BUILD_VERSION="${VERSION%%-*}"
+          {
+            echo "tag=$TAG"
+            echo "version=$VERSION"
+            echo "build_version=$BUILD_VERSION"
+            case "$VERSION" in
+              *-*) echo "prerelease=true" ;;
+              *)   echo "prerelease=false" ;;
+            esac
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Import signing certificate
+        env:
+          CERT_P12: ${{ secrets.DEVELOPER_ID_CERT_P12 }}
+          CERT_PASSWORD: ${{ secrets.DEVELOPER_ID_CERT_PASSWORD }}
+        run: |
+          KEYCHAIN="$RUNNER_TEMP/release.keychain-db"
+          KEYCHAIN_PW="$(uuidgen)"
+          echo "KEYCHAIN=$KEYCHAIN" >> "$GITHUB_ENV"
+          security create-keychain -p "$KEYCHAIN_PW" "$KEYCHAIN"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN"
+          security unlock-keychain -p "$KEYCHAIN_PW" "$KEYCHAIN"
+          printf '%s' "$CERT_P12" | base64 --decode -o "$RUNNER_TEMP/cert.p12"
+          security import "$RUNNER_TEMP/cert.p12" -P "$CERT_PASSWORD" \
+            -A -t cert -f pkcs12 -k "$KEYCHAIN"
+          security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PW" "$KEYCHAIN" > /dev/null
+          security list-keychains -d user -s "$KEYCHAIN" login.keychain-db
+          rm "$RUNNER_TEMP/cert.p12"
+
+      - name: Archive and export
+        run: |
+          xcodegen
+          xcodebuild -project Reclaim.xcodeproj -scheme Reclaim -configuration Release \
+            archive -archivePath "$RUNNER_TEMP/Reclaim.xcarchive" \
+            MARKETING_VERSION="${{ steps.version.outputs.build_version }}" \
+            CURRENT_PROJECT_VERSION="${{ steps.version.outputs.build_version }}" \
+            CODE_SIGN_STYLE=Manual \
+            CODE_SIGN_IDENTITY="Developer ID Application" \
+            DEVELOPMENT_TEAM=TCLGG8K74Z
+          xcodebuild -exportArchive \
+            -archivePath "$RUNNER_TEMP/Reclaim.xcarchive" \
+            -exportOptionsPlist .github/ExportOptions.plist \
+            -exportPath "$RUNNER_TEMP/export"
+
+      - name: Package DMG
+        id: dmg
+        run: |
+          DMG="Reclaim-${{ steps.version.outputs.version }}.dmg"
+          create-dmg \
+            --volname "Reclaim" \
+            --window-size 540 380 \
+            --icon-size 128 \
+            --icon "Reclaim.app" 140 180 \
+            --app-drop-link 400 180 \
+            --hide-extension "Reclaim.app" \
+            "$DMG" "$RUNNER_TEMP/export/Reclaim.app"
+          codesign --force --sign "Developer ID Application" --timestamp "$DMG"
+          echo "dmg=$DMG" >> "$GITHUB_OUTPUT"
+
+      - name: Notarize and staple
+        env:
+          ASC_KEY_P8: ${{ secrets.ASC_API_KEY_P8 }}
+          ASC_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_API_ISSUER_ID }}
+        run: |
+          printf '%s' "$ASC_KEY_P8" > "$RUNNER_TEMP/AuthKey.p8"
+          RESULT="$(xcrun notarytool submit "${{ steps.dmg.outputs.dmg }}" \
+            --key "$RUNNER_TEMP/AuthKey.p8" --key-id "$ASC_KEY_ID" --issuer "$ASC_ISSUER_ID" \
+            --wait --timeout 30m --output-format json)"
+          echo "$RESULT"
+          STATUS="$(echo "$RESULT" | jq -r .status)"
+          SUBMISSION_ID="$(echo "$RESULT" | jq -r .id)"
+          if [ "$STATUS" != "Accepted" ]; then
+            echo "::error::Notarization $STATUS — full log follows"
+            xcrun notarytool log "$SUBMISSION_ID" \
+              --key "$RUNNER_TEMP/AuthKey.p8" --key-id "$ASC_KEY_ID" --issuer "$ASC_ISSUER_ID"
+            exit 1
+          fi
+          xcrun stapler staple "${{ steps.dmg.outputs.dmg }}"
+
+      - name: Generate appcast
+        env:
+          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
+        run: |
+          curl -fsSL -o "$RUNNER_TEMP/Sparkle.tar.xz" \
+            https://github.com/sparkle-project/Sparkle/releases/download/2.9.5/Sparkle-2.9.5.tar.xz
+          mkdir -p "$RUNNER_TEMP/sparkle" && tar -xf "$RUNNER_TEMP/Sparkle.tar.xz" -C "$RUNNER_TEMP/sparkle"
+          printf '%s' "$SPARKLE_PRIVATE_KEY" > "$RUNNER_TEMP/sparkle_key"
+          mkdir -p "$RUNNER_TEMP/appcast"
+          cp "${{ steps.dmg.outputs.dmg }}" "$RUNNER_TEMP/appcast/"
+          "$RUNNER_TEMP/sparkle/bin/generate_appcast" \
+            --ed-key-file "$RUNNER_TEMP/sparkle_key" \
+            --download-url-prefix "https://github.com/allwiine/Reclaim/releases/download/${{ steps.version.outputs.tag }}/" \
+            --link "https://github.com/allwiine/Reclaim/releases" \
+            --full-release-notes-url "https://github.com/allwiine/Reclaim/releases/tag/${{ steps.version.outputs.tag }}" \
+            -o "$RUNNER_TEMP/appcast/appcast.xml" \
+            "$RUNNER_TEMP/appcast"
+          rm "$RUNNER_TEMP/sparkle_key"
+          cat "$RUNNER_TEMP/appcast/appcast.xml"
+
+      - name: Publish release
+        # Only real tag pushes publish — workflow_dispatch is always a
+        # rehearsal regardless of the dry_run input (a dispatch has no
+        # tag, so it would publish a bogus v0.0.0).
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          EXTRA=""
+          if [ "${{ steps.version.outputs.prerelease }}" = "true" ]; then
+            EXTRA="--prerelease"
+          fi
+          gh release create "${{ steps.version.outputs.tag }}" \
+            --title "Reclaim ${{ steps.version.outputs.version }}" \
+            --generate-notes $EXTRA \
+            "${{ steps.dmg.outputs.dmg }}" \
+            "$RUNNER_TEMP/appcast/appcast.xml"
+
+      - name: Remove signing keychain
+        if: always()
+        run: |
+          if [ -n "$KEYCHAIN" ] && [ -f "$KEYCHAIN" ]; then
+            security list-keychains -d user -s login.keychain-db
+            security delete-keychain "$KEYCHAIN"
+          fi
