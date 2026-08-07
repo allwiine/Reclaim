@@ -15,6 +15,9 @@ options:
 packages:
   ReclaimPackage:
     path: .
+  Sparkle:
+    url: https://github.com/sparkle-project/Sparkle
+    exactVersion: 2.9.5
 
 targets:
   Reclaim:
@@ -30,6 +33,7 @@ targets:
         product: ReclaimKit
       - package: ReclaimPackage
         product: ReclaimAppCore
+      - package: Sparkle
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.allwiine.reclaim
@@ -70,3 +74,5 @@ targets:
         # MARKETING_VERSION and the visible version drift apart.
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        SUFeedURL: https://github.com/allwiine/Reclaim/releases/latest/download/appcast.xml
+        SUPublicEDKey: 5WAdI3mZE11Y5lRz/5JzCuUGUAVnRSFWYc34Fw+cggw=
