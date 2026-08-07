@@ -18,6 +18,38 @@
 			<string>%lld items</string>
 		</dict>
 	</dict>
+	<key>format.itemsOf</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%1$lld of %2$#@items@</string>
+		<key>items</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>one</key>
+			<string>%lld item</string>
+			<key>other</key>
+			<string>%lld items</string>
+		</dict>
+	</dict>
+	<key>inspector.showAllContents</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>Show all %#@items@</string>
+		<key>items</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>one</key>
+			<string>%lld item</string>
+			<key>other</key>
+			<string>%lld items</string>
+		</dict>
+	</dict>
 	<key>count.locations</key>
 	<dict>
 		<key>NSStringLocalizedFormatKey</key>

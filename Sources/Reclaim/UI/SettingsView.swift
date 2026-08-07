@@ -97,7 +97,18 @@ struct SettingsView: View {
                             "settings.showNotInstalledHelp",
                             defaultValue: "Keep catalogue entries visible even when the tool was not found on this Mac."
                         ),
-                        isOn: $model.showNotInstalled,
+                        isOn: $model.showNotInstalled
+                    )
+                    SettingRow(
+                        localized(
+                            "settings.showEmpty",
+                            defaultValue: "Show empty locations"
+                        ),
+                        help: localized(
+                            "settings.showEmptyHelp",
+                            defaultValue: "Keep locations listed even when the last scan measured nothing in them."
+                        ),
+                        isOn: $model.showEmpty,
                         isLast: true
                     )
                 }

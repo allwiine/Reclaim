@@ -513,29 +513,46 @@ struct AppModelTests {
         await model.scanTask?.value
     }
 
-    @Test("All-findings visibility spans categories and honors the hide rule")
+    @Test("All-findings visibility spans categories and honors the hide rules")
     func allVisibleTargets() async {
         let store = TemporaryDefaults()
         let found = target("found")
         let missing = target("missing")
+        let empty = target("empty")
+        let lowerBound = target("lower")
         let model = AppModel(
-            targets: [found, missing],
+            targets: [found, missing, empty, lowerBound],
             defaults: store.defaults,
-            scanExecutor: { t in t.id == "found" ? measured(100) : .notInstalled },
+            scanExecutor: { t in
+                switch t.id {
+                case "found": measured(100)
+                case "empty": measured(0)
+                case "lower": .measured(
+                    DiskMeasurement(bytes: 0, fileCount: 0, inaccessibleItems: 3),
+                    resolvedPaths: [URL(filePath: "/fixture")],
+                    cleanupPaths: []
+                )
+                default: .notInstalled
+                }
+            },
             historyStore: temporaryHistoryStore()
         )
 
-        #expect(model.allVisibleTargets.map(\.id) == ["found", "missing"],
+        #expect(model.allVisibleTargets.count == 4,
                 "everything is listed before a scan")
 
         model.scanAll()
         await model.scanTask?.value
-        #expect(model.allVisibleTargets.map(\.id) == ["found"],
-                "not-installed targets hide after a scan by default")
+        #expect(model.allVisibleTargets.map(\.id) == ["found", "lower"],
+                "not-installed and provably empty targets hide by default; a lower-bound zero stays")
 
         model.showNotInstalled = true
-        #expect(model.allVisibleTargets.map(\.id) == ["found", "missing"],
-                "the setting brings them back")
+        #expect(model.allVisibleTargets.map(\.id) == ["found", "missing", "lower"])
+
+        model.showEmpty = true
+        #expect(model.allVisibleTargets.count == 4, "both settings bring everything back")
+        #expect(model.visibleTargets(in: .otherTools).count == 4,
+                "the category list follows the same rules")
     }
 
     @Test("The background scan defers while a confirmation is open")
@@ -602,6 +619,152 @@ struct AppModelTests {
         model.setExcludedFromAutoSelect(excluded, false)
         model.selectAllSafe()
         #expect(model.isSelected(excluded), "revoking the exclusion restores auto-selection")
+    }
+
+    @Test("Cherry-picking paths drives partial selection state")
+    func pathCherryPicking() async {
+        let store = TemporaryDefaults()
+        let cache = target("cache")
+        let cleanupPaths = [URL(filePath: "/fixture/a"), URL(filePath: "/fixture/b")]
+        let model = AppModel(
+            targets: [cache],
+            defaults: store.defaults,
+            scanExecutor: { _ in measured(100, cleanupPaths: cleanupPaths) },
+            breakdownExecutor: { _ in
+                [
+                    BreakdownEntry(id: "/fixture/a", name: "a", bytes: 60),
+                    BreakdownEntry(id: "/fixture/b", name: "b", bytes: 40),
+                ]
+            },
+            historyStore: temporaryHistoryStore()
+        )
+
+        model.scanAll()
+        await model.scanTask?.value
+        #expect(model.isSelected(cache), "safe target arrives fully selected")
+        model.loadBreakdown(for: cache)
+        for _ in 0..<10_000 where model.breakdowns["cache"] == nil {
+            await Task.yield()
+        }
+
+        // Untick one path: full → partial.
+        model.setPathSelected(cache, path: "/fixture/a", false)
+        #expect(model.isSelected(cache))
+        #expect(model.isPartiallySelected(cache))
+        #expect(model.partialSelectionCounts(of: cache)?.selected == 1)
+        #expect(model.partialSelectionCounts(of: cache)?.total == 2)
+        #expect(model.selectedBytes(of: cache) == 40, "subset bytes come from the breakdown")
+        #expect(model.selectedBytes == 40)
+        #expect(model.selectedCleanupPaths(of: cache).map(\.path) == ["/fixture/b"])
+        #expect(!model.isPathSelected(cache, path: "/fixture/a"))
+        #expect(model.isPathSelected(cache, path: "/fixture/b"))
+
+        // Untick the last path: partial → deselected.
+        model.setPathSelected(cache, path: "/fixture/b", false)
+        #expect(!model.isSelected(cache))
+        #expect(!model.isPartiallySelected(cache))
+
+        // Tick one path from nothing: deselected → partial.
+        model.setPathSelected(cache, path: "/fixture/a", true)
+        #expect(model.isPartiallySelected(cache))
+        #expect(model.selectedBytes(of: cache) == 60)
+
+        // Tick the rest: partial folds back into full selection.
+        model.setPathSelected(cache, path: "/fixture/b", true)
+        #expect(model.isSelected(cache))
+        #expect(!model.isPartiallySelected(cache))
+        #expect(model.selectedBytes(of: cache) == 100)
+
+        // The whole-target switch always discards the subset.
+        model.setPathSelected(cache, path: "/fixture/a", false)
+        model.setSelected(cache, true)
+        #expect(!model.isPartiallySelected(cache))
+        #expect(model.selectedBytes(of: cache) == 100)
+    }
+
+    @Test("A partial selection cleans only the ticked paths")
+    func partialSelectionCleansSubset() async {
+        let store = TemporaryDefaults()
+        let cache = target("cache")
+        let cleanupPaths = [URL(filePath: "/fixture/a"), URL(filePath: "/fixture/b")]
+        let cleanedPaths = Mutex<[URL]>([])
+        let scanCount = Mutex(0)
+        let model = AppModel(
+            targets: [cache],
+            defaults: store.defaults,
+            scanExecutor: { _ in
+                let calls = scanCount.withLock { $0 += 1; return $0 }
+                return calls == 1 ? measured(100, cleanupPaths: cleanupPaths) : measured(60)
+            },
+            cleanExecutor: { _, paths, _ in
+                cleanedPaths.withLock { $0 = paths }
+                return CleanOutcome(removedItems: paths.count)
+            },
+            breakdownExecutor: { _ in
+                [
+                    BreakdownEntry(id: "/fixture/a", name: "a", bytes: 60),
+                    BreakdownEntry(id: "/fixture/b", name: "b", bytes: 40),
+                ]
+            },
+            historyStore: temporaryHistoryStore()
+        )
+
+        model.scanAll()
+        await model.scanTask?.value
+        model.loadBreakdown(for: cache)
+        for _ in 0..<10_000 where model.breakdowns["cache"] == nil {
+            await Task.yield()
+        }
+        model.setPathSelected(cache, path: "/fixture/a", false)
+
+        // Dry run projects the subset, not the whole target.
+        model.dryRun = true
+        model.cleanSelected()
+        #expect(model.lastCleanSummary?.reclaimedBytes == 40)
+        #expect(model.lastCleanSummary?.itemsRemoved == 1)
+        #expect(model.isPartiallySelected(cache), "a dry run leaves the picks alone")
+        model.dryRun = false
+
+        model.cleanSelected()
+        await model.cleanTask?.value
+        #expect(cleanedPaths.withLock { $0 }.map(\.path) == ["/fixture/b"],
+                "the engine must receive only the ticked path")
+        #expect(!model.isPartiallySelected(cache), "picks are consumed by the pass")
+        #expect(model.lastCleanSummary?.reclaimedBytes == 40, "freed is measured by the rescan")
+        #expect(
+            model.history.first?.items?.first?.bytesAfter == 60,
+            "the remainder is recorded so it never counts as regrowth"
+        )
+        #expect(model.history.first?.items?.first?.bytesFreed == 40)
+    }
+
+    @Test("cleanSelected(limitedTo:) cleans one target, the rest stays selected")
+    func singleTargetClean() async {
+        let store = TemporaryDefaults()
+        let first = target("first")
+        let second = target("second")
+        let cleanedIDs = Mutex<[String]>([])
+        let model = AppModel(
+            targets: [first, second],
+            defaults: store.defaults,
+            scanExecutor: { _ in measured(100) },
+            cleanExecutor: { t, _, _ in
+                cleanedIDs.withLock { $0.append(t.id) }
+                return CleanOutcome(removedItems: 1)
+            },
+            historyStore: temporaryHistoryStore()
+        )
+
+        model.scanAll()
+        await model.scanTask?.value
+        #expect(model.isSelected(first) && model.isSelected(second))
+
+        model.cleanSelected(limitedTo: [first.id])
+        await model.cleanTask?.value
+
+        #expect(cleanedIDs.withLock { $0 } == ["first"])
+        #expect(!model.isSelected(first), "the cleaned target leaves the selection")
+        #expect(model.isSelected(second), "the rest of the selection stays intact")
     }
 
     @Test("Freed space is only claimed when the rescan can measure it")
@@ -685,6 +848,7 @@ struct AppModelTests {
         let entry = model.history.first
         #expect(entry?.items?.map(\.targetID) == ["cache"])
         #expect(entry?.items?.first?.bytesFreed == 100)
+        #expect(entry?.items?.first?.bytesAfter == 0, "a full clean leaves a zero baseline")
         #expect(entry?.disposal == .trash)
         #expect(entry?.duration != nil)
         #expect(entry?.freeAfterBytes == 400, "free space is measured right after the pass")

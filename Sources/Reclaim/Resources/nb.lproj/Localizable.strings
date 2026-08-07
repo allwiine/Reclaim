@@ -134,9 +134,10 @@
 "browser.noMatches" = "Ingen treff";
 "browser.nothingFound" = "Ingenting funnet";
 "browser.emptySearchDetail" = "Ingen katalogoppføring matcher søket. Prøv et verktøynavn eller en del av en filbane.";
-"browser.emptyCategoryDetail" = "Ingen av disse verktøyene ble funnet på denne Macen. Slå på «Vis verktøy som ikke er installert» i Innstillinger for å vise dem likevel.";
+"browser.emptyCategoryDetail" = "Ingenting her akkurat nå. Verktøyene er enten ikke installert eller har ingenting å rydde. I Innstillinger kan du velge å vise slike oppføringer likevel.";
 "browser.selectAccessibility" = "Velg %@";
 "browser.keepOutOfAutoSelect" = "Hold utenfor automatisk valg";
+"browser.partialNote" = "%1$@ · %2$@";
 
 /* Radstatuser */
 "status.empty" = "Tomt";
@@ -153,6 +154,14 @@
 "inspector.cleansByRunning" = "Ryddes ved å kjøre";
 "inspector.largestContents" = "Største innhold";
 "inspector.measuringContents" = "Måler innhold …";
+"inspector.selectAllContents" = "Velg alle";
+"inspector.deselectAllContents" = "Fjern alle valg";
+"inspector.showTop5" = "Vis bare topp 5";
+"inspector.tickHint" = "Huk av elementer for å rydde bare dem";
+"inspector.tickedNote" = "%1$@ avhuket · %2$@";
+"inspector.cleanJustThis" = "Rydd bare denne · %@";
+"inspector.cleanPartial" = "Rydd %1$@ · %2$@";
+"inspector.nothingTicked" = "Ingenting avhuket her";
 "inspector.excludedNote" = "Holdes utenfor automatisk valg. Huk av manuelt hvis du vil rydde det.";
 
 /* Bekreftelsesdialog */
@@ -162,6 +171,11 @@
 "confirm.bodyTrash" = "Alt som er oppført nedenfor, flyttes til papirkurven. Ingenting fjernes permanent før du tømmer den.";
 "confirm.bodyDelete" = "Alt som er oppført nedenfor, slettes umiddelbart og kan ikke gjenopprettes.";
 "confirm.sizeUnknown" = "ukjent størrelse";
+"confirm.titleSingle" = "Frigjør %1$@ fra %2$@?";
+"confirm.titleSinglePartial" = "Frigjør %1$@ fra %2$@ i %3$@?";
+"confirm.bodySingleTrash" = "Denne ene plasseringen flyttes til papirkurven. Ingenting annet i utvalget ditt røres.";
+"confirm.bodySingleDelete" = "Denne ene plasseringen slettes umiddelbart og kan ikke gjenopprettes.";
+"confirm.bodySinglePartial" = "Bare elementene nedenfor berøres. Resten av %@ blir liggende.";
 "confirm.destructiveWarning" = "Utvalget inneholder elementer merket Destruktivt: ting du har laget, som emulatorer, som ikke kan gjenopprettes.";
 "confirm.cautionWarning" = "Utvalget inneholder elementer merket Forsiktig. De kan gjenopprettes, men ny nedlasting av modeller eller tapt historikk koster noe.";
 "confirm.runningAppsWarning" = "%@ ser ut til å kjøre. Å rydde dataene nå kan ødelegge bygg eller pågående arbeid. Vurder å avslutte først.";
@@ -241,6 +255,8 @@
 "settings.openNotificationSettings" = "Åpne varslingsinnstillinger …";
 "settings.showNotInstalled" = "Vis verktøy som ikke er installert";
 "settings.showNotInstalledHelp" = "Behold katalogoppføringer synlige selv når verktøyet ikke ble funnet på denne Macen.";
+"settings.showEmpty" = "Vis tomme plasseringer";
+"settings.showEmptyHelp" = "Behold plasseringer i listen selv når siste skanning ikke målte noe i dem.";
 "settings.sectionMenuBar" = "Menylinje";
 "settings.menuBarExtra" = "Vis Reclaim i menylinjen";
 "settings.menuBarExtraHelp" = "Et kompakt sammendrag med rask tilgang til skanning og trygg rydding.";

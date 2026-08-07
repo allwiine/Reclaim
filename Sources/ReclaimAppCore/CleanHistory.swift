@@ -20,11 +20,17 @@ public struct CleanedHistoryItem: Sendable, Equatable, Codable {
     public let name: String
     /// Measurably freed space, or `nil` when unknown (command targets).
     public let bytesFreed: Int64?
+    /// The target's measured size right after the pass — the baseline
+    /// "since then" regrowth is judged against. Without it, whatever a
+    /// cherry-picked clean left behind would masquerade as regrowth.
+    /// `nil` when the rescan could not measure (or on older entries).
+    public let bytesAfter: Int64?
 
-    public init(targetID: String, name: String, bytesFreed: Int64?) {
+    public init(targetID: String, name: String, bytesFreed: Int64?, bytesAfter: Int64? = nil) {
         self.targetID = targetID
         self.name = name
         self.bytesFreed = bytesFreed
+        self.bytesAfter = bytesAfter
     }
 }
 

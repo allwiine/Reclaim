@@ -19,12 +19,19 @@ public struct CleanSummary: Equatable, Sendable {
         /// size on a dry run, or `nil` when it cannot be known —
         /// command targets, or a rescan that could not measure.
         public let bytesFreed: Int64?
+        /// The target's measured size right after the pass (what a
+        /// cherry-picked clean left behind), when the rescan could tell.
+        public let bytesAfter: Int64?
 
-        public init(id: String, name: String, category: ToolCategory, bytesFreed: Int64?) {
+        public init(
+            id: String, name: String, category: ToolCategory,
+            bytesFreed: Int64?, bytesAfter: Int64? = nil
+        ) {
             self.id = id
             self.name = name
             self.category = category
             self.bytesFreed = bytesFreed
+            self.bytesAfter = bytesAfter
         }
     }
 
