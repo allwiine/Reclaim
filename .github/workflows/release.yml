@@ -86,7 +86,7 @@ jobs:
             CURRENT_PROJECT_VERSION="$BUILD_VERSION" \
             CODE_SIGN_STYLE=Manual \
             CODE_SIGN_IDENTITY="Developer ID Application" \
-            DEVELOPMENT_TEAM=TCLGG8K74Z
+            DEVELOPMENT_TEAM=U6RN2FGE8Z
           xcodebuild -exportArchive \
             -archivePath "$RUNNER_TEMP/Reclaim.xcarchive" \
             -exportOptionsPlist .github/ExportOptions.plist \
