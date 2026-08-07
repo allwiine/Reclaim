@@ -8,6 +8,8 @@ Reclaim scans a curated catalogue of known cache and scratch locations, shows wh
 
 Built with **Swift 6.2**, **SwiftUI**, the **Observation** framework, strict concurrency, and **Swift Testing**.
 
+![The Reclaim main window after a scan](docs/screenshot.png)
+
 ## What it covers
 
 | Category | Examples |
