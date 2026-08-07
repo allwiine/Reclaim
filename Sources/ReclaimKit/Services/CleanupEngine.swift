@@ -38,7 +38,8 @@ public struct FileManagerRemover: FileRemoving {
 
 /// How removed items are disposed of. Trash is the app-wide default —
 /// a storage cleaner should be forgiving of mistakes.
-public enum Disposal: String, Sendable, CaseIterable {
+/// Codable so clean-history entries can record it.
+public enum Disposal: String, Sendable, Codable, CaseIterable {
     case trash
     case delete
 }

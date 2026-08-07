@@ -58,7 +58,23 @@ enum PreviewData {
         CleanHistoryEntry(
             date: .now.addingTimeInterval(-25 * 86_400),
             targetNames: ["Derived data", "Simulator caches", "npm cache"],
-            itemsRemoved: 31, reclaimedBytes: 41_200_000_000
+            itemsRemoved: 31, reclaimedBytes: 41_200_000_000,
+            items: [
+                CleanedHistoryItem(
+                    targetID: "xcode-derived-data", name: "Derived data",
+                    bytesFreed: 29_600_000_000
+                ),
+                CleanedHistoryItem(
+                    targetID: "xcode-simulator-caches", name: "Simulator caches",
+                    bytesFreed: 8_200_000_000
+                ),
+                CleanedHistoryItem(
+                    targetID: "npm-cache", name: "npm cache",
+                    bytesFreed: 3_400_000_000
+                ),
+            ],
+            disposal: .trash, duration: 4.1, freeAfterBytes: 296_000_000_000,
+            trashEmptiedDate: .now.addingTimeInterval(-25 * 86_400 + 6_480)
         ),
         CleanHistoryEntry(
             date: .now.addingTimeInterval(-39 * 86_400),

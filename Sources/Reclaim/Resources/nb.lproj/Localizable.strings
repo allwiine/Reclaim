@@ -12,6 +12,7 @@
 
 /* Felles handlinger */
 "action.cancel" = "Avbryt";
+"action.close" = "Lukk";
 "action.copy" = "Kopier";
 "action.copied" = "Kopiert";
 "action.revealInFinder" = "Vis i Finder";
@@ -203,6 +204,21 @@
 "history.clearConfirmTitle" = "Tømme hele ryddehistorikken?";
 "history.clearConfirmAction" = "Tøm historikken";
 "history.clearConfirmMessage" = "Fjerner oppføringen for hver rydding og nullstiller totalstatistikken. Ingen filer på disken berøres.";
+"history.detail.trigger" = "Manuell rydding";
+"history.detail.unitFreed" = "%@ frigjort";
+"history.detail.movedToTrash" = "Flyttet til papirkurven";
+"history.detail.deletedPermanently" = "Slettet permanent";
+"history.detail.metaLine" = "%1$@ · %2$@";
+"history.detail.permanentNote" = "Fjernet umiddelbart og kan ikke gjenopprettes.";
+"history.detail.trashEmptiedNote" = "Papirkurven ble tømt %@.";
+"history.detail.trashUnknownNote" = "Flyttet til papirkurven. Hvis du ikke har tømt den siden, kan filene fortsatt legges tilbake.";
+"history.detail.diskAfter" = "Disk etterpå";
+"history.detail.freeAfterLabel" = "%@ ledig etter denne ryddingen";
+"history.detail.whatWasRemoved" = "Hva som ble fjernet";
+"history.detail.sinceThen" = "Siden da";
+"history.detail.againNow" = "%@ igjen nå";
+"history.detail.stillClean" = "fortsatt ryddet";
+"history.detail.regrowthFootnote" = "Cacher bygges opp igjen mens du jobber. Prosenten er dagens størrelse målt mot det denne ryddingen fjernet.";
 
 /* Innstillinger */
 "settings.sectionGeneral" = "Generelt";

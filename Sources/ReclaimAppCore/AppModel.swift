@@ -727,8 +727,10 @@ public final class AppModel {
         let chosenDisposal = disposal
         let scan = scanExecutor
         let clean = cleanExecutor
+        let volume = volumeProbe
 
         cleanTask = Task {
+            let passStart = Date.now
             var summary = CleanSummary(disposal: chosenDisposal)
 
             // Sequential on purpose: cleanup should be predictable and
@@ -788,22 +790,50 @@ public final class AppModel {
             self.isCleaning = false
             self.isCancellingClean = false
             self.cleanTask = nil
-            self.recordHistory(from: summary)
-            self.refreshVolumeSpace()
+            // Volume space is measured before recording, so the entry
+            // carries the honest "free after this clean" figure.
+            let space = await Self.offMain { volume() }
+            self.volumeSpace = space
+            self.recordHistory(
+                from: summary,
+                duration: Date.now.timeIntervalSince(passStart),
+                freeAfterBytes: space?.availableBytes
+            )
         }
     }
 
     /// Append a real pass with removals to the persistent history.
-    private func recordHistory(from summary: CleanSummary) {
+    private func recordHistory(
+        from summary: CleanSummary, duration: TimeInterval, freeAfterBytes: Int64?
+    ) {
         guard !summary.isDryRun, summary.itemsRemoved > 0 else { return }
         let entry = CleanHistoryEntry(
             date: .now,
             targetNames: summary.cleaned.map(\.name),
             itemsRemoved: summary.itemsRemoved,
-            reclaimedBytes: summary.reclaimedBytes
+            reclaimedBytes: summary.reclaimedBytes,
+            items: summary.cleaned.map {
+                CleanedHistoryItem(targetID: $0.id, name: $0.name, bytesFreed: $0.bytesFreed)
+            },
+            disposal: summary.disposal,
+            duration: duration,
+            freeAfterBytes: freeAfterBytes
         )
         history.insert(entry, at: 0)
         persistHistory()
+    }
+
+    /// Record that the user emptied the Trash through Reclaim. Emptying
+    /// is global, so every trash-disposal pass still unmarked gets the
+    /// stamp — their files all left the Trash together.
+    public func markTrashEmptied(at date: Date = .now) {
+        var changed = false
+        for index in history.indices
+        where history[index].disposal == .trash && history[index].trashEmptiedDate == nil {
+            history[index].trashEmptiedDate = date
+            changed = true
+        }
+        if changed { persistHistory() }
     }
 
     /// Erase the recorded clean history. Files on disk are unaffected.
