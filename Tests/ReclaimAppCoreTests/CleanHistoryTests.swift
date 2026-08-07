@@ -30,7 +30,7 @@ struct CleanHistoryTests {
             items: [
                 CleanedHistoryItem(
                     targetID: "xcode-derived-data", name: "Derived data",
-                    bytesFreed: 38_000_000_000
+                    bytesFreed: 38_000_000_000, bytesAfter: 1_200_000_000
                 ),
                 CleanedHistoryItem(
                     targetID: "xcode-unavailable-simulators", name: "Unavailable simulators",

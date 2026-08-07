@@ -25,6 +25,8 @@ struct BrowserView: View {
     /// specific target elsewhere (overview lists); `nil` falls back to
     /// the first row.
     var initialInspectedID: CleanupTarget.ID?
+    /// Opens the single-target clean confirmation ("Clean just this").
+    var onCleanSingle: (CleanupTarget) -> Void = { _ in }
 
     @State private var inspectedID: CleanupTarget.ID?
 
@@ -51,7 +53,7 @@ struct BrowserView: View {
                 .fill(Theme.divider)
                 .frame(width: 1)
 
-            InspectorPanel(target: inspectedTarget(in: targets))
+            InspectorPanel(target: inspectedTarget(in: targets), onCleanSingle: onCleanSingle)
                 .frame(width: 336)
         }
         .onChange(of: mode, initial: true) { _, _ in
@@ -116,15 +118,20 @@ struct BrowserView: View {
         .padding(.vertical, 9)
     }
 
+    /// Scoped to the list it sits above: counting selections the user
+    /// cannot see here reads as a lie ("4 selected" over an unticked
+    /// list). The global size lives on the toolbar's Reclaim button.
     private var selectionSummary: String {
-        let picked = model.selection.count
-        guard picked > 0 else {
+        let visible = visibleTargets
+        let pickedHere = visible.count { model.isSelected($0) }
+        guard pickedHere > 0 else {
             return localized("browser.noItemsSelected", defaultValue: "No items selected")
         }
-        let selectable = model.selectableItemCount
+        let selectable = model.selectableItemCount(among: visible)
+        let bytes = visible.reduce(Int64(0)) { $0 + model.selectedBytes(of: $1) }
         return localized(
             "browser.selectionSummary",
-            defaultValue: "\(picked) of \(selectable) items selected · \(model.selectedBytes.formattedBytesCompact)"
+            defaultValue: "\(pickedHere) of \(selectable) items selected · \(bytes.formattedBytesCompact)"
         )
     }
 
@@ -197,7 +204,7 @@ struct BrowserView: View {
         case .category, .all:
             localized(
                 "browser.emptyCategoryDetail",
-                defaultValue: "None of these tools were found on this Mac. Enable “Show tools that are not installed” in Settings to list them anyway."
+                defaultValue: "Nothing here right now — these tools are either not installed or have nothing to clean. Settings can keep such entries visible."
             )
         }
     }
@@ -228,10 +235,18 @@ private struct TargetRow: View {
                             .lineLimit(1)
                         Badge(for: target)
                     }
-                    Text(target.pathPatterns.first ?? commandDisplay)
-                        .font(Theme.mono())
-                        .foregroundStyle(Theme.textTertiary)
-                        .lineLimit(1)
+                    HStack(alignment: .firstTextBaseline, spacing: 8) {
+                        Text(target.pathPatterns.first ?? commandDisplay)
+                            .font(Theme.mono())
+                            .foregroundStyle(Theme.textTertiary)
+                            .lineLimit(1)
+                        if let note = partialNote {
+                            Text(note)
+                                .font(.system(size: 10.5, weight: .medium))
+                                .foregroundStyle(Theme.accentLabel)
+                                .lineLimit(1)
+                        }
+                    }
                 }
 
                 Spacer(minLength: 10)
@@ -258,6 +273,17 @@ private struct TargetRow: View {
         return ""
     }
 
+    /// "2 of 8 items · 1.2 GB" while the target is cherry-picked.
+    private var partialNote: String? {
+        guard let counts = model.partialSelectionCounts(of: target) else { return nil }
+        let scope = localized(
+            "format.itemsOf",
+            defaultValue: "\(counts.selected) of \(counts.total) items"
+        )
+        let size = model.selectedBytes(of: target).formattedBytesCompact
+        return localized("browser.partialNote", defaultValue: "\(scope) · \(size)")
+    }
+
     private var checkbox: some View {
         Toggle(
             localized("browser.selectAccessibility", defaultValue: "Select \(target.name)"),
@@ -266,7 +292,7 @@ private struct TargetRow: View {
                 set: { model.setSelected(target, $0) }
             )
         )
-        .toggleStyle(.rcCheckbox)
+        .toggleStyle(CheckboxToggleStyle(mixed: model.isPartiallySelected(target)))
         .labelsHidden()
         .disabled(!model.isSelectable(target))
         .opacity(model.isSelectable(target) ? 1 : 0.35)

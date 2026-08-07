@@ -104,32 +104,39 @@ struct CategoryTile: View {
 
 // MARK: - Checkbox
 
-/// 17-pt selection checkbox with the accent gradient when ticked.
+/// Selection checkbox with the accent gradient when ticked. `mixed`
+/// renders the minus "partially selected" glyph (the box still counts
+/// as on — clicking it clears the whole selection).
 struct CheckboxToggleStyle: ToggleStyle {
+    var mixed = false
+    var size: CGFloat = 17
+
     func makeBody(configuration: Configuration) -> some View {
         Button {
             configuration.isOn.toggle()
         } label: {
             ZStack {
-                RoundedRectangle(cornerRadius: 5)
+                RoundedRectangle(cornerRadius: size * 0.3)
                     .fill(Color.white.opacity(configuration.isOn ? 0 : 0.06))
                 if configuration.isOn {
-                    RoundedRectangle(cornerRadius: 5)
+                    RoundedRectangle(cornerRadius: size * 0.3)
                         .fill(Theme.accentGradient)
+                        .opacity(mixed ? 0.72 : 1)
                         .transition(.scale(scale: 0.5).combined(with: .opacity))
                 }
-                Image(systemName: "checkmark")
-                    .font(.system(size: 9.5, weight: .bold))
+                Image(systemName: mixed && configuration.isOn ? "minus" : "checkmark")
+                    .font(.system(size: size * 0.56, weight: .bold))
                     .foregroundStyle(Theme.onAccent)
                     .opacity(configuration.isOn ? 1 : 0)
                     .scaleEffect(configuration.isOn ? 1 : 0.4)
             }
             .overlay {
-                RoundedRectangle(cornerRadius: 5)
+                RoundedRectangle(cornerRadius: size * 0.3)
                     .strokeBorder(.white.opacity(0.14), lineWidth: 0.5)
             }
-            .frame(width: 17, height: 17)
+            .frame(width: size, height: size)
             .animation(Theme.quick, value: configuration.isOn)
+            .animation(Theme.quick, value: mixed)
         }
         .buttonStyle(.plain)
         .accessibilityRepresentation {

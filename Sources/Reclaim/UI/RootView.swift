@@ -28,11 +28,18 @@ enum ContentPhase: Equatable {
     case idle, scanning, cleaning, done, overview, browser, history, settings
 }
 
+/// What a pending clean confirmation covers: everything selected, or a
+/// single target ("Clean just this" — the rest of the selection stays).
+enum ConfirmScope: Hashable {
+    case selection
+    case single(CleanupTarget.ID)
+}
+
 struct RootView: View {
     @Environment(AppModel.self) private var model
     @State private var destination: Destination = .overview
     @State private var searchText = ""
-    @State private var isConfirmingClean = false
+    @State private var confirmScope: ConfirmScope?
     @State private var isShowingDone = false
     /// The specific target a tap navigated to (overview rows), so the
     /// browser anchors its inspector on that row and not the first one.
@@ -53,12 +60,15 @@ struct RootView: View {
         }
         .background(Theme.backgroundDeep)
         .overlay {
-            if isConfirmingClean {
+            if let scope = confirmScope {
                 ConfirmSheet(
-                    onCancel: { isConfirmingClean = false },
+                    scope: scope,
+                    onCancel: { confirmScope = nil },
                     onConfirm: {
-                        isConfirmingClean = false
-                        model.cleanSelected()
+                        confirmScope = nil
+                        let limit: Set<CleanupTarget.ID>? =
+                            if case .single(let id) = scope { [id] } else { nil }
+                        model.cleanSelected(limitedTo: limit)
                     }
                 )
                 .transition(.opacity)
@@ -70,7 +80,7 @@ struct RootView: View {
                 .onDisappear { model.isReviewingSelection = false }
             }
         }
-        .animation(Theme.flow, value: isConfirmingClean)
+        .animation(Theme.flow, value: confirmScope)
         .onChange(of: model.lastCleanSummary != nil) { _, hasSummary in
             // A finished pass (real or dry run) lands on the Done screen.
             if hasSummary {
@@ -81,7 +91,7 @@ struct RootView: View {
         .onChange(of: model.isScanning) { _, isScanning in
             // A scan (manual ⌘R, menu bar) clears the selection; a
             // confirmation left open would show an empty, dead sheet.
-            if isScanning { isConfirmingClean = false }
+            if isScanning { confirmScope = nil }
         }
         .preferredColorScheme(.dark)
         .frame(minWidth: 1100, minHeight: 660)
@@ -157,7 +167,7 @@ struct RootView: View {
                 destination: destination,
                 phase: phase,
                 searchText: $searchText,
-                onReclaim: { isConfirmingClean = true }
+                onReclaim: { confirmScope = .selection }
             )
 
             Rectangle()
@@ -226,13 +236,17 @@ struct RootView: View {
                 },
                 reclaimSafe: {
                     model.selectAllSafe()
-                    isConfirmingClean = true
+                    confirmScope = .selection
                 }
             )
             .transition(.opacity)
         case .browser:
-            BrowserView(mode: browserMode, initialInspectedID: inspectedTargetID)
-                .transition(.opacity)
+            BrowserView(
+                mode: browserMode,
+                initialInspectedID: inspectedTargetID,
+                onCleanSingle: { confirmScope = .single($0.id) }
+            )
+            .transition(.opacity)
         case .history:
             HistoryView()
                 .transition(.opacity)

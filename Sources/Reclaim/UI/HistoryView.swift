@@ -559,24 +559,33 @@ private struct HistoryDetailPanel: View {
         return measurement.bytes
     }
 
+    /// Growth since the pass. Judged against the size the rescan saw
+    /// right afterwards — what a cherry-picked clean left behind was
+    /// never removed and must not count as regrowth. Entries recorded
+    /// before `bytesAfter` existed fall back to a zero baseline.
+    private func regrownBytes(for item: CleanedHistoryItem) -> Int64? {
+        guard let current = currentBytes(for: item) else { return nil }
+        return max(0, current - (item.bytesAfter ?? 0))
+    }
+
     private func regrowthLabel(for item: CleanedHistoryItem) -> String {
-        guard let current = currentBytes(for: item) else {
+        guard let regrown = regrownBytes(for: item) else {
             return localized("accessibility.notMeasuredYet", defaultValue: "Not measured yet")
         }
-        guard current > 0 else {
+        guard regrown > 0 else {
             return localized("history.detail.stillClean", defaultValue: "still clean")
         }
         return localized(
             "history.detail.againNow",
-            defaultValue: "\(current.formattedBytesCompact) again now"
+            defaultValue: "\(regrown.formattedBytesCompact) again now"
         )
     }
 
     private func regrowthShare(for item: CleanedHistoryItem) -> String {
-        guard let current = currentBytes(for: item), current > 0,
+        guard let regrown = regrownBytes(for: item), regrown > 0,
               let freed = item.bytesFreed, freed > 0
         else { return "—" }
-        return (Double(current) / Double(freed))
+        return (Double(regrown) / Double(freed))
             .formatted(.percent.precision(.fractionLength(0)))
     }
 }

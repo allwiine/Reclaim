@@ -131,9 +131,10 @@
 "browser.noMatches" = "No matches";
 "browser.nothingFound" = "Nothing found";
 "browser.emptySearchDetail" = "No catalogue entry matches that search — try a tool name or a path fragment.";
-"browser.emptyCategoryDetail" = "None of these tools were found on this Mac. Enable “Show tools that are not installed” in Settings to list them anyway.";
+"browser.emptyCategoryDetail" = "Nothing here right now — these tools are either not installed or have nothing to clean. Settings can keep such entries visible.";
 "browser.selectAccessibility" = "Select %@";
 "browser.keepOutOfAutoSelect" = "Keep out of automatic selection";
+"browser.partialNote" = "%1$@ · %2$@";
 
 /* Row statuses */
 "status.empty" = "Empty";
@@ -150,6 +151,14 @@
 "inspector.cleansByRunning" = "Cleans by running";
 "inspector.largestContents" = "Largest contents";
 "inspector.measuringContents" = "Measuring contents…";
+"inspector.selectAllContents" = "Select all";
+"inspector.deselectAllContents" = "Deselect all";
+"inspector.showTop5" = "Show top 5 only";
+"inspector.tickHint" = "Tick items to clean only those";
+"inspector.tickedNote" = "%1$@ ticked · %2$@";
+"inspector.cleanJustThis" = "Clean just this · %@";
+"inspector.cleanPartial" = "Clean %1$@ · %2$@";
+"inspector.nothingTicked" = "Nothing ticked here";
 "inspector.excludedNote" = "Kept out of automatic selection — tick it manually to clean it.";
 
 /* Confirmation sheet */
@@ -159,6 +168,11 @@
 "confirm.bodyTrash" = "Everything listed below moves to the Trash. Nothing is removed permanently until you empty it.";
 "confirm.bodyDelete" = "Everything listed below is deleted immediately and cannot be recovered.";
 "confirm.sizeUnknown" = "size unknown";
+"confirm.titleSingle" = "Reclaim %1$@ from %2$@?";
+"confirm.titleSinglePartial" = "Reclaim %1$@ from %2$@ in %3$@?";
+"confirm.bodySingleTrash" = "This one location moves to the Trash. Nothing else in your selection is touched.";
+"confirm.bodySingleDelete" = "This one location is deleted immediately and cannot be recovered.";
+"confirm.bodySinglePartial" = "Only the items listed below are affected. The rest of %@ stays where it is.";
 "confirm.destructiveWarning" = "This selection includes items marked Destructive — things you created, like emulators, that cannot be restored.";
 "confirm.cautionWarning" = "This selection includes items marked Caution. They can be restored, but re-downloading models or losing history costs something.";
 "confirm.runningAppsWarning" = "%@ appears to be running — cleaning its data now may break builds or work in progress. Consider quitting first.";
@@ -238,6 +252,8 @@
 "settings.openNotificationSettings" = "Open Notification Settings…";
 "settings.showNotInstalled" = "Show tools that are not installed";
 "settings.showNotInstalledHelp" = "Keep catalogue entries visible even when the tool was not found on this Mac.";
+"settings.showEmpty" = "Show empty locations";
+"settings.showEmptyHelp" = "Keep locations listed even when the last scan measured nothing in them.";
 "settings.sectionMenuBar" = "Menu bar";
 "settings.menuBarExtra" = "Show Reclaim in the menu bar";
 "settings.menuBarExtraHelp" = "A compact summary with quick access to scanning and safe cleanup.";

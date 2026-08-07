@@ -13,10 +13,18 @@ import SwiftUI
 
 struct ConfirmSheet: View {
     @Environment(AppModel.self) private var model
+    let scope: ConfirmScope
     let onCancel: () -> Void
     let onConfirm: () -> Void
 
     @State private var appeared = false
+
+    /// The one target of a "Clean just this" confirmation, if that is
+    /// what this sheet covers.
+    private var singleTarget: CleanupTarget? {
+        guard case .single(let id) = scope else { return nil }
+        return model.targets.first { $0.id == id }
+    }
 
     var body: some View {
         ZStack(alignment: .top) {
@@ -40,7 +48,7 @@ struct ConfirmSheet: View {
     // MARK: - Panel
 
     private var panel: some View {
-        let picked = model.selectedTargets
+        let picked = singleTarget.map { [$0] } ?? model.selectedTargets
         let toTrash = model.disposal == .trash
 
         return VStack(alignment: .leading, spacing: 0) {
@@ -59,9 +67,15 @@ struct ConfirmSheet: View {
                 .contentTransition(.opacity)
                 .animation(Theme.quick, value: toTrash)
 
-            itemList(picked)
-                .padding(.horizontal, 24)
-                .padding(.top, 16)
+            Group {
+                if let target = singleTarget {
+                    singlePathList(for: target)
+                } else {
+                    itemList(picked)
+                }
+            }
+            .padding(.horizontal, 24)
+            .padding(.top, 16)
 
             if let warning = warningText(picked) {
                 Text(warning)
@@ -112,6 +126,23 @@ struct ConfirmSheet: View {
     // MARK: - Content
 
     private func title(_ picked: [CleanupTarget]) -> String {
+        if let target = singleTarget {
+            let space = model.selectedBytes(of: target).formattedBytesCompact
+            if let counts = model.partialSelectionCounts(of: target) {
+                let scope = localized(
+                    "format.itemsOf",
+                    defaultValue: "\(counts.selected) of \(counts.total) items"
+                )
+                return localized(
+                    "confirm.titleSinglePartial",
+                    defaultValue: "Reclaim \(space) from \(scope) in \(target.name)?"
+                )
+            }
+            return localized(
+                "confirm.titleSingle",
+                defaultValue: "Reclaim \(space) from \(target.name)?"
+            )
+        }
         let space = model.selectedBytes.formattedBytesCompact
         return model.dryRun
             ? localized(
@@ -131,6 +162,23 @@ struct ConfirmSheet: View {
                 defaultValue: "Dry run is on — Reclaim will only report what would be removed. Nothing is touched."
             )
         }
+        if let target = singleTarget {
+            if model.isPartiallySelected(target) {
+                return localized(
+                    "confirm.bodySinglePartial",
+                    defaultValue: "Only the items listed below are affected. The rest of \(target.name) stays where it is."
+                )
+            }
+            return toTrash
+                ? localized(
+                    "confirm.bodySingleTrash",
+                    defaultValue: "This one location moves to the Trash. Nothing else in your selection is touched."
+                )
+                : localized(
+                    "confirm.bodySingleDelete",
+                    defaultValue: "This one location is deleted immediately and cannot be recovered."
+                )
+        }
         return toTrash
             ? localized(
                 "confirm.bodyTrash",
@@ -143,32 +191,74 @@ struct ConfirmSheet: View {
     }
 
     private func itemList(_ picked: [CleanupTarget]) -> some View {
-        ScrollView {
-            VStack(spacing: 0) {
-                ForEach(picked) { target in
-                    HStack(spacing: 10) {
-                        Circle()
-                            .fill(BadgeKind(for: target).color)
-                            .frame(width: 7, height: 7)
-                        Text(target.name)
-                            .font(Theme.body)
-                            .foregroundStyle(Theme.textPrimary)
+        listCard {
+            ForEach(picked) { target in
+                HStack(spacing: 10) {
+                    Circle()
+                        .fill(BadgeKind(for: target).color)
+                        .frame(width: 7, height: 7)
+                    Text(target.name)
+                        .font(Theme.body)
+                        .foregroundStyle(Theme.textPrimary)
+                        .lineLimit(1)
+                    if let scope = partialScopeLabel(for: target) {
+                        Text(scope)
+                            .font(Theme.caption)
+                            .foregroundStyle(Theme.textTertiary)
                             .lineLimit(1)
-                        Spacer(minLength: 8)
-                        Text(sizeLabel(for: target))
-                            .font(.system(size: 12))
-                            .monospacedDigit()
-                            .foregroundStyle(Color(hex: 0x8E8E95))
                     }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 9)
-                    .overlay(alignment: .bottom) {
-                        if target.id != picked.last?.id {
-                            Rectangle().fill(Theme.separator).frame(height: 1)
-                        }
+                    Spacer(minLength: 8)
+                    Text(sizeLabel(for: target))
+                        .font(.system(size: 12))
+                        .monospacedDigit()
+                        .foregroundStyle(Color(hex: 0x8E8E95))
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 9)
+                .overlay(alignment: .bottom) {
+                    if target.id != picked.last?.id {
+                        Rectangle().fill(Theme.separator).frame(height: 1)
                     }
                 }
             }
+        }
+    }
+
+    /// "Clean just this": the exact scan-time items that will go.
+    private func singlePathList(for target: CleanupTarget) -> some View {
+        let paths = model.selectedCleanupPaths(of: target)
+        return listCard {
+            ForEach(paths, id: \.path) { url in
+                HStack(spacing: 10) {
+                    Circle()
+                        .fill(BadgeKind(for: target).color)
+                        .frame(width: 7, height: 7)
+                    Text(url.lastPathComponent)
+                        .font(Theme.body)
+                        .foregroundStyle(Theme.textPrimary)
+                        .lineLimit(1)
+                    Spacer(minLength: 8)
+                    Text(model.breakdownBytes(of: target, path: url.path)
+                        .map(\.formattedBytesCompact)
+                        ?? localized("confirm.sizeUnknown", defaultValue: "size unknown"))
+                        .font(.system(size: 12))
+                        .monospacedDigit()
+                        .foregroundStyle(Color(hex: 0x8E8E95))
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 9)
+                .overlay(alignment: .bottom) {
+                    if url.path != paths.last?.path {
+                        Rectangle().fill(Theme.separator).frame(height: 1)
+                    }
+                }
+            }
+        }
+    }
+
+    private func listCard(@ViewBuilder rows: () -> some View) -> some View {
+        ScrollView {
+            VStack(spacing: 0, content: rows)
         }
         .frame(maxHeight: 210)
         .background(Color.black.opacity(0.25), in: RoundedRectangle(cornerRadius: Theme.radiusInset))
@@ -178,11 +268,19 @@ struct ConfirmSheet: View {
         }
     }
 
+    private func partialScopeLabel(for target: CleanupTarget) -> String? {
+        guard let counts = model.partialSelectionCounts(of: target) else { return nil }
+        return localized(
+            "format.itemsOf",
+            defaultValue: "\(counts.selected) of \(counts.total) items"
+        )
+    }
+
     private func sizeLabel(for target: CleanupTarget) -> String {
         if case .unmeasurable = model.status(of: target.id) {
             return localized("confirm.sizeUnknown", defaultValue: "size unknown")
         }
-        return model.bytes(of: target).formattedBytesCompact
+        return model.selectedBytes(of: target).formattedBytesCompact
     }
 
     private func warningText(_ picked: [CleanupTarget]) -> String? {
@@ -260,7 +358,7 @@ private struct SmallCheckToggleStyle: ToggleStyle {
 
 #if DEBUG
 #Preview(traits: .fixedLayout(width: 1320, height: 856)) {
-    ConfirmSheet(onCancel: {}, onConfirm: {})
+    ConfirmSheet(scope: .selection, onCancel: {}, onConfirm: {})
         .background(Theme.background)
         .environment(PreviewData.scanned())
         .preferredColorScheme(.dark)
