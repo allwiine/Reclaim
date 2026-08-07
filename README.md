@@ -4,6 +4,13 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Platform: macOS 15+](https://img.shields.io/badge/platform-macOS%2015%2B-lightgrey.svg)](#requirements)
 
+## Install
+
+Download the latest `Reclaim-<version>.dmg` from
+[Releases](https://github.com/allwiine/Reclaim/releases/latest), open it and
+drag Reclaim to Applications. The app is notarized and updates itself via
+Sparkle.
+
 A native macOS app for finding and cleaning wasted developer storage — with a focus on the space quietly retained by **Xcode**, **Android Studio**, **Claude Code** and similar tools.
 
 Reclaim scans a curated catalogue of known cache and scratch locations, shows what each one is, how risky it is to remove, and cleans your selection — to the Trash by default, so mistakes are recoverable.
