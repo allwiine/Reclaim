@@ -38,21 +38,7 @@ struct ToolbarView: View {
             if showsActions {
                 searchField
 
-                Button {
-                    model.scanAll()
-                } label: {
-                    HStack(spacing: 5) {
-                        Image(systemName: "arrow.clockwise")
-                            .font(.system(size: 10, weight: .medium))
-                        Text(model.lastScan == nil
-                            ? localized("idle.scanButton", defaultValue: "Scan this Mac")
-                            : localized("action.scanAgain", defaultValue: "Scan again"))
-                    }
-                }
-                .buttonStyle(.rcSecondaryCompact)
-                .help(localized("toolbar.scanAgainHelp", defaultValue: "Scan again"))
-                // ⌘R lives on the File-menu "Scan This Mac" command —
-                // registering it here as well would collide.
+                scanButton
 
                 Button(reclaimLabel) {
                     onReclaim()
@@ -62,6 +48,11 @@ struct ToolbarView: View {
                 ))
                 .disabled(model.selection.isEmpty)
                 .help(localized("toolbar.reclaimHelp", defaultValue: "Clean the selected items"))
+            } else if phase == .history || phase == .settings {
+                // These screens stay on screen while a scan runs, so a
+                // setting tweak or a history review can kick one off
+                // without navigating back first.
+                scanButton
             }
         }
         .padding(.leading, 18)
@@ -72,6 +63,29 @@ struct ToolbarView: View {
     }
 
     // MARK: - Pieces
+
+    /// On Overview/browser a running scan replaces the whole content
+    /// area, so the disabled state only ever shows on History/Settings.
+    private var scanButton: some View {
+        Button {
+            model.scanAll()
+        } label: {
+            HStack(spacing: 5) {
+                Image(systemName: "arrow.clockwise")
+                    .font(.system(size: 10, weight: .medium))
+                Text(model.isScanning
+                    ? localized("menu.scanning", defaultValue: "Scanning…")
+                    : model.lastScan == nil
+                        ? localized("idle.scanButton", defaultValue: "Scan this Mac")
+                        : localized("action.scanAgain", defaultValue: "Scan again"))
+            }
+        }
+        .buttonStyle(.rcSecondaryCompact)
+        .disabled(model.isScanning || model.isCleaning)
+        .help(localized("toolbar.scanAgainHelp", defaultValue: "Scan again"))
+        // ⌘R lives on the File-menu "Scan This Mac" command —
+        // registering it here as well would collide.
+    }
 
     private var searchField: some View {
         HStack(spacing: 6) {
