@@ -1327,9 +1327,62 @@ public enum TargetRegistry {
         ),
     ]
 
-    // MARK: - JVM & Java
+    // MARK: - Java & JVM
 
-    static let jvmTools: [CleanupTarget] = []
+    static let jvmTools: [CleanupTarget] = [
+        CleanupTarget(
+            id: "maven-repository",
+            name: localized("target.maven-repository.name", defaultValue: "Maven local repository"),
+            summary: localized(
+                "target.maven-repository.summary",
+                defaultValue: "Every artifact any Maven or JVM build has ever downloaded, kept forever. The next build re-downloads what it still uses."
+            ),
+            category: .jvm,
+            safety: .safe,
+            pathPatterns: ["~/.m2/repository"],
+            strategy: .removeContents,
+            note: localized(
+                "target.maven-repository.note",
+                defaultValue: "The next build of each project is slower once."
+            )
+        ),
+        CleanupTarget(
+            id: "sdkman-archives",
+            name: localized("target.sdkman-archives.name", defaultValue: "SDKMAN archives"),
+            summary: localized(
+                "target.sdkman-archives.summary",
+                defaultValue: "Downloaded SDK archives and temp files kept by SDKMAN. Installed SDKs are not touched."
+            ),
+            category: .jvm,
+            safety: .safe,
+            pathPatterns: ["~/.sdkman/archives", "~/.sdkman/tmp"],
+            strategy: .removeContents
+        ),
+        CleanupTarget(
+            id: "coursier-cache",
+            name: localized("target.coursier-cache.name", defaultValue: "Coursier cache"),
+            summary: localized(
+                "target.coursier-cache.summary",
+                defaultValue: "Artifacts cached by Coursier for Scala and JVM builds."
+            ),
+            category: .jvm,
+            safety: .safe,
+            pathPatterns: ["~/Library/Caches/Coursier", "~/.cache/coursier"],
+            strategy: .removeContents
+        ),
+        CleanupTarget(
+            id: "ivy-cache",
+            name: localized("target.ivy-cache.name", defaultValue: "Ivy cache"),
+            summary: localized(
+                "target.ivy-cache.summary",
+                defaultValue: "Artifacts cached by sbt and Apache Ivy builds."
+            ),
+            category: .jvm,
+            safety: .safe,
+            pathPatterns: ["~/.ivy2/cache"],
+            strategy: .removeContents
+        ),
+    ]
 
     // MARK: - Web & JavaScript tools
 

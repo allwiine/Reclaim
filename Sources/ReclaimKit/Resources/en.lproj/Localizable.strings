@@ -210,6 +210,17 @@
 "target.rancher-desktop-caches.name" = "Rancher Desktop caches";
 "target.rancher-desktop-caches.summary" = "Downloaded Kubernetes images and update caches for Rancher Desktop.";
 
+/* Targets — Java & JVM */
+"target.maven-repository.name" = "Maven local repository";
+"target.maven-repository.summary" = "Every artifact any Maven or JVM build has ever downloaded, kept forever. The next build re-downloads what it still uses.";
+"target.maven-repository.note" = "The next build of each project is slower once.";
+"target.sdkman-archives.name" = "SDKMAN archives";
+"target.sdkman-archives.summary" = "Downloaded SDK archives and temp files kept by SDKMAN. Installed SDKs are not touched.";
+"target.coursier-cache.name" = "Coursier cache";
+"target.coursier-cache.summary" = "Artifacts cached by Coursier for Scala and JVM builds.";
+"target.ivy-cache.name" = "Ivy cache";
+"target.ivy-cache.summary" = "Artifacts cached by sbt and Apache Ivy builds.";
+
 /* Targets — Other developer tools */
 "target.vscode-caches.name" = "VS Code caches";
 "target.vscode-caches.summary" = "Extension host, rendering and code caches for Visual Studio Code.";

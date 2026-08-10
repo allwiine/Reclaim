@@ -213,6 +213,17 @@
 "target.rancher-desktop-caches.name" = "Rancher Desktop-cacher";
 "target.rancher-desktop-caches.summary" = "Nedlastede Kubernetes-images og oppdateringscacher for Rancher Desktop.";
 
+/* Mål, Java og JVM */
+"target.maven-repository.name" = "Lokalt Maven-repo";
+"target.maven-repository.summary" = "Alle artefakter noe Maven- eller JVM-bygg noen gang har lastet ned, beholdt for alltid. Neste bygg laster ned det det fortsatt bruker på nytt.";
+"target.maven-repository.note" = "Neste bygg av hvert prosjekt går tregere én gang.";
+"target.sdkman-archives.name" = "SDKMAN-arkiver";
+"target.sdkman-archives.summary" = "Nedlastede SDK-arkiver og midlertidige filer fra SDKMAN. Installerte SDK-er røres ikke.";
+"target.coursier-cache.name" = "Coursier-cache";
+"target.coursier-cache.summary" = "Artefakter cachet av Coursier for Scala- og JVM-bygg.";
+"target.ivy-cache.name" = "Ivy-cache";
+"target.ivy-cache.summary" = "Artefakter cachet av sbt- og Apache Ivy-bygg.";
+
 /* Mål, Andre utviklerverktøy */
 "target.vscode-caches.name" = "VS Code-cacher";
 "target.vscode-caches.summary" = "Extension host-, gjengivelses- og kodecacher for Visual Studio Code.";
