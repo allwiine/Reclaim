@@ -3,17 +3,19 @@
 [![CI](https://github.com/allwiine/Reclaim/actions/workflows/ci.yml/badge.svg)](https://github.com/allwiine/Reclaim/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Platform: macOS 15+](https://img.shields.io/badge/platform-macOS%2015%2B-lightgrey.svg)](#requirements)
+[![Website](https://img.shields.io/badge/website-reclaim--app.dev-8A2BE2.svg)](https://reclaim-app.dev/)
 
 ## Install
 
 Download the latest `Reclaim-<version>.dmg` from
+[reclaim-app.dev](https://reclaim-app.dev/) or straight from
 [Releases](https://github.com/allwiine/Reclaim/releases/latest), open it and
 drag Reclaim to Applications. The app is notarized and updates itself via
 Sparkle.
 
-A native macOS app for finding and cleaning wasted developer storage — with a focus on the space quietly retained by **Xcode**, **Android Studio**, **Claude Code** and similar tools.
+A native macOS app for finding and cleaning wasted developer storage, with a focus on the space quietly retained by **Xcode**, **Android Studio**, **Claude Code** and similar tools.
 
-Reclaim scans a curated catalogue of known cache and scratch locations, shows what each one is, how risky it is to remove, and cleans your selection — to the Trash by default, so mistakes are recoverable.
+Reclaim scans a curated catalogue of known cache and scratch locations, shows what each one is, how risky it is to remove, and cleans your selection. Cleaning goes to the Trash by default, so mistakes are recoverable.
 
 Built with **Swift 6.2**, **SwiftUI**, the **Observation** framework, strict concurrency, and **Swift Testing**.
 
@@ -25,17 +27,22 @@ Built with **Swift 6.2**, **SwiftUI**, the **Observation** framework, strict con
 | --- | --- |
 | Xcode & Simulators | Derived data, device support files, archives, simulator caches, SwiftUI Previews data, device logs, XCTest simulator clones, unavailable simulators (`simctl`) |
 | Android Studio | Gradle caches, wrapper distributions, build-scan data, IDE caches, Kotlin/Native toolchains, SDK system images, AVDs |
+| .NET & Visual Studio | NuGet global packages & download caches, orphaned SDK workload packs, Azure Functions bundles, Visual Studio for Mac / Xamarin leftovers |
 | AI tools | Claude Code caches, logs & transcripts, Codex / Gemini / Copilot CLI data, Claude & ChatGPT Desktop caches, Cursor / Windsurf / Antigravity caches, Cline & Roo Code task history, Continue index, aider / Goose / OpenCode data, Ollama / Hugging Face / LM Studio / llama.cpp models |
-| Package managers | Homebrew, npm, pnpm, Yarn (classic & Berry), pip, uv, Poetry, CocoaPods, SwiftPM, Cargo, Go, Deno, node-gyp |
-| Other dev tools | VS Code caches & workspace storage, JetBrains caches & logs, Playwright / Puppeteer browsers, pre-commit environments, Docker VM disk (measured; cleaned via Docker itself) |
+| Package managers | Homebrew, npm, pnpm, Yarn (classic & Berry), pip, uv, Poetry, conda, pyenv, pipx, pub (Flutter/Dart), Composer, CocoaPods, SwiftPM, Cargo, Go, Deno, node-gyp |
+| Containers & VMs | Docker VM disk, OrbStack / Colima / Lima / Podman machines (measured; cleaned via their own tools), Vagrant boxes, minikube cache, Rancher Desktop caches |
+| Java & JVM | Maven local repository, SDKMAN archives, Coursier and Ivy/sbt caches |
+| Web & JS tools | Playwright / Puppeteer browsers, Cypress binaries, Bun install cache, Electron caches, Corepack cache, nvm Node versions |
+| Cloud & DevOps | kubectl, Helm and Pulumi caches, gcloud & Azure CLI logs, Terraform plugin cache |
+| Other dev tools | VS Code caches & workspace storage, JetBrains caches & logs, pre-commit environments |
 
 Every item carries a safety rating:
 
-- **Safe** — regenerated automatically (build caches, logs).
-- **Caution** — restorable, but re-downloading or losing history costs something (AI models, Claude Code transcripts, Xcode archives).
-- **Destructive** — removes things you created (Android emulators).
+- **Safe**: regenerated automatically (build caches, logs).
+- **Caution**: restorable, but re-downloading or losing history costs something (AI models, Claude Code transcripts, Xcode archives).
+- **Destructive**: removes things you created (Android emulators, nvm / pyenv versions).
 
-Items Reclaim should *not* delete itself (Docker's VM disk, Go's read-only module cache) are still measured, but cleaning is delegated to the owning tool with clear instructions. Claude Code's auth, settings and plugins are structurally excluded from the catalogue — a unit test enforces it.
+Items Reclaim should *not* delete itself (Docker's and OrbStack's VM disks, Colima / Lima / Podman machines, Go's read-only module cache) are still measured, but cleaning is delegated to the owning tool with clear instructions. Claude Code's auth, settings and plugins are structurally excluded from the catalogue; a unit test enforces it.
 
 ## Requirements
 
@@ -70,7 +77,7 @@ xcodegen                  # generates Reclaim.xcodeproj
 open Reclaim.xcodeproj    # archive / export as usual
 ```
 
-The app is intentionally **not sandboxed**: its whole purpose is reading and cleaning locations across `~/Library` and dot-directories in your home folder. That rules out App Store distribution but keeps the UX honest — no folder-picker ceremony for every path.
+The app is intentionally **not sandboxed**: its whole purpose is reading and cleaning locations across `~/Library` and dot-directories in your home folder. That rules out App Store distribution but keeps the UX honest: no folder-picker ceremony for every path.
 
 ### Permissions
 
@@ -79,16 +86,16 @@ Most locations are readable out of the box. If a scan row shows *Couldn't scan*,
 ## Safety model
 
 1. **Scan is read-only.** Nothing is ever deleted during a scan.
-2. **Cleaning operates on the scan-time snapshot only.** The scanner captures the exact deletion set (for cache roots, their children at scan time), and the engine disposes precisely those URLs — anything created after the scan is untouchable. What you saw is what gets cleaned.
+2. **Cleaning operates on the scan-time snapshot only.** The scanner captures the exact deletion set (for cache roots, their children at scan time), and the engine disposes precisely those URLs; anything created after the scan is untouchable. What you saw is what gets cleaned.
 3. **Trash by default.** Permanent deletion is opt-in via Settings.
-4. **Explicit confirmation** with size and consequence before any cleanup — including a warning when a related app (Xcode, Android Studio, VS Code…) is currently running.
-5. **Manual-only items are never touched** — the UI physically cannot select them.
+4. **Explicit confirmation** with size and consequence before any cleanup, including a warning when a related app (Xcode, Android Studio, VS Code…) is currently running.
+5. **Manual-only items are never touched**; the UI physically cannot select them.
 6. **Post-clean rescan.** Numbers on screen are re-measured, never assumed; the summary counts only what was actually removed.
 7. **Honest failures.** Unreadable locations show as "Couldn't scan" or "N unreadable" (with a Full Disk Access banner) instead of quietly measuring as empty; scans stopped early are labeled partial; a clean pass can be stopped between items.
 
 ## Adding a new tool
 
-One struct in [`TargetRegistry`](Sources/ReclaimKit/Domain/TargetRegistry.swift) — no other changes needed:
+One struct in [`TargetRegistry`](Sources/ReclaimKit/Domain/TargetRegistry.swift), with no other changes needed:
 
 ```swift
 CleanupTarget(
@@ -127,7 +134,7 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full design rationale.
 
 ## Contributing
 
-Contributions are welcome — new cleanup targets especially (one struct plus
+Contributions are welcome, new cleanup targets especially (one struct plus
 two localized strings). Start with [CONTRIBUTING.md](CONTRIBUTING.md), or
 [propose a target](https://github.com/allwiine/Reclaim/issues/new?template=new_target.yml)
 without writing any code. This project follows the
@@ -135,10 +142,10 @@ without writing any code. This project follows the
 
 ## Security
 
-Please report vulnerabilities privately — see [SECURITY.md](SECURITY.md).
+Please report vulnerabilities privately; see [SECURITY.md](SECURITY.md).
 Anything that could make Reclaim touch data outside the confirmed selection
 counts, even if it isn't a classic vulnerability.
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT; see [LICENSE](LICENSE).
