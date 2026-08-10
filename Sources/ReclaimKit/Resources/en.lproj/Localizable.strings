@@ -221,6 +221,26 @@
 "target.ivy-cache.name" = "Ivy cache";
 "target.ivy-cache.summary" = "Artifacts cached by sbt and Apache Ivy builds.";
 
+/* Targets — Web & JS Tools */
+"target.playwright-browsers.name" = "Playwright browsers";
+"target.playwright-browsers.summary" = "Browser builds downloaded by Playwright for testing. Each version set is over a gigabyte.";
+"target.playwright-browsers.note" = "Run `npx playwright install` to restore browsers before the next test run.";
+"target.puppeteer-cache.name" = "Puppeteer browsers";
+"target.puppeteer-cache.summary" = "Chrome builds downloaded by Puppeteer.";
+"target.puppeteer-cache.note" = "Re-downloaded the next time Puppeteer installs its browser.";
+"target.bun-install-cache.name" = "Bun install cache";
+"target.bun-install-cache.summary" = "Packages cached by Bun's installer. Re-downloaded on demand.";
+"target.cypress-binaries.name" = "Cypress binaries";
+"target.cypress-binaries.summary" = "Every Cypress version ever installed, each around half a gigabyte. Old versions are never pruned.";
+"target.cypress-binaries.note" = "Run `npx cypress install` to restore the binary before the next test run.";
+"target.electron-caches.name" = "Electron caches";
+"target.electron-caches.summary" = "Electron builds and build tooling downloaded by electron and electron-builder.";
+"target.corepack-cache.name" = "Corepack cache";
+"target.corepack-cache.summary" = "Package manager versions (pnpm, Yarn) downloaded by Corepack.";
+"target.nvm-node-versions.name" = "nvm Node versions";
+"target.nvm-node-versions.summary" = "Every Node.js version installed through nvm, including their global packages.";
+"target.nvm-node-versions.note" = "Reinstall with `nvm install <version>`; your default version stops working until reinstalled.";
+
 /* Targets — Other developer tools */
 "target.vscode-caches.name" = "VS Code caches";
 "target.vscode-caches.summary" = "Extension host, rendering and code caches for Visual Studio Code.";
@@ -233,12 +253,6 @@
 "target.vscode-workspace-storage.name" = "VS Code workspace storage";
 "target.vscode-workspace-storage.summary" = "Per-workspace UI state, history and extension data for every folder you have ever opened — entries for deleted projects linger forever.";
 "target.vscode-workspace-storage.note" = "Open workspaces recreate their entry, but per-workspace history and unsaved editor state are lost.";
-"target.playwright-browsers.name" = "Playwright browsers";
-"target.playwright-browsers.summary" = "Browser builds downloaded by Playwright for testing. Each version set is over a gigabyte.";
-"target.playwright-browsers.note" = "Run `npx playwright install` to restore browsers before the next test run.";
-"target.puppeteer-cache.name" = "Puppeteer browsers";
-"target.puppeteer-cache.summary" = "Chrome builds downloaded by Puppeteer.";
-"target.puppeteer-cache.note" = "Re-downloaded the next time Puppeteer installs its browser.";
 "target.pre-commit-cache.name" = "pre-commit environments";
 "target.pre-commit-cache.summary" = "Hook environments built by pre-commit. Recreated on the next run in each repository.";
 "target.jetbrains-logs.name" = "JetBrains IDE logs";

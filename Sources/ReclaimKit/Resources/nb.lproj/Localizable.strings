@@ -224,6 +224,26 @@
 "target.ivy-cache.name" = "Ivy-cache";
 "target.ivy-cache.summary" = "Artefakter cachet av sbt- og Apache Ivy-bygg.";
 
+/* Mål, web- og JS-verktøy */
+"target.playwright-browsers.name" = "Playwright-nettlesere";
+"target.playwright-browsers.summary" = "Nettleserbygg lastet ned av Playwright for testing. Hvert versjonssett er over en gigabyte.";
+"target.playwright-browsers.note" = "Kjør `npx playwright install` for å gjenopprette nettlesere før neste testkjøring.";
+"target.puppeteer-cache.name" = "Puppeteer-nettlesere";
+"target.puppeteer-cache.summary" = "Chrome-bygg lastet ned av Puppeteer.";
+"target.puppeteer-cache.note" = "Lastes ned på nytt neste gang Puppeteer installerer nettleseren sin.";
+"target.bun-install-cache.name" = "Bun-installcache";
+"target.bun-install-cache.summary" = "Pakker cachet av Buns installer. Lastes ned på nytt ved behov.";
+"target.cypress-binaries.name" = "Cypress-binærer";
+"target.cypress-binaries.summary" = "Hver Cypress-versjon som noen gang er installert, hver på rundt en halv gigabyte. Gamle versjoner ryddes aldri.";
+"target.cypress-binaries.note" = "Kjør `npx cypress install` for å gjenopprette binæren før neste testkjøring.";
+"target.electron-caches.name" = "Electron-cacher";
+"target.electron-caches.summary" = "Electron-bygg og byggverktøy lastet ned av electron og electron-builder.";
+"target.corepack-cache.name" = "Corepack-cache";
+"target.corepack-cache.summary" = "Pakkebehandlerversjoner (pnpm, Yarn) lastet ned av Corepack.";
+"target.nvm-node-versions.name" = "nvm Node-versjoner";
+"target.nvm-node-versions.summary" = "Hver Node.js-versjon installert via nvm, inkludert deres globale pakker.";
+"target.nvm-node-versions.note" = "Installer på nytt med `nvm install <versjon>`; standardversjonen din slutter å virke til den er reinstallert.";
+
 /* Mål, Andre utviklerverktøy */
 "target.vscode-caches.name" = "VS Code-cacher";
 "target.vscode-caches.summary" = "Extension host-, gjengivelses- og kodecacher for Visual Studio Code.";
@@ -236,12 +256,6 @@
 "target.vscode-workspace-storage.name" = "VS Code workspace-lagring";
 "target.vscode-workspace-storage.summary" = "UI-tilstand, historikk og utvidelsesdata per workspace for hver mappe du noen gang har åpnet. Oppføringer for slettede prosjekter blir liggende for alltid.";
 "target.vscode-workspace-storage.note" = "Åpne workspaces oppretter oppføringen sin på nytt, men historikk og ulagret editor-tilstand per workspace går tapt.";
-"target.playwright-browsers.name" = "Playwright-nettlesere";
-"target.playwright-browsers.summary" = "Nettleserbygg lastet ned av Playwright for testing. Hvert versjonssett er over en gigabyte.";
-"target.playwright-browsers.note" = "Kjør `npx playwright install` for å gjenopprette nettlesere før neste testkjøring.";
-"target.puppeteer-cache.name" = "Puppeteer-nettlesere";
-"target.puppeteer-cache.summary" = "Chrome-bygg lastet ned av Puppeteer.";
-"target.puppeteer-cache.note" = "Lastes ned på nytt neste gang Puppeteer installerer nettleseren sin.";
 "target.pre-commit-cache.name" = "pre-commit-miljøer";
 "target.pre-commit-cache.summary" = "Hook-miljøer bygget av pre-commit. Opprettes på nytt ved neste kjøring i hvert repo.";
 "target.jetbrains-logs.name" = "JetBrains IDE-logger";

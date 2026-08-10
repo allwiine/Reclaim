@@ -1386,7 +1386,114 @@ public enum TargetRegistry {
 
     // MARK: - Web & JavaScript tools
 
-    static let webTools: [CleanupTarget] = []
+    static let webTools: [CleanupTarget] = [
+        CleanupTarget(
+            id: "playwright-browsers",
+            name: localized(
+                "target.playwright-browsers.name",
+                defaultValue: "Playwright browsers"
+            ),
+            summary: localized(
+                "target.playwright-browsers.summary",
+                defaultValue: "Browser builds downloaded by Playwright for testing. Each version set is over a gigabyte."
+            ),
+            category: .webTools,
+            safety: .caution,
+            pathPatterns: ["~/Library/Caches/ms-playwright"],
+            strategy: .removeContents,
+            note: localized(
+                "target.playwright-browsers.note",
+                defaultValue: "Run `npx playwright install` to restore browsers before the next test run."
+            )
+        ),
+        CleanupTarget(
+            id: "puppeteer-cache",
+            name: localized(
+                "target.puppeteer-cache.name",
+                defaultValue: "Puppeteer browsers"
+            ),
+            summary: localized(
+                "target.puppeteer-cache.summary",
+                defaultValue: "Chrome builds downloaded by Puppeteer."
+            ),
+            category: .webTools,
+            safety: .caution,
+            pathPatterns: ["~/.cache/puppeteer"],
+            strategy: .removeContents,
+            note: localized(
+                "target.puppeteer-cache.note",
+                defaultValue: "Re-downloaded the next time Puppeteer installs its browser."
+            )
+        ),
+        CleanupTarget(
+            id: "bun-install-cache",
+            name: localized("target.bun-install-cache.name", defaultValue: "Bun install cache"),
+            summary: localized(
+                "target.bun-install-cache.summary",
+                defaultValue: "Packages cached by Bun's installer. Re-downloaded on demand."
+            ),
+            category: .webTools,
+            safety: .safe,
+            pathPatterns: ["~/.bun/install/cache"],
+            strategy: .removeContents
+        ),
+        CleanupTarget(
+            id: "cypress-binaries",
+            name: localized("target.cypress-binaries.name", defaultValue: "Cypress binaries"),
+            summary: localized(
+                "target.cypress-binaries.summary",
+                defaultValue: "Every Cypress version ever installed, each around half a gigabyte. Old versions are never pruned."
+            ),
+            category: .webTools,
+            safety: .caution,
+            pathPatterns: ["~/Library/Caches/Cypress"],
+            strategy: .removeContents,
+            note: localized(
+                "target.cypress-binaries.note",
+                defaultValue: "Run `npx cypress install` to restore the binary before the next test run."
+            )
+        ),
+        CleanupTarget(
+            id: "electron-caches",
+            name: localized("target.electron-caches.name", defaultValue: "Electron caches"),
+            summary: localized(
+                "target.electron-caches.summary",
+                defaultValue: "Electron builds and build tooling downloaded by electron and electron-builder."
+            ),
+            category: .webTools,
+            safety: .safe,
+            pathPatterns: ["~/Library/Caches/electron", "~/Library/Caches/electron-builder"],
+            strategy: .removeContents
+        ),
+        CleanupTarget(
+            id: "corepack-cache",
+            name: localized("target.corepack-cache.name", defaultValue: "Corepack cache"),
+            summary: localized(
+                "target.corepack-cache.summary",
+                defaultValue: "Package manager versions (pnpm, Yarn) downloaded by Corepack."
+            ),
+            category: .webTools,
+            safety: .safe,
+            pathPatterns: ["~/.cache/node/corepack"],
+            strategy: .removeContents
+        ),
+        CleanupTarget(
+            id: "nvm-node-versions",
+            name: localized("target.nvm-node-versions.name", defaultValue: "nvm Node versions"),
+            summary: localized(
+                "target.nvm-node-versions.summary",
+                defaultValue: "Every Node.js version installed through nvm, including their global packages."
+            ),
+            category: .webTools,
+            safety: .destructive,
+            pathPatterns: ["~/.nvm/versions/node"],
+            strategy: .removeContents,
+            note: localized(
+                "target.nvm-node-versions.note",
+                defaultValue: "Reinstall with `nvm install <version>`; your default version stops working until reinstalled."
+            )
+        ),
+    ]
 
     // MARK: - Cloud & DevOps
 
@@ -1454,44 +1561,6 @@ public enum TargetRegistry {
                 defaultValue: "Open workspaces recreate their entry, but per-workspace history and unsaved editor state are lost."
             ),
             relatedAppBundleIDs: ["com.microsoft.VSCode"]
-        ),
-        CleanupTarget(
-            id: "playwright-browsers",
-            name: localized(
-                "target.playwright-browsers.name",
-                defaultValue: "Playwright browsers"
-            ),
-            summary: localized(
-                "target.playwright-browsers.summary",
-                defaultValue: "Browser builds downloaded by Playwright for testing. Each version set is over a gigabyte."
-            ),
-            category: .otherTools,
-            safety: .caution,
-            pathPatterns: ["~/Library/Caches/ms-playwright"],
-            strategy: .removeContents,
-            note: localized(
-                "target.playwright-browsers.note",
-                defaultValue: "Run `npx playwright install` to restore browsers before the next test run."
-            )
-        ),
-        CleanupTarget(
-            id: "puppeteer-cache",
-            name: localized(
-                "target.puppeteer-cache.name",
-                defaultValue: "Puppeteer browsers"
-            ),
-            summary: localized(
-                "target.puppeteer-cache.summary",
-                defaultValue: "Chrome builds downloaded by Puppeteer."
-            ),
-            category: .otherTools,
-            safety: .caution,
-            pathPatterns: ["~/.cache/puppeteer"],
-            strategy: .removeContents,
-            note: localized(
-                "target.puppeteer-cache.note",
-                defaultValue: "Re-downloaded the next time Puppeteer installs its browser."
-            )
         ),
         CleanupTarget(
             id: "pre-commit-cache",
