@@ -1183,6 +1183,112 @@ public enum TargetRegistry {
             pathPatterns: ["~/Library/Caches/pypoetry"],
             strategy: .removeContents
         ),
+        CleanupTarget(
+            id: "conda-pkgs",
+            name: localized("target.conda-pkgs.name", defaultValue: "conda package cache"),
+            summary: localized(
+                "target.conda-pkgs.summary",
+                defaultValue: "Downloaded and extracted packages shared by all conda environments."
+            ),
+            category: .packageManagers,
+            safety: .caution,
+            pathPatterns: [
+                "~/miniconda3/pkgs",
+                "~/anaconda3/pkgs",
+                "~/miniforge3/pkgs",
+                "~/mambaforge/pkgs",
+                "~/.conda/pkgs",
+            ],
+            strategy: .removeContents,
+            note: localized(
+                "target.conda-pkgs.note",
+                defaultValue: "Prefer `conda clean --all` to remove only unused packages. Environments hard-link into this cache."
+            )
+        ),
+        CleanupTarget(
+            id: "pyenv-versions",
+            name: localized("target.pyenv-versions.name", defaultValue: "pyenv Python versions"),
+            summary: localized(
+                "target.pyenv-versions.summary",
+                defaultValue: "Every Python version installed through pyenv, including virtualenvs created by pyenv-virtualenv."
+            ),
+            category: .packageManagers,
+            safety: .destructive,
+            pathPatterns: ["~/.pyenv/versions"],
+            strategy: .removeContents,
+            note: localized(
+                "target.pyenv-versions.note",
+                defaultValue: "Reinstall with `pyenv install <version>`."
+            )
+        ),
+        CleanupTarget(
+            id: "uv-python-toolchains",
+            name: localized("target.uv-python-toolchains.name", defaultValue: "uv Python toolchains"),
+            summary: localized(
+                "target.uv-python-toolchains.summary",
+                defaultValue: "Python versions installed and managed by uv. Re-downloaded on demand."
+            ),
+            category: .packageManagers,
+            safety: .caution,
+            pathPatterns: ["~/.local/share/uv/python"],
+            strategy: .removeContents,
+            note: localized(
+                "target.uv-python-toolchains.note",
+                defaultValue: "Existing virtual environments link into these toolchains and break until the version is reinstalled."
+            )
+        ),
+        CleanupTarget(
+            id: "pipx-cache",
+            name: localized("target.pipx-cache.name", defaultValue: "pipx cache & logs"),
+            summary: localized(
+                "target.pipx-cache.summary",
+                defaultValue: "Temporary environments and logs kept by pipx. Installed tools are not touched."
+            ),
+            category: .packageManagers,
+            safety: .safe,
+            pathPatterns: [
+                "~/.cache/pipx",
+                "~/.local/pipx/logs",
+                "~/.local/share/pipx/logs",
+            ],
+            strategy: .removeContents
+        ),
+        CleanupTarget(
+            id: "pub-cache",
+            name: localized("target.pub-cache.name", defaultValue: "pub cache"),
+            summary: localized(
+                "target.pub-cache.summary",
+                defaultValue: "Dart and Flutter packages downloaded by pub. Restored by `flutter pub get` per project."
+            ),
+            category: .packageManagers,
+            safety: .safe,
+            pathPatterns: ["~/.pub-cache"],
+            strategy: .removeContents
+        ),
+        CleanupTarget(
+            id: "dart-analysis-cache",
+            name: localized("target.dart-analysis-cache.name", defaultValue: "Dart analysis cache"),
+            summary: localized(
+                "target.dart-analysis-cache.summary",
+                defaultValue: "Code indexes built by the Dart analysis server. Rebuilt on next analysis."
+            ),
+            category: .packageManagers,
+            safety: .safe,
+            pathPatterns: ["~/.dartServer"],
+            strategy: .removeContents
+        ),
+        CleanupTarget(
+            id: "composer-cache",
+            name: localized("target.composer-cache.name", defaultValue: "Composer cache"),
+            summary: localized(
+                "target.composer-cache.summary",
+                defaultValue: "Package archives cached by PHP's Composer."
+            ),
+            category: .packageManagers,
+            safety: .safe,
+            pathPatterns: ["~/.composer/cache", "~/Library/Caches/composer"],
+            strategy: .removeContents
+        ),
     ]
 
     // MARK: - Containers & VMs

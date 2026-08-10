@@ -190,6 +190,25 @@
 "target.poetry-cache.name" = "Poetry-cache";
 "target.poetry-cache.summary" = "Pakkeartefakter og metadata cachet av pakkebehandleren Poetry.";
 
+/* Mål, pakkebehandlere (Python, Flutter/Dart, PHP) */
+"target.conda-pkgs.name" = "conda-pakkecache";
+"target.conda-pkgs.summary" = "Nedlastede og utpakkede pakker delt av alle conda-miljøer.";
+"target.conda-pkgs.note" = "Foretrekk `conda clean --all` for å fjerne bare ubrukte pakker. Miljøer hardlenker inn i denne cachen.";
+"target.pyenv-versions.name" = "pyenv Python-versjoner";
+"target.pyenv-versions.summary" = "Hver Python-versjon installert via pyenv, inkludert virtualenvs opprettet av pyenv-virtualenv.";
+"target.pyenv-versions.note" = "Installer på nytt med `pyenv install <versjon>`.";
+"target.uv-python-toolchains.name" = "uv Python-verktøykjeder";
+"target.uv-python-toolchains.summary" = "Python-versjoner installert og forvaltet av uv. Lastes ned på nytt ved behov.";
+"target.uv-python-toolchains.note" = "Eksisterende virtuelle miljøer lenker inn i disse verktøykjedene og slutter å virke til versjonen er reinstallert.";
+"target.pipx-cache.name" = "pipx-cache og -logger";
+"target.pipx-cache.summary" = "Midlertidige miljøer og logger fra pipx. Installerte verktøy røres ikke.";
+"target.pub-cache.name" = "pub-cache";
+"target.pub-cache.summary" = "Dart- og Flutter-pakker lastet ned av pub. Gjenopprettes av `flutter pub get` per prosjekt.";
+"target.dart-analysis-cache.name" = "Dart-analysecache";
+"target.dart-analysis-cache.summary" = "Kodeindekser bygget av Darts analyseserver. Bygges på nytt ved neste analyse.";
+"target.composer-cache.name" = "Composer-cache";
+"target.composer-cache.summary" = "Pakkearkiver cachet av PHPs Composer.";
+
 /* Mål, containere og VM-er */
 "target.orbstack-data.name" = "OrbStack-data";
 "target.orbstack-data.summary" = "Disken som holder alle OrbStack-containere, images, volumer og Linux-maskiner.";
