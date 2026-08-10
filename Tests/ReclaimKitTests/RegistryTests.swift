@@ -86,6 +86,16 @@ struct RegistryTests {
         #expect(!TargetRegistry.targets(in: .cloudDevOps).isEmpty)
     }
 
+    @Test("The game engines category has targets")
+    func gameEnginesCategoryPopulated() {
+        #expect(!TargetRegistry.targets(in: .gameEngines).isEmpty)
+    }
+
+    @Test("The embedded category has targets")
+    func embeddedCategoryPopulated() {
+        #expect(!TargetRegistry.targets(in: .embedded).isEmpty)
+    }
+
     @Test(".NET credentials and installed tools are never registered")
     func dotNetUserDataIsProtected() {
         for target in TargetRegistry.all {
@@ -108,6 +118,9 @@ struct RegistryTests {
             "vscode-caches": "com.microsoft.VSCode",
             "claude-desktop-caches": "com.anthropic.claudefordesktop",
             "rancher-desktop-caches": "io.rancherdesktop.app",
+            "unity-caches": "com.unity3d.UnityEditor5.x",
+            "godot-caches": "org.godotengine.godot",
+            "zed-caches": "dev.zed.Zed",
         ]
         for (id, bundleID) in expectations {
             let target = TargetRegistry.all.first { $0.id == id }

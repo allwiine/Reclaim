@@ -10,12 +10,14 @@
 "category.xcode.title" = "Xcode og simulatorer";
 "category.android.title" = "Android Studio";
 "category.dotNet.title" = ".NET og Visual Studio";
+"category.gameEngines.title" = "Spillmotorer";
 "category.aiTools.title" = "AI-verktøy";
 "category.packageManagers.title" = "Pakkebehandlere";
 "category.containers.title" = "Containere og VM-er";
 "category.jvm.title" = "Java og JVM";
 "category.webTools.title" = "Web- og JS-verktøy";
 "category.cloudDevOps.title" = "Sky og DevOps";
+"category.embedded.title" = "Embedded og IoT";
 "category.otherTools.title" = "Andre utviklerverktøy";
 
 /* Sikkerhetsnivåer */
@@ -97,6 +99,21 @@
 "target.xamarin-caches.name" = "Xamarin-cacher";
 "target.xamarin-caches.summary" = "Byggagent- og arkivcacher fra den avviklede Xamarin-verktøykjeden.";
 
+/* Mål, spillmotorer */
+"target.unity-caches.name" = "Unity-cacher";
+"target.unity-caches.summary" = "Unitys globale pakkecache og editorcacher, delt av alle prosjekter. Bygges på nytt og lastes ned igjen når prosjekter åpnes.";
+"target.unity-asset-store-cache.name" = "Unity Asset Store-nedlastinger";
+"target.unity-asset-store-cache.summary" = "Asset Store-pakker lastet ned gjennom Unity-editoren. Beholdes for alltid, også for assets du ikke lenger importerer.";
+"target.unity-asset-store-cache.note" = "Assets lastes ned på nytt fra My Assets i Package Manager ved behov.";
+"target.unreal-derived-data.name" = "Unreal derived data";
+"target.unreal-derived-data.summary" = "Unreal Engines delte derived data-cache, inkludert Zen-lagringen brukt av UE 5.4 og nyere. Shadere og teksturer bygges på nytt ved behov.";
+"target.unreal-derived-data.note" = "Avslutt Unreal Editor før rydding. Neste åpning av hvert prosjekt rekompilerer shadere, og det tar tid.";
+"target.godot-caches.name" = "Godot-cacher";
+"target.godot-caches.summary" = "Editor- og shadercacher fra Godot. Bygges på nytt ved behov.";
+"target.godot-export-templates.name" = "Godot-eksportmaler";
+"target.godot-export-templates.summary" = "Eksportmaler for hver Godot-versjon som noen gang er installert. Gamle versjoner blir liggende etter oppgraderinger.";
+"target.godot-export-templates.note" = "Last ned malene som passer fra editoren før du eksporterer et prosjekt igjen.";
+
 /* Mål, AI-verktøy */
 "target.claude-code-cli-caches.name" = "Claude Code CLI-cacher";
 "target.claude-code-cli-caches.summary" = "Diagnostikk per prosjekt og MCP-logger fra Claude Codes Node-harness. Denne mappen vokser uten grenser ved tung bruk.";
@@ -152,6 +169,9 @@
 "target.llamacpp-cache.name" = "llama.cpp-modellcache";
 "target.llamacpp-cache.summary" = "Modeller lastet ned av llama.cpp-verktøy med -hf-flagget. Ofte flere gigabyte.";
 "target.llamacpp-cache.note" = "Modeller lastes ned på nytt ved neste bruk.";
+"target.pytorch-hub-cache.name" = "PyTorch-cacher";
+"target.pytorch-hub-cache.summary" = "Modellvekter og datasett lastet ned av PyTorch Hub og torchvision.";
+"target.pytorch-hub-cache.note" = "Vekter lastes ned på nytt ved neste bruk.";
 
 /* Mål, Pakkebehandlere og verktøykjeder */
 "target.homebrew-cache.name" = "Homebrew-nedlastinger";
@@ -209,6 +229,14 @@
 "target.dart-analysis-cache.summary" = "Kodeindekser bygget av Darts analyseserver. Bygges på nytt ved neste analyse.";
 "target.composer-cache.name" = "Composer-cache";
 "target.composer-cache.summary" = "Pakkearkiver cachet av PHPs Composer.";
+"target.rustup-toolchains.name" = "rustup-verktøykjeder";
+"target.rustup-toolchains.summary" = "Hver Rust-verktøykjede installert via rustup. Spesielt gamle nightlies hoper seg opp, hver på en gigabyte eller mer.";
+"target.rustup-toolchains.note" = "Installer på nytt med `rustup toolchain install <versjon>`; bygg virker ikke før det er gjort.";
+"target.rbenv-versions.name" = "rbenv Ruby-versjoner";
+"target.rbenv-versions.summary" = "Hver Ruby-versjon installert via rbenv, inkludert installerte gems.";
+"target.rbenv-versions.note" = "Installer på nytt med `rbenv install <versjon>`.";
+"target.mise-cache.name" = "mise-cache";
+"target.mise-cache.summary" = "Versjonslister og nedlastinger cachet av versjonsbehandleren mise. Installerte runtimes røres ikke.";
 
 /* Mål, containere og VM-er */
 "target.docker-vm-disk.name" = "Docker VM-disk";
@@ -266,6 +294,8 @@
 "target.nvm-node-versions.name" = "nvm Node-versjoner";
 "target.nvm-node-versions.summary" = "Hver Node.js-versjon installert via nvm, inkludert deres globale pakker.";
 "target.nvm-node-versions.note" = "Installer på nytt med `nvm install <versjon>`; standardversjonen din slutter å virke til den er reinstallert.";
+"target.prisma-engines-cache.name" = "Prisma-engine-binærer";
+"target.prisma-engines-cache.summary" = "Query- og schema-engine-binærer lastet ned for hver Prisma-versjon noe prosjekt noen gang har brukt.";
 
 /* Mål, sky og DevOps */
 "target.kubectl-cache.name" = "kubectl-cache";
@@ -284,6 +314,17 @@
 "target.azure-cli-logs.note" = "Auth i ~/.azure røres aldri.";
 "target.terraform-plugin-cache.name" = "Terraform-plugincache";
 "target.terraform-plugin-cache.summary" = "Provider-plugins cachet når plugincachen er slått på i .terraformrc. Lastes ned på nytt ved neste `terraform init`.";
+"target.firebase-emulators.name" = "Firebase-emulatorer";
+"target.firebase-emulators.summary" = "Emulator-binærer (Firestore, Auth, Pub/Sub og venner) lastet ned av Firebase CLI.";
+"target.firebase-emulators.note" = "Lastes ned på nytt ved neste `firebase emulators:start`.";
+
+/* Mål, embedded og IoT */
+"target.platformio-cache.name" = "PlatformIO-cache";
+"target.platformio-cache.summary" = "Nedlastings- og HTTP-cacher fra PlatformIO Core. Installerte plattformer, verktøykjeder og biblioteker røres ikke.";
+"target.arduino-staging.name" = "Arduino-nedlastinger";
+"target.arduino-staging.summary" = "Arkiver for kort-cores og biblioteker lastet ned av Arduino IDE og CLI. Beholdes etter installasjon og lastes ned på nytt ved behov.";
+"target.esp-idf-dist.name" = "ESP-IDF-nedlastingsarkiver";
+"target.esp-idf-dist.summary" = "Verktøykjede- og verktøyarkiver lastet ned av ESP-IDF-installereren. De utpakkede verktøyene forblir installert.";
 
 /* Mål, Andre utviklerverktøy */
 "target.vscode-caches.name" = "VS Code-cacher";
@@ -298,3 +339,12 @@
 "target.pre-commit-cache.summary" = "Hook-miljøer bygget av pre-commit. Opprettes på nytt ved neste kjøring i hvert repo.";
 "target.jetbrains-logs.name" = "JetBrains IDE-logger";
 "target.jetbrains-logs.summary" = "Loggfiler for IntelliJ, PyCharm, WebStorm og venner, lagret per IDE-versjon.";
+"target.zed-caches.name" = "Zed-cacher og språkservere";
+"target.zed-caches.summary" = "Cacher og automatisk nedlastede språkservere fra Zed-editoren. Lastes ned på nytt ved behov.";
+"target.ccache-cache.name" = "ccache-kompilatorcache";
+"target.ccache-cache.summary" = "Kompilerte objekter cachet av ccache for å gjøre C- og C++-bygg raskere. Bygges opp igjen etter hvert som du kompilerer.";
+"target.sccache-cache.name" = "sccache-kompilatorcache";
+"target.sccache-cache.summary" = "Kompileringsresultater cachet av sccache for Rust-, C- og CUDA-bygg.";
+"target.bazel-output.name" = "Bazel-output-trær";
+"target.bazel-output.summary" = "Byggresultater og repo-cacher for hvert Bazel-workspace, lagret i /private/var/tmp. En kjørende Bazel-server holder låser her.";
+"target.bazel-output.instructions" = "Kjør `bazel clean --expunge` i hvert workspace, eller `bazel shutdown` etterfulgt av å slette output-treet.";

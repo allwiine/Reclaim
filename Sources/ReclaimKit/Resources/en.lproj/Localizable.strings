@@ -7,12 +7,14 @@
 "category.xcode.title" = "Xcode & Simulators";
 "category.android.title" = "Android Studio";
 "category.dotNet.title" = ".NET & Visual Studio";
+"category.gameEngines.title" = "Game Engines";
 "category.aiTools.title" = "AI Tools";
 "category.packageManagers.title" = "Package Managers";
 "category.containers.title" = "Containers & VMs";
 "category.jvm.title" = "Java & JVM";
 "category.webTools.title" = "Web & JS Tools";
 "category.cloudDevOps.title" = "Cloud & DevOps";
+"category.embedded.title" = "Embedded & IoT";
 "category.otherTools.title" = "Other Dev Tools";
 
 /* Safety levels */
@@ -94,6 +96,21 @@
 "target.xamarin-caches.name" = "Xamarin caches";
 "target.xamarin-caches.summary" = "Build-agent and archive caches from the retired Xamarin toolchain.";
 
+/* Targets — Game engines */
+"target.unity-caches.name" = "Unity caches";
+"target.unity-caches.summary" = "Unity's global package cache and editor caches, shared by all projects. Rebuilt and re-downloaded as projects open.";
+"target.unity-asset-store-cache.name" = "Unity Asset Store downloads";
+"target.unity-asset-store-cache.summary" = "Asset Store packages downloaded through the Unity editor. Kept forever, even for assets you no longer import.";
+"target.unity-asset-store-cache.note" = "Assets re-download from My Assets in the Package Manager when needed.";
+"target.unreal-derived-data.name" = "Unreal derived data";
+"target.unreal-derived-data.summary" = "Unreal Engine's shared derived-data cache, including the Zen storage used by UE 5.4 and newer. Shaders and textures rebuild on demand.";
+"target.unreal-derived-data.note" = "Quit Unreal Editor before cleaning. The next open of each project recompiles shaders, which takes a while.";
+"target.godot-caches.name" = "Godot caches";
+"target.godot-caches.summary" = "Editor and shader caches kept by Godot. Rebuilt on demand.";
+"target.godot-export-templates.name" = "Godot export templates";
+"target.godot-export-templates.summary" = "Export templates for every Godot version ever installed. Old versions linger after upgrades.";
+"target.godot-export-templates.note" = "Download the matching templates from the editor before exporting a project again.";
+
 /* Targets — AI tooling */
 "target.claude-code-cli-caches.name" = "Claude Code CLI caches";
 "target.claude-code-cli-caches.summary" = "Per-project diagnostic output and MCP logs written by Claude Code's Node harness. This folder grows without bound under heavy use.";
@@ -149,6 +166,9 @@
 "target.llamacpp-cache.name" = "llama.cpp model cache";
 "target.llamacpp-cache.summary" = "Models downloaded by llama.cpp tools with the -hf flag. Often several gigabytes.";
 "target.llamacpp-cache.note" = "Models are re-downloaded on next use.";
+"target.pytorch-hub-cache.name" = "PyTorch caches";
+"target.pytorch-hub-cache.summary" = "Model weights and datasets downloaded by PyTorch Hub and torchvision.";
+"target.pytorch-hub-cache.note" = "Weights are re-downloaded on next use.";
 
 /* Targets — Package managers & toolchains */
 "target.homebrew-cache.name" = "Homebrew downloads";
@@ -206,6 +226,14 @@
 "target.dart-analysis-cache.summary" = "Code indexes built by the Dart analysis server. Rebuilt on next analysis.";
 "target.composer-cache.name" = "Composer cache";
 "target.composer-cache.summary" = "Package archives cached by PHP's Composer.";
+"target.rustup-toolchains.name" = "rustup toolchains";
+"target.rustup-toolchains.summary" = "Every Rust toolchain installed through rustup. Old nightlies especially pile up, each taking a gigabyte or more.";
+"target.rustup-toolchains.note" = "Reinstall with `rustup toolchain install <version>`; builds stop working until then.";
+"target.rbenv-versions.name" = "rbenv Ruby versions";
+"target.rbenv-versions.summary" = "Every Ruby version installed through rbenv, including their installed gems.";
+"target.rbenv-versions.note" = "Reinstall with `rbenv install <version>`.";
+"target.mise-cache.name" = "mise cache";
+"target.mise-cache.summary" = "Version lists and downloads cached by the mise version manager. Installed runtimes are not touched.";
 
 /* Targets — Containers & VMs */
 "target.docker-vm-disk.name" = "Docker VM disk";
@@ -263,6 +291,8 @@
 "target.nvm-node-versions.name" = "nvm Node versions";
 "target.nvm-node-versions.summary" = "Every Node.js version installed through nvm, including their global packages.";
 "target.nvm-node-versions.note" = "Reinstall with `nvm install <version>`; your default version stops working until reinstalled.";
+"target.prisma-engines-cache.name" = "Prisma engine binaries";
+"target.prisma-engines-cache.summary" = "Query and schema engine binaries downloaded for every Prisma version a project has ever used.";
 
 /* Targets — Cloud & DevOps */
 "target.kubectl-cache.name" = "kubectl cache";
@@ -281,6 +311,17 @@
 "target.azure-cli-logs.note" = "Auth in ~/.azure is never touched.";
 "target.terraform-plugin-cache.name" = "Terraform plugin cache";
 "target.terraform-plugin-cache.summary" = "Provider plugins cached when the plugin cache is enabled in .terraformrc. Re-downloaded on the next `terraform init`.";
+"target.firebase-emulators.name" = "Firebase emulators";
+"target.firebase-emulators.summary" = "Emulator binaries (Firestore, Auth, Pub/Sub and friends) downloaded by the Firebase CLI.";
+"target.firebase-emulators.note" = "Re-downloaded on the next `firebase emulators:start`.";
+
+/* Targets — Embedded & IoT */
+"target.platformio-cache.name" = "PlatformIO cache";
+"target.platformio-cache.summary" = "Download and HTTP caches kept by PlatformIO Core. Installed platforms, toolchains and libraries are not touched.";
+"target.arduino-staging.name" = "Arduino downloads";
+"target.arduino-staging.summary" = "Board core and library archives downloaded by the Arduino IDE and CLI. Kept after installation and re-downloaded on demand.";
+"target.esp-idf-dist.name" = "ESP-IDF download archives";
+"target.esp-idf-dist.summary" = "Toolchain and tool archives downloaded by the ESP-IDF installer. The extracted tools stay installed.";
 
 /* Targets — Other developer tools */
 "target.vscode-caches.name" = "VS Code caches";
@@ -295,3 +336,12 @@
 "target.pre-commit-cache.summary" = "Hook environments built by pre-commit. Recreated on the next run in each repository.";
 "target.jetbrains-logs.name" = "JetBrains IDE logs";
 "target.jetbrains-logs.summary" = "Log files for IntelliJ, PyCharm, WebStorm and friends, kept per IDE version.";
+"target.zed-caches.name" = "Zed caches & language servers";
+"target.zed-caches.summary" = "Caches and auto-downloaded language servers kept by the Zed editor. Re-downloaded on demand.";
+"target.ccache-cache.name" = "ccache compiler cache";
+"target.ccache-cache.summary" = "Compiled objects cached by ccache to speed up C and C++ rebuilds. Rebuilt as you compile.";
+"target.sccache-cache.name" = "sccache compiler cache";
+"target.sccache-cache.summary" = "Compilation results cached by sccache for Rust, C and CUDA builds.";
+"target.bazel-output.name" = "Bazel output trees";
+"target.bazel-output.summary" = "Build outputs and repository caches for every Bazel workspace, kept in /private/var/tmp. A running Bazel server holds locks here.";
+"target.bazel-output.instructions" = "Run `bazel clean --expunge` in each workspace, or `bazel shutdown` followed by deleting its output tree.";

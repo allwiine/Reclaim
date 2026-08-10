@@ -26,12 +26,14 @@
 "category.xcode.letter" = "X";
 "category.android.letter" = "A";
 "category.dotNet.letter" = "N";
+"category.gameEngines.letter" = "G";
 "category.aiTools.letter" = "AI";
 "category.packageManagers.letter" = "P";
 "category.containers.letter" = "C";
 "category.jvm.letter" = "J";
 "category.webTools.letter" = "W";
 "category.cloudDevOps.letter" = "CD";
+"category.embedded.letter" = "E";
 "category.otherTools.letter" = "D";
 
 /* Number & unit formats */
