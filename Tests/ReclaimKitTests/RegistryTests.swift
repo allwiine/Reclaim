@@ -66,6 +66,11 @@ struct RegistryTests {
         #expect(!TargetRegistry.targets(in: .dotNet).isEmpty)
     }
 
+    @Test("The containers category has targets")
+    func containersCategoryPopulated() {
+        #expect(!TargetRegistry.targets(in: .containers).isEmpty)
+    }
+
     @Test(".NET credentials and installed tools are never registered")
     func dotNetUserDataIsProtected() {
         for target in TargetRegistry.all {

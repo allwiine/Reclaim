@@ -187,6 +187,29 @@
 "target.poetry-cache.name" = "Poetry cache";
 "target.poetry-cache.summary" = "Package artifacts and metadata cached by the Poetry package manager.";
 
+/* Targets — Containers & VMs */
+"target.orbstack-data.name" = "OrbStack data";
+"target.orbstack-data.summary" = "The disk holding all OrbStack containers, images, volumes and Linux machines.";
+"target.orbstack-data.instructions" = "Run `docker system prune -a` in Terminal, or delete machines and volumes in the OrbStack app.";
+"target.colima-vm.name" = "Colima VMs";
+"target.colima-vm.summary" = "Virtual machine disks holding all containers and images for Colima instances.";
+"target.colima-vm.instructions" = "Run `docker system prune -a` while Colima is running, or `colima delete` to remove an instance entirely.";
+"target.lima-vms.name" = "Lima VMs";
+"target.lima-vms.summary" = "Virtual machines created by Lima, including their disks.";
+"target.lima-vms.instructions" = "Run `limactl delete <name>` in Terminal to remove a VM you no longer use.";
+"target.lima-cache.name" = "Lima image cache";
+"target.lima-cache.summary" = "Base images downloaded for Lima virtual machines. Re-downloaded when a VM is recreated.";
+"target.podman-machines.name" = "Podman machines";
+"target.podman-machines.summary" = "Machines, containers and images managed by Podman.";
+"target.podman-machines.instructions" = "Run `podman system prune -a` in Terminal, or `podman machine rm <name>` to remove a machine.";
+"target.vagrant-boxes.name" = "Vagrant boxes";
+"target.vagrant-boxes.summary" = "Base box images downloaded by Vagrant. Each box re-downloads on the next `vagrant up` that needs it.";
+"target.vagrant-boxes.note" = "Running VMs live in your provider (VirtualBox, VMware) and are not touched.";
+"target.minikube-cache.name" = "minikube cache";
+"target.minikube-cache.summary" = "Kubernetes images and ISOs cached by minikube. Re-downloaded on the next `minikube start`.";
+"target.rancher-desktop-caches.name" = "Rancher Desktop caches";
+"target.rancher-desktop-caches.summary" = "Downloaded Kubernetes images and update caches for Rancher Desktop.";
+
 /* Targets — Other developer tools */
 "target.vscode-caches.name" = "VS Code caches";
 "target.vscode-caches.summary" = "Extension host, rendering and code caches for Visual Studio Code.";

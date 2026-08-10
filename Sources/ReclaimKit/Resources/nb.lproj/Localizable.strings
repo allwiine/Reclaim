@@ -190,6 +190,29 @@
 "target.poetry-cache.name" = "Poetry-cache";
 "target.poetry-cache.summary" = "Pakkeartefakter og metadata cachet av pakkebehandleren Poetry.";
 
+/* Mål, containere og VM-er */
+"target.orbstack-data.name" = "OrbStack-data";
+"target.orbstack-data.summary" = "Disken som holder alle OrbStack-containere, images, volumer og Linux-maskiner.";
+"target.orbstack-data.instructions" = "Kjør `docker system prune -a` i Terminal, eller slett maskiner og volumer i OrbStack-appen.";
+"target.colima-vm.name" = "Colima-VM-er";
+"target.colima-vm.summary" = "VM-disker som holder alle containere og images for Colima-instanser.";
+"target.colima-vm.instructions" = "Kjør `docker system prune -a` mens Colima kjører, eller `colima delete` for å fjerne en instans helt.";
+"target.lima-vms.name" = "Lima-VM-er";
+"target.lima-vms.summary" = "Virtuelle maskiner opprettet av Lima, inkludert diskene deres.";
+"target.lima-vms.instructions" = "Kjør `limactl delete <navn>` i Terminal for å fjerne en VM du ikke lenger bruker.";
+"target.lima-cache.name" = "Lima-imagecache";
+"target.lima-cache.summary" = "Baseimages lastet ned for Lima-VM-er. Lastes ned på nytt når en VM gjenopprettes.";
+"target.podman-machines.name" = "Podman-maskiner";
+"target.podman-machines.summary" = "Maskiner, containere og images forvaltet av Podman.";
+"target.podman-machines.instructions" = "Kjør `podman system prune -a` i Terminal, eller `podman machine rm <navn>` for å fjerne en maskin.";
+"target.vagrant-boxes.name" = "Vagrant-bokser";
+"target.vagrant-boxes.summary" = "Basebokser lastet ned av Vagrant. Hver boks lastes ned på nytt ved neste `vagrant up` som trenger den.";
+"target.vagrant-boxes.note" = "Kjørende VM-er ligger hos provideren (VirtualBox, VMware) og røres ikke.";
+"target.minikube-cache.name" = "minikube-cache";
+"target.minikube-cache.summary" = "Kubernetes-images og ISO-er cachet av minikube. Lastes ned på nytt ved neste `minikube start`.";
+"target.rancher-desktop-caches.name" = "Rancher Desktop-cacher";
+"target.rancher-desktop-caches.summary" = "Nedlastede Kubernetes-images og oppdateringscacher for Rancher Desktop.";
+
 /* Mål, Andre utviklerverktøy */
 "target.vscode-caches.name" = "VS Code-cacher";
 "target.vscode-caches.summary" = "Extension host-, gjengivelses- og kodecacher for Visual Studio Code.";

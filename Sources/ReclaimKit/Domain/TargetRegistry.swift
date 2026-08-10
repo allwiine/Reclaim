@@ -29,7 +29,7 @@ import Foundation
 public enum TargetRegistry {
     /// All targets, in display order within their categories.
     public static let all: [CleanupTarget] =
-        xcode + android + dotNet + aiTools + packageManagers + otherTools
+        xcode + android + dotNet + aiTools + packageManagers + containers + jvmTools + webTools + cloudDevOps + otherTools
 
     /// Convenience: targets grouped by category, preserving order.
     public static func targets(in category: ToolCategory) -> [CleanupTarget] {
@@ -1185,6 +1185,160 @@ public enum TargetRegistry {
         ),
     ]
 
+    // MARK: - Containers & VMs
+
+    static let containers: [CleanupTarget] = [
+        CleanupTarget(
+            id: "docker-vm-disk",
+            name: localized(
+                "target.docker-vm-disk.name",
+                defaultValue: "Docker VM disk"
+            ),
+            summary: localized(
+                "target.docker-vm-disk.summary",
+                defaultValue: "The virtual disk holding all Docker images, containers and volumes. It only shrinks when Docker itself prunes."
+            ),
+            category: .containers,
+            safety: .caution,
+            pathPatterns: [
+                "~/Library/Containers/com.docker.docker/Data/vms/0/data/Docker.raw",
+                "~/Library/Containers/com.docker.docker/Data/vms/0/data/Docker.qcow2",
+            ],
+            strategy: .manual(instructions: localized(
+                "target.docker-vm-disk.instructions",
+                defaultValue: "Run `docker system prune -a` (and optionally `--volumes`) in Terminal, then let Docker Desktop compact the disk."
+            ))
+        ),
+        CleanupTarget(
+            id: "orbstack-data",
+            name: localized("target.orbstack-data.name", defaultValue: "OrbStack data"),
+            summary: localized(
+                "target.orbstack-data.summary",
+                defaultValue: "The disk holding all OrbStack containers, images, volumes and Linux machines."
+            ),
+            category: .containers,
+            safety: .caution,
+            pathPatterns: [
+                "~/.orbstack",
+                "~/Library/Group Containers/HUAQ24HBR6.dev.orbstack/data",
+            ],
+            strategy: .manual(instructions: localized(
+                "target.orbstack-data.instructions",
+                defaultValue: "Run `docker system prune -a` in Terminal, or delete machines and volumes in the OrbStack app."
+            ))
+        ),
+        CleanupTarget(
+            id: "colima-vm",
+            name: localized("target.colima-vm.name", defaultValue: "Colima VMs"),
+            summary: localized(
+                "target.colima-vm.summary",
+                defaultValue: "Virtual machine disks holding all containers and images for Colima instances."
+            ),
+            category: .containers,
+            safety: .caution,
+            pathPatterns: ["~/.colima"],
+            strategy: .manual(instructions: localized(
+                "target.colima-vm.instructions",
+                defaultValue: "Run `docker system prune -a` while Colima is running, or `colima delete` to remove an instance entirely."
+            ))
+        ),
+        CleanupTarget(
+            id: "lima-vms",
+            name: localized("target.lima-vms.name", defaultValue: "Lima VMs"),
+            summary: localized(
+                "target.lima-vms.summary",
+                defaultValue: "Virtual machines created by Lima, including their disks."
+            ),
+            category: .containers,
+            safety: .caution,
+            pathPatterns: ["~/.lima"],
+            strategy: .manual(instructions: localized(
+                "target.lima-vms.instructions",
+                defaultValue: "Run `limactl delete <name>` in Terminal to remove a VM you no longer use."
+            ))
+        ),
+        CleanupTarget(
+            id: "lima-cache",
+            name: localized("target.lima-cache.name", defaultValue: "Lima image cache"),
+            summary: localized(
+                "target.lima-cache.summary",
+                defaultValue: "Base images downloaded for Lima virtual machines. Re-downloaded when a VM is recreated."
+            ),
+            category: .containers,
+            safety: .safe,
+            pathPatterns: ["~/Library/Caches/lima"],
+            strategy: .removeContents
+        ),
+        CleanupTarget(
+            id: "podman-machines",
+            name: localized("target.podman-machines.name", defaultValue: "Podman machines"),
+            summary: localized(
+                "target.podman-machines.summary",
+                defaultValue: "Machines, containers and images managed by Podman."
+            ),
+            category: .containers,
+            safety: .caution,
+            pathPatterns: ["~/.local/share/containers"],
+            strategy: .manual(instructions: localized(
+                "target.podman-machines.instructions",
+                defaultValue: "Run `podman system prune -a` in Terminal, or `podman machine rm <name>` to remove a machine."
+            ))
+        ),
+        CleanupTarget(
+            id: "vagrant-boxes",
+            name: localized("target.vagrant-boxes.name", defaultValue: "Vagrant boxes"),
+            summary: localized(
+                "target.vagrant-boxes.summary",
+                defaultValue: "Base box images downloaded by Vagrant. Each box re-downloads on the next `vagrant up` that needs it."
+            ),
+            category: .containers,
+            safety: .caution,
+            pathPatterns: ["~/.vagrant.d/boxes"],
+            strategy: .removeContents,
+            note: localized(
+                "target.vagrant-boxes.note",
+                defaultValue: "Running VMs live in your provider (VirtualBox, VMware) and are not touched."
+            )
+        ),
+        CleanupTarget(
+            id: "minikube-cache",
+            name: localized("target.minikube-cache.name", defaultValue: "minikube cache"),
+            summary: localized(
+                "target.minikube-cache.summary",
+                defaultValue: "Kubernetes images and ISOs cached by minikube. Re-downloaded on the next `minikube start`."
+            ),
+            category: .containers,
+            safety: .safe,
+            pathPatterns: ["~/.minikube/cache"],
+            strategy: .removeContents
+        ),
+        CleanupTarget(
+            id: "rancher-desktop-caches",
+            name: localized("target.rancher-desktop-caches.name", defaultValue: "Rancher Desktop caches"),
+            summary: localized(
+                "target.rancher-desktop-caches.summary",
+                defaultValue: "Downloaded Kubernetes images and update caches for Rancher Desktop."
+            ),
+            category: .containers,
+            safety: .safe,
+            pathPatterns: ["~/Library/Caches/rancher-desktop"],
+            strategy: .removeContents,
+            relatedAppBundleIDs: ["io.rancherdesktop.app"]
+        ),
+    ]
+
+    // MARK: - JVM & Java
+
+    static let jvmTools: [CleanupTarget] = []
+
+    // MARK: - Web & JavaScript tools
+
+    static let webTools: [CleanupTarget] = []
+
+    // MARK: - Cloud & DevOps
+
+    static let cloudDevOps: [CleanupTarget] = []
+
     // MARK: - Other developer tools
 
     static let otherTools: [CleanupTarget] = [
@@ -1227,27 +1381,6 @@ public enum TargetRegistry {
                 "target.jetbrains-caches.note",
                 defaultValue: "Each IDE rebuilds its index on next launch."
             )
-        ),
-        CleanupTarget(
-            id: "docker-vm-disk",
-            name: localized(
-                "target.docker-vm-disk.name",
-                defaultValue: "Docker VM disk"
-            ),
-            summary: localized(
-                "target.docker-vm-disk.summary",
-                defaultValue: "The virtual disk holding all Docker images, containers and volumes. It only shrinks when Docker itself prunes."
-            ),
-            category: .otherTools,
-            safety: .caution,
-            pathPatterns: [
-                "~/Library/Containers/com.docker.docker/Data/vms/0/data/Docker.raw",
-                "~/Library/Containers/com.docker.docker/Data/vms/0/data/Docker.qcow2",
-            ],
-            strategy: .manual(instructions: localized(
-                "target.docker-vm-disk.instructions",
-                defaultValue: "Run `docker system prune -a` (and optionally `--volumes`) in Terminal, then let Docker Desktop compact the disk."
-            ))
         ),
         CleanupTarget(
             id: "vscode-workspace-storage",
