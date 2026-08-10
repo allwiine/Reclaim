@@ -1263,7 +1263,11 @@ public enum TargetRegistry {
             category: .packageManagers,
             safety: .safe,
             pathPatterns: ["~/.pub-cache"],
-            strategy: .removeContents
+            strategy: .removeContents,
+            note: localized(
+                "target.pub-cache.note",
+                defaultValue: "Very old Dart SDKs (before 2.15) stored pub.dev publishing credentials in this folder."
+            )
         ),
         CleanupTarget(
             id: "dart-analysis-cache",

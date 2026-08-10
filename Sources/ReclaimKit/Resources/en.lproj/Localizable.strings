@@ -201,6 +201,7 @@
 "target.pipx-cache.summary" = "Temporary environments and logs kept by pipx. Installed tools are not touched.";
 "target.pub-cache.name" = "pub cache";
 "target.pub-cache.summary" = "Dart and Flutter packages downloaded by pub. Restored by `flutter pub get` per project.";
+"target.pub-cache.note" = "Very old Dart SDKs (before 2.15) stored pub.dev publishing credentials in this folder.";
 "target.dart-analysis-cache.name" = "Dart analysis cache";
 "target.dart-analysis-cache.summary" = "Code indexes built by the Dart analysis server. Rebuilt on next analysis.";
 "target.composer-cache.name" = "Composer cache";

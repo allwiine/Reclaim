@@ -204,6 +204,7 @@
 "target.pipx-cache.summary" = "Midlertidige miljøer og logger fra pipx. Installerte verktøy røres ikke.";
 "target.pub-cache.name" = "pub-cache";
 "target.pub-cache.summary" = "Dart- og Flutter-pakker lastet ned av pub. Gjenopprettes av `flutter pub get` per prosjekt.";
+"target.pub-cache.note" = "Svært gamle Dart-SDK-er (før 2.15) lagret publiseringslegitimasjon for pub.dev i denne mappen.";
 "target.dart-analysis-cache.name" = "Dart-analysecache";
 "target.dart-analysis-cache.summary" = "Kodeindekser bygget av Darts analyseserver. Bygges på nytt ved neste analyse.";
 "target.composer-cache.name" = "Composer-cache";
