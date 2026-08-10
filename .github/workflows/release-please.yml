@@ -1,0 +1,44 @@
+# Maintains a Release PR from Conventional Commits on main. Merging that
+# PR makes release-please create a DRAFT GitHub release; the chained job
+# then runs the full build/notarize/publish pipeline (release.yml) in this
+# same run — no PAT, and the GITHUB_TOKEN tag-cascade restriction never
+# applies because nothing here relies on a tag-push event.
+
+name: Release Please
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: release-please
+  cancel-in-progress: false
+
+jobs:
+  release-please:
+    name: Maintain release PR
+    runs-on: ubuntu-latest
+    outputs:
+      release_created: ${{ steps.rp.outputs.release_created }}
+      tag_name: ${{ steps.rp.outputs.tag_name }}
+    steps:
+      - id: rp
+        uses: googleapis/release-please-action@v4
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  build-and-publish:
+    name: Build, notarize & publish
+    needs: release-please
+    if: needs.release-please.outputs.release_created == 'true'
+    permissions:
+      contents: write
+    uses: ./.github/workflows/release.yml
+    with:
+      tag: ${{ needs.release-please.outputs.tag_name }}
+    secrets: inherit
