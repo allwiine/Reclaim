@@ -107,6 +107,7 @@ struct RegistryTests {
             "nuget-packages": "com.jetbrains.rider",
             "vscode-caches": "com.microsoft.VSCode",
             "claude-desktop-caches": "com.anthropic.claudefordesktop",
+            "rancher-desktop-caches": "io.rancherdesktop.app",
         ]
         for (id, bundleID) in expectations {
             let target = TargetRegistry.all.first { $0.id == id }
