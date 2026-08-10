@@ -29,7 +29,7 @@ import Foundation
 public enum TargetRegistry {
     /// All targets, in display order within their categories.
     public static let all: [CleanupTarget] =
-        xcode + android + dotNet + aiTools + packageManagers + otherTools
+        xcode + android + dotNet + aiTools + packageManagers + containers + jvmTools + webTools + cloudDevOps + otherTools
 
     /// Convenience: targets grouped by category, preserving order.
     public static func targets(in category: ToolCategory) -> [CleanupTarget] {
@@ -1183,6 +1183,519 @@ public enum TargetRegistry {
             pathPatterns: ["~/Library/Caches/pypoetry"],
             strategy: .removeContents
         ),
+        CleanupTarget(
+            id: "conda-pkgs",
+            name: localized("target.conda-pkgs.name", defaultValue: "conda package cache"),
+            summary: localized(
+                "target.conda-pkgs.summary",
+                defaultValue: "Downloaded and extracted packages shared by all conda environments."
+            ),
+            category: .packageManagers,
+            safety: .caution,
+            pathPatterns: [
+                "~/miniconda3/pkgs",
+                "~/anaconda3/pkgs",
+                "~/miniforge3/pkgs",
+                "~/mambaforge/pkgs",
+                "~/.conda/pkgs",
+            ],
+            strategy: .removeContents,
+            note: localized(
+                "target.conda-pkgs.note",
+                defaultValue: "Prefer `conda clean --all` to remove only unused packages. Environments hard-link into this cache."
+            )
+        ),
+        CleanupTarget(
+            id: "pyenv-versions",
+            name: localized("target.pyenv-versions.name", defaultValue: "pyenv Python versions"),
+            summary: localized(
+                "target.pyenv-versions.summary",
+                defaultValue: "Every Python version installed through pyenv, including virtualenvs created by pyenv-virtualenv."
+            ),
+            category: .packageManagers,
+            safety: .destructive,
+            pathPatterns: ["~/.pyenv/versions"],
+            strategy: .removeContents,
+            note: localized(
+                "target.pyenv-versions.note",
+                defaultValue: "Reinstall with `pyenv install <version>`."
+            )
+        ),
+        CleanupTarget(
+            id: "uv-python-toolchains",
+            name: localized("target.uv-python-toolchains.name", defaultValue: "uv Python toolchains"),
+            summary: localized(
+                "target.uv-python-toolchains.summary",
+                defaultValue: "Python versions installed and managed by uv. Re-downloaded on demand."
+            ),
+            category: .packageManagers,
+            safety: .caution,
+            pathPatterns: ["~/.local/share/uv/python"],
+            strategy: .removeContents,
+            note: localized(
+                "target.uv-python-toolchains.note",
+                defaultValue: "Existing virtual environments link into these toolchains and break until the version is reinstalled."
+            )
+        ),
+        CleanupTarget(
+            id: "pipx-cache",
+            name: localized("target.pipx-cache.name", defaultValue: "pipx cache & logs"),
+            summary: localized(
+                "target.pipx-cache.summary",
+                defaultValue: "Temporary environments and logs kept by pipx. Installed tools are not touched."
+            ),
+            category: .packageManagers,
+            safety: .safe,
+            pathPatterns: [
+                "~/.cache/pipx",
+                "~/.local/pipx/logs",
+                "~/.local/share/pipx/logs",
+            ],
+            strategy: .removeContents
+        ),
+        CleanupTarget(
+            id: "pub-cache",
+            name: localized("target.pub-cache.name", defaultValue: "pub cache"),
+            summary: localized(
+                "target.pub-cache.summary",
+                defaultValue: "Dart and Flutter packages downloaded by pub. Restored by `flutter pub get` per project."
+            ),
+            category: .packageManagers,
+            safety: .safe,
+            pathPatterns: ["~/.pub-cache"],
+            strategy: .removeContents,
+            note: localized(
+                "target.pub-cache.note",
+                defaultValue: "Very old Dart SDKs (before 2.15) stored pub.dev publishing credentials in this folder."
+            )
+        ),
+        CleanupTarget(
+            id: "dart-analysis-cache",
+            name: localized("target.dart-analysis-cache.name", defaultValue: "Dart analysis cache"),
+            summary: localized(
+                "target.dart-analysis-cache.summary",
+                defaultValue: "Code indexes built by the Dart analysis server. Rebuilt on next analysis."
+            ),
+            category: .packageManagers,
+            safety: .safe,
+            pathPatterns: ["~/.dartServer"],
+            strategy: .removeContents
+        ),
+        CleanupTarget(
+            id: "composer-cache",
+            name: localized("target.composer-cache.name", defaultValue: "Composer cache"),
+            summary: localized(
+                "target.composer-cache.summary",
+                defaultValue: "Package archives cached by PHP's Composer."
+            ),
+            category: .packageManagers,
+            safety: .safe,
+            pathPatterns: ["~/.composer/cache", "~/Library/Caches/composer"],
+            strategy: .removeContents
+        ),
+    ]
+
+    // MARK: - Containers & VMs
+
+    static let containers: [CleanupTarget] = [
+        CleanupTarget(
+            id: "docker-vm-disk",
+            name: localized(
+                "target.docker-vm-disk.name",
+                defaultValue: "Docker VM disk"
+            ),
+            summary: localized(
+                "target.docker-vm-disk.summary",
+                defaultValue: "The virtual disk holding all Docker images, containers and volumes. It only shrinks when Docker itself prunes."
+            ),
+            category: .containers,
+            safety: .caution,
+            pathPatterns: [
+                "~/Library/Containers/com.docker.docker/Data/vms/0/data/Docker.raw",
+                "~/Library/Containers/com.docker.docker/Data/vms/0/data/Docker.qcow2",
+            ],
+            strategy: .manual(instructions: localized(
+                "target.docker-vm-disk.instructions",
+                defaultValue: "Run `docker system prune -a` (and optionally `--volumes`) in Terminal, then let Docker Desktop compact the disk."
+            ))
+        ),
+        CleanupTarget(
+            id: "orbstack-data",
+            name: localized("target.orbstack-data.name", defaultValue: "OrbStack data"),
+            summary: localized(
+                "target.orbstack-data.summary",
+                defaultValue: "The disk holding all OrbStack containers, images, volumes and Linux machines."
+            ),
+            category: .containers,
+            safety: .caution,
+            pathPatterns: [
+                "~/.orbstack",
+                "~/Library/Group Containers/HUAQ24HBR6.dev.orbstack/data",
+            ],
+            strategy: .manual(instructions: localized(
+                "target.orbstack-data.instructions",
+                defaultValue: "Run `docker system prune -a` in Terminal, or delete machines and volumes in the OrbStack app."
+            ))
+        ),
+        CleanupTarget(
+            id: "colima-vm",
+            name: localized("target.colima-vm.name", defaultValue: "Colima VMs"),
+            summary: localized(
+                "target.colima-vm.summary",
+                defaultValue: "Virtual machine disks holding all containers and images for Colima instances."
+            ),
+            category: .containers,
+            safety: .caution,
+            pathPatterns: ["~/.colima"],
+            strategy: .manual(instructions: localized(
+                "target.colima-vm.instructions",
+                defaultValue: "Run `docker system prune -a` while Colima is running, or `colima delete` to remove an instance entirely."
+            ))
+        ),
+        CleanupTarget(
+            id: "lima-vms",
+            name: localized("target.lima-vms.name", defaultValue: "Lima VMs"),
+            summary: localized(
+                "target.lima-vms.summary",
+                defaultValue: "Virtual machines created by Lima, including their disks."
+            ),
+            category: .containers,
+            safety: .caution,
+            pathPatterns: ["~/.lima"],
+            strategy: .manual(instructions: localized(
+                "target.lima-vms.instructions",
+                defaultValue: "Run `limactl delete <name>` in Terminal to remove a VM you no longer use."
+            ))
+        ),
+        CleanupTarget(
+            id: "lima-cache",
+            name: localized("target.lima-cache.name", defaultValue: "Lima image cache"),
+            summary: localized(
+                "target.lima-cache.summary",
+                defaultValue: "Base images downloaded for Lima virtual machines. Re-downloaded when a VM is recreated."
+            ),
+            category: .containers,
+            safety: .safe,
+            pathPatterns: ["~/Library/Caches/lima"],
+            strategy: .removeContents
+        ),
+        CleanupTarget(
+            id: "podman-machines",
+            name: localized("target.podman-machines.name", defaultValue: "Podman machines"),
+            summary: localized(
+                "target.podman-machines.summary",
+                defaultValue: "Machines, containers and images managed by Podman."
+            ),
+            category: .containers,
+            safety: .caution,
+            pathPatterns: ["~/.local/share/containers"],
+            strategy: .manual(instructions: localized(
+                "target.podman-machines.instructions",
+                defaultValue: "Run `podman system prune -a` in Terminal, or `podman machine rm <name>` to remove a machine."
+            ))
+        ),
+        CleanupTarget(
+            id: "vagrant-boxes",
+            name: localized("target.vagrant-boxes.name", defaultValue: "Vagrant boxes"),
+            summary: localized(
+                "target.vagrant-boxes.summary",
+                defaultValue: "Base box images downloaded by Vagrant. Each box re-downloads on the next `vagrant up` that needs it."
+            ),
+            category: .containers,
+            safety: .caution,
+            pathPatterns: ["~/.vagrant.d/boxes"],
+            strategy: .removeContents,
+            note: localized(
+                "target.vagrant-boxes.note",
+                defaultValue: "Running VMs live in your provider (VirtualBox, VMware) and are not touched."
+            )
+        ),
+        CleanupTarget(
+            id: "minikube-cache",
+            name: localized("target.minikube-cache.name", defaultValue: "minikube cache"),
+            summary: localized(
+                "target.minikube-cache.summary",
+                defaultValue: "Kubernetes images and ISOs cached by minikube. Re-downloaded on the next `minikube start`."
+            ),
+            category: .containers,
+            safety: .safe,
+            pathPatterns: ["~/.minikube/cache"],
+            strategy: .removeContents
+        ),
+        CleanupTarget(
+            id: "rancher-desktop-caches",
+            name: localized("target.rancher-desktop-caches.name", defaultValue: "Rancher Desktop caches"),
+            summary: localized(
+                "target.rancher-desktop-caches.summary",
+                defaultValue: "Downloaded Kubernetes images and update caches for Rancher Desktop."
+            ),
+            category: .containers,
+            safety: .safe,
+            pathPatterns: ["~/Library/Caches/rancher-desktop"],
+            strategy: .removeContents,
+            relatedAppBundleIDs: ["io.rancherdesktop.app"]
+        ),
+    ]
+
+    // MARK: - Java & JVM
+
+    static let jvmTools: [CleanupTarget] = [
+        CleanupTarget(
+            id: "maven-repository",
+            name: localized("target.maven-repository.name", defaultValue: "Maven local repository"),
+            summary: localized(
+                "target.maven-repository.summary",
+                defaultValue: "Every artifact any Maven or JVM build has ever downloaded, kept forever. The next build re-downloads what it still uses."
+            ),
+            category: .jvm,
+            safety: .safe,
+            pathPatterns: ["~/.m2/repository"],
+            strategy: .removeContents,
+            note: localized(
+                "target.maven-repository.note",
+                defaultValue: "The next build of each project is slower once."
+            )
+        ),
+        CleanupTarget(
+            id: "sdkman-archives",
+            name: localized("target.sdkman-archives.name", defaultValue: "SDKMAN archives"),
+            summary: localized(
+                "target.sdkman-archives.summary",
+                defaultValue: "Downloaded SDK archives and temp files kept by SDKMAN. Installed SDKs are not touched."
+            ),
+            category: .jvm,
+            safety: .safe,
+            pathPatterns: ["~/.sdkman/archives", "~/.sdkman/tmp"],
+            strategy: .removeContents
+        ),
+        CleanupTarget(
+            id: "coursier-cache",
+            name: localized("target.coursier-cache.name", defaultValue: "Coursier cache"),
+            summary: localized(
+                "target.coursier-cache.summary",
+                defaultValue: "Artifacts cached by Coursier for Scala and JVM builds."
+            ),
+            category: .jvm,
+            safety: .safe,
+            pathPatterns: ["~/Library/Caches/Coursier", "~/.cache/coursier"],
+            strategy: .removeContents
+        ),
+        CleanupTarget(
+            id: "ivy-cache",
+            name: localized("target.ivy-cache.name", defaultValue: "Ivy cache"),
+            summary: localized(
+                "target.ivy-cache.summary",
+                defaultValue: "Artifacts cached by sbt and Apache Ivy builds."
+            ),
+            category: .jvm,
+            safety: .safe,
+            pathPatterns: ["~/.ivy2/cache"],
+            strategy: .removeContents
+        ),
+    ]
+
+    // MARK: - Web & JavaScript tools
+
+    static let webTools: [CleanupTarget] = [
+        CleanupTarget(
+            id: "playwright-browsers",
+            name: localized(
+                "target.playwright-browsers.name",
+                defaultValue: "Playwright browsers"
+            ),
+            summary: localized(
+                "target.playwright-browsers.summary",
+                defaultValue: "Browser builds downloaded by Playwright for testing. Each version set is over a gigabyte."
+            ),
+            category: .webTools,
+            safety: .caution,
+            pathPatterns: ["~/Library/Caches/ms-playwright"],
+            strategy: .removeContents,
+            note: localized(
+                "target.playwright-browsers.note",
+                defaultValue: "Run `npx playwright install` to restore browsers before the next test run."
+            )
+        ),
+        CleanupTarget(
+            id: "puppeteer-cache",
+            name: localized(
+                "target.puppeteer-cache.name",
+                defaultValue: "Puppeteer browsers"
+            ),
+            summary: localized(
+                "target.puppeteer-cache.summary",
+                defaultValue: "Chrome builds downloaded by Puppeteer."
+            ),
+            category: .webTools,
+            safety: .caution,
+            pathPatterns: ["~/.cache/puppeteer"],
+            strategy: .removeContents,
+            note: localized(
+                "target.puppeteer-cache.note",
+                defaultValue: "Re-downloaded the next time Puppeteer installs its browser."
+            )
+        ),
+        CleanupTarget(
+            id: "bun-install-cache",
+            name: localized("target.bun-install-cache.name", defaultValue: "Bun install cache"),
+            summary: localized(
+                "target.bun-install-cache.summary",
+                defaultValue: "Packages cached by Bun's installer. Re-downloaded on demand."
+            ),
+            category: .webTools,
+            safety: .safe,
+            pathPatterns: ["~/.bun/install/cache"],
+            strategy: .removeContents
+        ),
+        CleanupTarget(
+            id: "cypress-binaries",
+            name: localized("target.cypress-binaries.name", defaultValue: "Cypress binaries"),
+            summary: localized(
+                "target.cypress-binaries.summary",
+                defaultValue: "Every Cypress version ever installed, each around half a gigabyte. Old versions are never pruned."
+            ),
+            category: .webTools,
+            safety: .caution,
+            pathPatterns: ["~/Library/Caches/Cypress"],
+            strategy: .removeContents,
+            note: localized(
+                "target.cypress-binaries.note",
+                defaultValue: "Run `npx cypress install` to restore the binary before the next test run."
+            )
+        ),
+        CleanupTarget(
+            id: "electron-caches",
+            name: localized("target.electron-caches.name", defaultValue: "Electron caches"),
+            summary: localized(
+                "target.electron-caches.summary",
+                defaultValue: "Electron builds and build tooling downloaded by electron and electron-builder."
+            ),
+            category: .webTools,
+            safety: .safe,
+            pathPatterns: ["~/Library/Caches/electron", "~/Library/Caches/electron-builder"],
+            strategy: .removeContents
+        ),
+        CleanupTarget(
+            id: "corepack-cache",
+            name: localized("target.corepack-cache.name", defaultValue: "Corepack cache"),
+            summary: localized(
+                "target.corepack-cache.summary",
+                defaultValue: "Package manager versions (pnpm, Yarn) downloaded by Corepack."
+            ),
+            category: .webTools,
+            safety: .safe,
+            pathPatterns: ["~/.cache/node/corepack"],
+            strategy: .removeContents
+        ),
+        CleanupTarget(
+            id: "nvm-node-versions",
+            name: localized("target.nvm-node-versions.name", defaultValue: "nvm Node versions"),
+            summary: localized(
+                "target.nvm-node-versions.summary",
+                defaultValue: "Every Node.js version installed through nvm, including their global packages."
+            ),
+            category: .webTools,
+            safety: .destructive,
+            pathPatterns: ["~/.nvm/versions/node"],
+            strategy: .removeContents,
+            note: localized(
+                "target.nvm-node-versions.note",
+                defaultValue: "Reinstall with `nvm install <version>`; your default version stops working until reinstalled."
+            )
+        ),
+    ]
+
+    // MARK: - Cloud & DevOps
+
+    static let cloudDevOps: [CleanupTarget] = [
+        CleanupTarget(
+            id: "kubectl-cache",
+            name: localized("target.kubectl-cache.name", defaultValue: "kubectl cache"),
+            summary: localized(
+                "target.kubectl-cache.summary",
+                defaultValue: "API discovery and HTTP caches written by kubectl."
+            ),
+            category: .cloudDevOps,
+            safety: .safe,
+            pathPatterns: ["~/.kube/cache", "~/.kube/http-cache"],
+            strategy: .removeContents,
+            note: localized(
+                "target.kubectl-cache.note",
+                defaultValue: "Your cluster config in ~/.kube/config is never touched."
+            )
+        ),
+        CleanupTarget(
+            id: "helm-caches",
+            name: localized("target.helm-caches.name", defaultValue: "Helm caches"),
+            summary: localized(
+                "target.helm-caches.summary",
+                defaultValue: "Chart repository indexes and downloaded charts cached by Helm."
+            ),
+            category: .cloudDevOps,
+            safety: .safe,
+            pathPatterns: ["~/Library/Caches/helm"],
+            strategy: .removeContents
+        ),
+        CleanupTarget(
+            id: "pulumi-plugins",
+            name: localized("target.pulumi-plugins.name", defaultValue: "Pulumi plugins"),
+            summary: localized(
+                "target.pulumi-plugins.summary",
+                defaultValue: "Provider plugins downloaded by Pulumi. Re-downloaded on the next `pulumi up`."
+            ),
+            category: .cloudDevOps,
+            safety: .safe,
+            pathPatterns: ["~/.pulumi/plugins"],
+            strategy: .removeContents,
+            note: localized(
+                "target.pulumi-plugins.note",
+                defaultValue: "Credentials and workspaces in ~/.pulumi are never touched."
+            )
+        ),
+        CleanupTarget(
+            id: "gcloud-logs",
+            name: localized("target.gcloud-logs.name", defaultValue: "Google Cloud CLI logs"),
+            summary: localized(
+                "target.gcloud-logs.summary",
+                defaultValue: "Logs written by every gcloud invocation. They are never pruned."
+            ),
+            category: .cloudDevOps,
+            safety: .safe,
+            pathPatterns: ["~/.config/gcloud/logs"],
+            strategy: .removeContents,
+            note: localized(
+                "target.gcloud-logs.note",
+                defaultValue: "Auth and config in ~/.config/gcloud are never touched."
+            )
+        ),
+        CleanupTarget(
+            id: "azure-cli-logs",
+            name: localized("target.azure-cli-logs.name", defaultValue: "Azure CLI logs"),
+            summary: localized(
+                "target.azure-cli-logs.summary",
+                defaultValue: "Logs written by the Azure CLI."
+            ),
+            category: .cloudDevOps,
+            safety: .safe,
+            pathPatterns: ["~/.azure/logs"],
+            strategy: .removeContents,
+            note: localized(
+                "target.azure-cli-logs.note",
+                defaultValue: "Auth in ~/.azure is never touched."
+            )
+        ),
+        CleanupTarget(
+            id: "terraform-plugin-cache",
+            name: localized("target.terraform-plugin-cache.name", defaultValue: "Terraform plugin cache"),
+            summary: localized(
+                "target.terraform-plugin-cache.summary",
+                defaultValue: "Provider plugins cached when the plugin cache is enabled in .terraformrc. Re-downloaded on the next `terraform init`."
+            ),
+            category: .cloudDevOps,
+            safety: .safe,
+            pathPatterns: ["~/.terraform.d/plugin-cache"],
+            strategy: .removeContents
+        ),
     ]
 
     // MARK: - Other developer tools
@@ -1229,27 +1742,6 @@ public enum TargetRegistry {
             )
         ),
         CleanupTarget(
-            id: "docker-vm-disk",
-            name: localized(
-                "target.docker-vm-disk.name",
-                defaultValue: "Docker VM disk"
-            ),
-            summary: localized(
-                "target.docker-vm-disk.summary",
-                defaultValue: "The virtual disk holding all Docker images, containers and volumes. It only shrinks when Docker itself prunes."
-            ),
-            category: .otherTools,
-            safety: .caution,
-            pathPatterns: [
-                "~/Library/Containers/com.docker.docker/Data/vms/0/data/Docker.raw",
-                "~/Library/Containers/com.docker.docker/Data/vms/0/data/Docker.qcow2",
-            ],
-            strategy: .manual(instructions: localized(
-                "target.docker-vm-disk.instructions",
-                defaultValue: "Run `docker system prune -a` (and optionally `--volumes`) in Terminal, then let Docker Desktop compact the disk."
-            ))
-        ),
-        CleanupTarget(
             id: "vscode-workspace-storage",
             name: localized(
                 "target.vscode-workspace-storage.name",
@@ -1268,44 +1760,6 @@ public enum TargetRegistry {
                 defaultValue: "Open workspaces recreate their entry, but per-workspace history and unsaved editor state are lost."
             ),
             relatedAppBundleIDs: ["com.microsoft.VSCode"]
-        ),
-        CleanupTarget(
-            id: "playwright-browsers",
-            name: localized(
-                "target.playwright-browsers.name",
-                defaultValue: "Playwright browsers"
-            ),
-            summary: localized(
-                "target.playwright-browsers.summary",
-                defaultValue: "Browser builds downloaded by Playwright for testing. Each version set is over a gigabyte."
-            ),
-            category: .otherTools,
-            safety: .caution,
-            pathPatterns: ["~/Library/Caches/ms-playwright"],
-            strategy: .removeContents,
-            note: localized(
-                "target.playwright-browsers.note",
-                defaultValue: "Run `npx playwright install` to restore browsers before the next test run."
-            )
-        ),
-        CleanupTarget(
-            id: "puppeteer-cache",
-            name: localized(
-                "target.puppeteer-cache.name",
-                defaultValue: "Puppeteer browsers"
-            ),
-            summary: localized(
-                "target.puppeteer-cache.summary",
-                defaultValue: "Chrome builds downloaded by Puppeteer."
-            ),
-            category: .otherTools,
-            safety: .caution,
-            pathPatterns: ["~/.cache/puppeteer"],
-            strategy: .removeContents,
-            note: localized(
-                "target.puppeteer-cache.note",
-                defaultValue: "Re-downloaded the next time Puppeteer installs its browser."
-            )
         ),
         CleanupTarget(
             id: "pre-commit-cache",

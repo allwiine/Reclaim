@@ -9,6 +9,10 @@
 "category.dotNet.title" = ".NET & Visual Studio";
 "category.aiTools.title" = "AI Tools";
 "category.packageManagers.title" = "Package Managers";
+"category.containers.title" = "Containers & VMs";
+"category.jvm.title" = "Java & JVM";
+"category.webTools.title" = "Web & JS Tools";
+"category.cloudDevOps.title" = "Cloud & DevOps";
 "category.otherTools.title" = "Other Dev Tools";
 
 /* Safety levels */
@@ -183,24 +187,110 @@
 "target.poetry-cache.name" = "Poetry cache";
 "target.poetry-cache.summary" = "Package artifacts and metadata cached by the Poetry package manager.";
 
-/* Targets — Other developer tools */
-"target.vscode-caches.name" = "VS Code caches";
-"target.vscode-caches.summary" = "Extension host, rendering and code caches for Visual Studio Code.";
-"target.jetbrains-caches.name" = "JetBrains IDE caches";
-"target.jetbrains-caches.summary" = "Caches and indexes for IntelliJ, PyCharm, WebStorm and friends, kept per IDE version.";
-"target.jetbrains-caches.note" = "Each IDE rebuilds its index on next launch.";
+/* Targets — Package Managers (Python, Flutter/Dart, PHP additions) */
+"target.conda-pkgs.name" = "conda package cache";
+"target.conda-pkgs.summary" = "Downloaded and extracted packages shared by all conda environments.";
+"target.conda-pkgs.note" = "Prefer `conda clean --all` to remove only unused packages. Environments hard-link into this cache.";
+"target.pyenv-versions.name" = "pyenv Python versions";
+"target.pyenv-versions.summary" = "Every Python version installed through pyenv, including virtualenvs created by pyenv-virtualenv.";
+"target.pyenv-versions.note" = "Reinstall with `pyenv install <version>`.";
+"target.uv-python-toolchains.name" = "uv Python toolchains";
+"target.uv-python-toolchains.summary" = "Python versions installed and managed by uv. Re-downloaded on demand.";
+"target.uv-python-toolchains.note" = "Existing virtual environments link into these toolchains and break until the version is reinstalled.";
+"target.pipx-cache.name" = "pipx cache & logs";
+"target.pipx-cache.summary" = "Temporary environments and logs kept by pipx. Installed tools are not touched.";
+"target.pub-cache.name" = "pub cache";
+"target.pub-cache.summary" = "Dart and Flutter packages downloaded by pub. Restored by `flutter pub get` per project.";
+"target.pub-cache.note" = "Very old Dart SDKs (before 2.15) stored pub.dev publishing credentials in this folder.";
+"target.dart-analysis-cache.name" = "Dart analysis cache";
+"target.dart-analysis-cache.summary" = "Code indexes built by the Dart analysis server. Rebuilt on next analysis.";
+"target.composer-cache.name" = "Composer cache";
+"target.composer-cache.summary" = "Package archives cached by PHP's Composer.";
+
+/* Targets — Containers & VMs */
 "target.docker-vm-disk.name" = "Docker VM disk";
 "target.docker-vm-disk.summary" = "The virtual disk holding all Docker images, containers and volumes. It only shrinks when Docker itself prunes.";
 "target.docker-vm-disk.instructions" = "Run `docker system prune -a` (and optionally `--volumes`) in Terminal, then let Docker Desktop compact the disk.";
-"target.vscode-workspace-storage.name" = "VS Code workspace storage";
-"target.vscode-workspace-storage.summary" = "Per-workspace UI state, history and extension data for every folder you have ever opened — entries for deleted projects linger forever.";
-"target.vscode-workspace-storage.note" = "Open workspaces recreate their entry, but per-workspace history and unsaved editor state are lost.";
+"target.orbstack-data.name" = "OrbStack data";
+"target.orbstack-data.summary" = "The disk holding all OrbStack containers, images, volumes and Linux machines.";
+"target.orbstack-data.instructions" = "Run `docker system prune -a` in Terminal, or delete machines and volumes in the OrbStack app.";
+"target.colima-vm.name" = "Colima VMs";
+"target.colima-vm.summary" = "Virtual machine disks holding all containers and images for Colima instances.";
+"target.colima-vm.instructions" = "Run `docker system prune -a` while Colima is running, or `colima delete` to remove an instance entirely.";
+"target.lima-vms.name" = "Lima VMs";
+"target.lima-vms.summary" = "Virtual machines created by Lima, including their disks.";
+"target.lima-vms.instructions" = "Run `limactl delete <name>` in Terminal to remove a VM you no longer use.";
+"target.lima-cache.name" = "Lima image cache";
+"target.lima-cache.summary" = "Base images downloaded for Lima virtual machines. Re-downloaded when a VM is recreated.";
+"target.podman-machines.name" = "Podman machines";
+"target.podman-machines.summary" = "Machines, containers and images managed by Podman.";
+"target.podman-machines.instructions" = "Run `podman system prune -a` in Terminal, or `podman machine rm <name>` to remove a machine.";
+"target.vagrant-boxes.name" = "Vagrant boxes";
+"target.vagrant-boxes.summary" = "Base box images downloaded by Vagrant. Each box re-downloads on the next `vagrant up` that needs it.";
+"target.vagrant-boxes.note" = "Running VMs live in your provider (VirtualBox, VMware) and are not touched.";
+"target.minikube-cache.name" = "minikube cache";
+"target.minikube-cache.summary" = "Kubernetes images and ISOs cached by minikube. Re-downloaded on the next `minikube start`.";
+"target.rancher-desktop-caches.name" = "Rancher Desktop caches";
+"target.rancher-desktop-caches.summary" = "Downloaded Kubernetes images and update caches for Rancher Desktop.";
+
+/* Targets — Java & JVM */
+"target.maven-repository.name" = "Maven local repository";
+"target.maven-repository.summary" = "Every artifact any Maven or JVM build has ever downloaded, kept forever. The next build re-downloads what it still uses.";
+"target.maven-repository.note" = "The next build of each project is slower once.";
+"target.sdkman-archives.name" = "SDKMAN archives";
+"target.sdkman-archives.summary" = "Downloaded SDK archives and temp files kept by SDKMAN. Installed SDKs are not touched.";
+"target.coursier-cache.name" = "Coursier cache";
+"target.coursier-cache.summary" = "Artifacts cached by Coursier for Scala and JVM builds.";
+"target.ivy-cache.name" = "Ivy cache";
+"target.ivy-cache.summary" = "Artifacts cached by sbt and Apache Ivy builds.";
+
+/* Targets — Web & JS Tools */
 "target.playwright-browsers.name" = "Playwright browsers";
 "target.playwright-browsers.summary" = "Browser builds downloaded by Playwright for testing. Each version set is over a gigabyte.";
 "target.playwright-browsers.note" = "Run `npx playwright install` to restore browsers before the next test run.";
 "target.puppeteer-cache.name" = "Puppeteer browsers";
 "target.puppeteer-cache.summary" = "Chrome builds downloaded by Puppeteer.";
 "target.puppeteer-cache.note" = "Re-downloaded the next time Puppeteer installs its browser.";
+"target.bun-install-cache.name" = "Bun install cache";
+"target.bun-install-cache.summary" = "Packages cached by Bun's installer. Re-downloaded on demand.";
+"target.cypress-binaries.name" = "Cypress binaries";
+"target.cypress-binaries.summary" = "Every Cypress version ever installed, each around half a gigabyte. Old versions are never pruned.";
+"target.cypress-binaries.note" = "Run `npx cypress install` to restore the binary before the next test run.";
+"target.electron-caches.name" = "Electron caches";
+"target.electron-caches.summary" = "Electron builds and build tooling downloaded by electron and electron-builder.";
+"target.corepack-cache.name" = "Corepack cache";
+"target.corepack-cache.summary" = "Package manager versions (pnpm, Yarn) downloaded by Corepack.";
+"target.nvm-node-versions.name" = "nvm Node versions";
+"target.nvm-node-versions.summary" = "Every Node.js version installed through nvm, including their global packages.";
+"target.nvm-node-versions.note" = "Reinstall with `nvm install <version>`; your default version stops working until reinstalled.";
+
+/* Targets — Cloud & DevOps */
+"target.kubectl-cache.name" = "kubectl cache";
+"target.kubectl-cache.summary" = "API discovery and HTTP caches written by kubectl.";
+"target.kubectl-cache.note" = "Your cluster config in ~/.kube/config is never touched.";
+"target.helm-caches.name" = "Helm caches";
+"target.helm-caches.summary" = "Chart repository indexes and downloaded charts cached by Helm.";
+"target.pulumi-plugins.name" = "Pulumi plugins";
+"target.pulumi-plugins.summary" = "Provider plugins downloaded by Pulumi. Re-downloaded on the next `pulumi up`.";
+"target.pulumi-plugins.note" = "Credentials and workspaces in ~/.pulumi are never touched.";
+"target.gcloud-logs.name" = "Google Cloud CLI logs";
+"target.gcloud-logs.summary" = "Logs written by every gcloud invocation. They are never pruned.";
+"target.gcloud-logs.note" = "Auth and config in ~/.config/gcloud are never touched.";
+"target.azure-cli-logs.name" = "Azure CLI logs";
+"target.azure-cli-logs.summary" = "Logs written by the Azure CLI.";
+"target.azure-cli-logs.note" = "Auth in ~/.azure is never touched.";
+"target.terraform-plugin-cache.name" = "Terraform plugin cache";
+"target.terraform-plugin-cache.summary" = "Provider plugins cached when the plugin cache is enabled in .terraformrc. Re-downloaded on the next `terraform init`.";
+
+/* Targets — Other developer tools */
+"target.vscode-caches.name" = "VS Code caches";
+"target.vscode-caches.summary" = "Extension host, rendering and code caches for Visual Studio Code.";
+"target.jetbrains-caches.name" = "JetBrains IDE caches";
+"target.jetbrains-caches.summary" = "Caches and indexes for IntelliJ, PyCharm, WebStorm and friends, kept per IDE version.";
+"target.jetbrains-caches.note" = "Each IDE rebuilds its index on next launch.";
+"target.vscode-workspace-storage.name" = "VS Code workspace storage";
+"target.vscode-workspace-storage.summary" = "Per-workspace UI state, history and extension data for every folder you have ever opened — entries for deleted projects linger forever.";
+"target.vscode-workspace-storage.note" = "Open workspaces recreate their entry, but per-workspace history and unsaved editor state are lost.";
 "target.pre-commit-cache.name" = "pre-commit environments";
 "target.pre-commit-cache.summary" = "Hook environments built by pre-commit. Recreated on the next run in each repository.";
 "target.jetbrains-logs.name" = "JetBrains IDE logs";

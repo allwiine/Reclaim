@@ -15,6 +15,10 @@ public enum ToolCategory: String, CaseIterable, Identifiable, Sendable {
     case dotNet
     case aiTools
     case packageManagers
+    case containers
+    case jvm
+    case webTools
+    case cloudDevOps
     case otherTools
 
     public var id: String { rawValue }
@@ -32,6 +36,14 @@ public enum ToolCategory: String, CaseIterable, Identifiable, Sendable {
             localized("category.aiTools.title", defaultValue: "AI Tools")
         case .packageManagers:
             localized("category.packageManagers.title", defaultValue: "Package Managers")
+        case .containers:
+            localized("category.containers.title", defaultValue: "Containers & VMs")
+        case .jvm:
+            localized("category.jvm.title", defaultValue: "Java & JVM")
+        case .webTools:
+            localized("category.webTools.title", defaultValue: "Web & JS Tools")
+        case .cloudDevOps:
+            localized("category.cloudDevOps.title", defaultValue: "Cloud & DevOps")
         case .otherTools:
             localized("category.otherTools.title", defaultValue: "Other Dev Tools")
         }
@@ -45,6 +57,10 @@ public enum ToolCategory: String, CaseIterable, Identifiable, Sendable {
         case .dotNet: "curlybraces"
         case .aiTools: "sparkles"
         case .packageManagers: "shippingbox"
+        case .containers: "cube"
+        case .jvm: "cup.and.saucer"
+        case .webTools: "globe"
+        case .cloudDevOps: "cloud"
         case .otherTools: "wrench.and.screwdriver"
         }
     }

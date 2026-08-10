@@ -12,6 +12,10 @@
 "category.dotNet.title" = ".NET og Visual Studio";
 "category.aiTools.title" = "AI-verktøy";
 "category.packageManagers.title" = "Pakkebehandlere";
+"category.containers.title" = "Containere og VM-er";
+"category.jvm.title" = "Java og JVM";
+"category.webTools.title" = "Web- og JS-verktøy";
+"category.cloudDevOps.title" = "Sky og DevOps";
 "category.otherTools.title" = "Andre utviklerverktøy";
 
 /* Sikkerhetsnivåer */
@@ -186,24 +190,110 @@
 "target.poetry-cache.name" = "Poetry-cache";
 "target.poetry-cache.summary" = "Pakkeartefakter og metadata cachet av pakkebehandleren Poetry.";
 
-/* Mål, Andre utviklerverktøy */
-"target.vscode-caches.name" = "VS Code-cacher";
-"target.vscode-caches.summary" = "Extension host-, gjengivelses- og kodecacher for Visual Studio Code.";
-"target.jetbrains-caches.name" = "JetBrains IDE-cacher";
-"target.jetbrains-caches.summary" = "Cacher og indekser for IntelliJ, PyCharm, WebStorm og venner, lagret per IDE-versjon.";
-"target.jetbrains-caches.note" = "Hver IDE bygger indeksen sin på nytt ved neste oppstart.";
+/* Mål, pakkebehandlere (Python, Flutter/Dart, PHP) */
+"target.conda-pkgs.name" = "conda-pakkecache";
+"target.conda-pkgs.summary" = "Nedlastede og utpakkede pakker delt av alle conda-miljøer.";
+"target.conda-pkgs.note" = "Foretrekk `conda clean --all` for å fjerne bare ubrukte pakker. Miljøer hardlenker inn i denne cachen.";
+"target.pyenv-versions.name" = "pyenv Python-versjoner";
+"target.pyenv-versions.summary" = "Hver Python-versjon installert via pyenv, inkludert virtualenvs opprettet av pyenv-virtualenv.";
+"target.pyenv-versions.note" = "Installer på nytt med `pyenv install <versjon>`.";
+"target.uv-python-toolchains.name" = "uv Python-verktøykjeder";
+"target.uv-python-toolchains.summary" = "Python-versjoner installert og forvaltet av uv. Lastes ned på nytt ved behov.";
+"target.uv-python-toolchains.note" = "Eksisterende virtuelle miljøer lenker inn i disse verktøykjedene og slutter å virke til versjonen er reinstallert.";
+"target.pipx-cache.name" = "pipx-cache og -logger";
+"target.pipx-cache.summary" = "Midlertidige miljøer og logger fra pipx. Installerte verktøy røres ikke.";
+"target.pub-cache.name" = "pub-cache";
+"target.pub-cache.summary" = "Dart- og Flutter-pakker lastet ned av pub. Gjenopprettes av `flutter pub get` per prosjekt.";
+"target.pub-cache.note" = "Svært gamle Dart-SDK-er (før 2.15) lagret publiseringslegitimasjon for pub.dev i denne mappen.";
+"target.dart-analysis-cache.name" = "Dart-analysecache";
+"target.dart-analysis-cache.summary" = "Kodeindekser bygget av Darts analyseserver. Bygges på nytt ved neste analyse.";
+"target.composer-cache.name" = "Composer-cache";
+"target.composer-cache.summary" = "Pakkearkiver cachet av PHPs Composer.";
+
+/* Mål, containere og VM-er */
 "target.docker-vm-disk.name" = "Docker VM-disk";
 "target.docker-vm-disk.summary" = "Den virtuelle disken som rommer alle Docker-images, -containere og -volumer. Den krymper bare når Docker selv kjører prune.";
 "target.docker-vm-disk.instructions" = "Kjør `docker system prune -a` (og eventuelt `--volumes`) i Terminal, og la Docker Desktop komprimere disken etterpå.";
-"target.vscode-workspace-storage.name" = "VS Code workspace-lagring";
-"target.vscode-workspace-storage.summary" = "UI-tilstand, historikk og utvidelsesdata per workspace for hver mappe du noen gang har åpnet. Oppføringer for slettede prosjekter blir liggende for alltid.";
-"target.vscode-workspace-storage.note" = "Åpne workspaces oppretter oppføringen sin på nytt, men historikk og ulagret editor-tilstand per workspace går tapt.";
+"target.orbstack-data.name" = "OrbStack-data";
+"target.orbstack-data.summary" = "Disken som holder alle OrbStack-containere, images, volumer og Linux-maskiner.";
+"target.orbstack-data.instructions" = "Kjør `docker system prune -a` i Terminal, eller slett maskiner og volumer i OrbStack-appen.";
+"target.colima-vm.name" = "Colima-VM-er";
+"target.colima-vm.summary" = "VM-disker som holder alle containere og images for Colima-instanser.";
+"target.colima-vm.instructions" = "Kjør `docker system prune -a` mens Colima kjører, eller `colima delete` for å fjerne en instans helt.";
+"target.lima-vms.name" = "Lima-VM-er";
+"target.lima-vms.summary" = "Virtuelle maskiner opprettet av Lima, inkludert diskene deres.";
+"target.lima-vms.instructions" = "Kjør `limactl delete <navn>` i Terminal for å fjerne en VM du ikke lenger bruker.";
+"target.lima-cache.name" = "Lima-imagecache";
+"target.lima-cache.summary" = "Baseimages lastet ned for Lima-VM-er. Lastes ned på nytt når en VM gjenopprettes.";
+"target.podman-machines.name" = "Podman-maskiner";
+"target.podman-machines.summary" = "Maskiner, containere og images forvaltet av Podman.";
+"target.podman-machines.instructions" = "Kjør `podman system prune -a` i Terminal, eller `podman machine rm <navn>` for å fjerne en maskin.";
+"target.vagrant-boxes.name" = "Vagrant-bokser";
+"target.vagrant-boxes.summary" = "Basebokser lastet ned av Vagrant. Hver boks lastes ned på nytt ved neste `vagrant up` som trenger den.";
+"target.vagrant-boxes.note" = "Kjørende VM-er ligger hos provideren (VirtualBox, VMware) og røres ikke.";
+"target.minikube-cache.name" = "minikube-cache";
+"target.minikube-cache.summary" = "Kubernetes-images og ISO-er cachet av minikube. Lastes ned på nytt ved neste `minikube start`.";
+"target.rancher-desktop-caches.name" = "Rancher Desktop-cacher";
+"target.rancher-desktop-caches.summary" = "Nedlastede Kubernetes-images og oppdateringscacher for Rancher Desktop.";
+
+/* Mål, Java og JVM */
+"target.maven-repository.name" = "Lokalt Maven-repo";
+"target.maven-repository.summary" = "Alle artefakter noe Maven- eller JVM-bygg noen gang har lastet ned, beholdt for alltid. Neste bygg laster ned det det fortsatt bruker på nytt.";
+"target.maven-repository.note" = "Neste bygg av hvert prosjekt går tregere én gang.";
+"target.sdkman-archives.name" = "SDKMAN-arkiver";
+"target.sdkman-archives.summary" = "Nedlastede SDK-arkiver og midlertidige filer fra SDKMAN. Installerte SDK-er røres ikke.";
+"target.coursier-cache.name" = "Coursier-cache";
+"target.coursier-cache.summary" = "Artefakter cachet av Coursier for Scala- og JVM-bygg.";
+"target.ivy-cache.name" = "Ivy-cache";
+"target.ivy-cache.summary" = "Artefakter cachet av sbt- og Apache Ivy-bygg.";
+
+/* Mål, web- og JS-verktøy */
 "target.playwright-browsers.name" = "Playwright-nettlesere";
 "target.playwright-browsers.summary" = "Nettleserbygg lastet ned av Playwright for testing. Hvert versjonssett er over en gigabyte.";
 "target.playwright-browsers.note" = "Kjør `npx playwright install` for å gjenopprette nettlesere før neste testkjøring.";
 "target.puppeteer-cache.name" = "Puppeteer-nettlesere";
 "target.puppeteer-cache.summary" = "Chrome-bygg lastet ned av Puppeteer.";
 "target.puppeteer-cache.note" = "Lastes ned på nytt neste gang Puppeteer installerer nettleseren sin.";
+"target.bun-install-cache.name" = "Bun-installcache";
+"target.bun-install-cache.summary" = "Pakker cachet av Buns installer. Lastes ned på nytt ved behov.";
+"target.cypress-binaries.name" = "Cypress-binærer";
+"target.cypress-binaries.summary" = "Hver Cypress-versjon som noen gang er installert, hver på rundt en halv gigabyte. Gamle versjoner ryddes aldri.";
+"target.cypress-binaries.note" = "Kjør `npx cypress install` for å gjenopprette binæren før neste testkjøring.";
+"target.electron-caches.name" = "Electron-cacher";
+"target.electron-caches.summary" = "Electron-bygg og byggverktøy lastet ned av electron og electron-builder.";
+"target.corepack-cache.name" = "Corepack-cache";
+"target.corepack-cache.summary" = "Pakkebehandlerversjoner (pnpm, Yarn) lastet ned av Corepack.";
+"target.nvm-node-versions.name" = "nvm Node-versjoner";
+"target.nvm-node-versions.summary" = "Hver Node.js-versjon installert via nvm, inkludert deres globale pakker.";
+"target.nvm-node-versions.note" = "Installer på nytt med `nvm install <versjon>`; standardversjonen din slutter å virke til den er reinstallert.";
+
+/* Mål, sky og DevOps */
+"target.kubectl-cache.name" = "kubectl-cache";
+"target.kubectl-cache.summary" = "API-discovery- og HTTP-cacher skrevet av kubectl.";
+"target.kubectl-cache.note" = "Klusterkonfigen din i ~/.kube/config røres aldri.";
+"target.helm-caches.name" = "Helm-cacher";
+"target.helm-caches.summary" = "Chart-repoindekser og nedlastede charts cachet av Helm.";
+"target.pulumi-plugins.name" = "Pulumi-plugins";
+"target.pulumi-plugins.summary" = "Provider-plugins lastet ned av Pulumi. Lastes ned på nytt ved neste `pulumi up`.";
+"target.pulumi-plugins.note" = "Legitimasjon og workspaces i ~/.pulumi røres aldri.";
+"target.gcloud-logs.name" = "Google Cloud CLI-logger";
+"target.gcloud-logs.summary" = "Logger skrevet av hver gcloud-kjøring. De ryddes aldri.";
+"target.gcloud-logs.note" = "Auth og konfig i ~/.config/gcloud røres aldri.";
+"target.azure-cli-logs.name" = "Azure CLI-logger";
+"target.azure-cli-logs.summary" = "Logger skrevet av Azure CLI.";
+"target.azure-cli-logs.note" = "Auth i ~/.azure røres aldri.";
+"target.terraform-plugin-cache.name" = "Terraform-plugincache";
+"target.terraform-plugin-cache.summary" = "Provider-plugins cachet når plugincachen er slått på i .terraformrc. Lastes ned på nytt ved neste `terraform init`.";
+
+/* Mål, Andre utviklerverktøy */
+"target.vscode-caches.name" = "VS Code-cacher";
+"target.vscode-caches.summary" = "Extension host-, gjengivelses- og kodecacher for Visual Studio Code.";
+"target.jetbrains-caches.name" = "JetBrains IDE-cacher";
+"target.jetbrains-caches.summary" = "Cacher og indekser for IntelliJ, PyCharm, WebStorm og venner, lagret per IDE-versjon.";
+"target.jetbrains-caches.note" = "Hver IDE bygger indeksen sin på nytt ved neste oppstart.";
+"target.vscode-workspace-storage.name" = "VS Code workspace-lagring";
+"target.vscode-workspace-storage.summary" = "UI-tilstand, historikk og utvidelsesdata per workspace for hver mappe du noen gang har åpnet. Oppføringer for slettede prosjekter blir liggende for alltid.";
+"target.vscode-workspace-storage.note" = "Åpne workspaces oppretter oppføringen sin på nytt, men historikk og ulagret editor-tilstand per workspace går tapt.";
 "target.pre-commit-cache.name" = "pre-commit-miljøer";
 "target.pre-commit-cache.summary" = "Hook-miljøer bygget av pre-commit. Opprettes på nytt ved neste kjøring i hvert repo.";
 "target.jetbrains-logs.name" = "JetBrains IDE-logger";

@@ -66,6 +66,26 @@ struct RegistryTests {
         #expect(!TargetRegistry.targets(in: .dotNet).isEmpty)
     }
 
+    @Test("The containers category has targets")
+    func containersCategoryPopulated() {
+        #expect(!TargetRegistry.targets(in: .containers).isEmpty)
+    }
+
+    @Test("The JVM category has targets")
+    func jvmCategoryPopulated() {
+        #expect(!TargetRegistry.targets(in: .jvm).isEmpty)
+    }
+
+    @Test("The web tools category has targets")
+    func webToolsCategoryPopulated() {
+        #expect(!TargetRegistry.targets(in: .webTools).isEmpty)
+    }
+
+    @Test("The cloud & DevOps category has targets")
+    func cloudDevOpsCategoryPopulated() {
+        #expect(!TargetRegistry.targets(in: .cloudDevOps).isEmpty)
+    }
+
     @Test(".NET credentials and installed tools are never registered")
     func dotNetUserDataIsProtected() {
         for target in TargetRegistry.all {
@@ -87,6 +107,7 @@ struct RegistryTests {
             "nuget-packages": "com.jetbrains.rider",
             "vscode-caches": "com.microsoft.VSCode",
             "claude-desktop-caches": "com.anthropic.claudefordesktop",
+            "rancher-desktop-caches": "io.rancherdesktop.app",
         ]
         for (id, bundleID) in expectations {
             let target = TargetRegistry.all.first { $0.id == id }
