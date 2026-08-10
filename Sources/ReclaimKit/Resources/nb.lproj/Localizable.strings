@@ -211,6 +211,9 @@
 "target.composer-cache.summary" = "Pakkearkiver cachet av PHPs Composer.";
 
 /* Mål, containere og VM-er */
+"target.docker-vm-disk.name" = "Docker VM-disk";
+"target.docker-vm-disk.summary" = "Den virtuelle disken som rommer alle Docker-images, -containere og -volumer. Den krymper bare når Docker selv kjører prune.";
+"target.docker-vm-disk.instructions" = "Kjør `docker system prune -a` (og eventuelt `--volumes`) i Terminal, og la Docker Desktop komprimere disken etterpå.";
 "target.orbstack-data.name" = "OrbStack-data";
 "target.orbstack-data.summary" = "Disken som holder alle OrbStack-containere, images, volumer og Linux-maskiner.";
 "target.orbstack-data.instructions" = "Kjør `docker system prune -a` i Terminal, eller slett maskiner og volumer i OrbStack-appen.";
@@ -288,9 +291,6 @@
 "target.jetbrains-caches.name" = "JetBrains IDE-cacher";
 "target.jetbrains-caches.summary" = "Cacher og indekser for IntelliJ, PyCharm, WebStorm og venner, lagret per IDE-versjon.";
 "target.jetbrains-caches.note" = "Hver IDE bygger indeksen sin på nytt ved neste oppstart.";
-"target.docker-vm-disk.name" = "Docker VM-disk";
-"target.docker-vm-disk.summary" = "Den virtuelle disken som rommer alle Docker-images, -containere og -volumer. Den krymper bare når Docker selv kjører prune.";
-"target.docker-vm-disk.instructions" = "Kjør `docker system prune -a` (og eventuelt `--volumes`) i Terminal, og la Docker Desktop komprimere disken etterpå.";
 "target.vscode-workspace-storage.name" = "VS Code workspace-lagring";
 "target.vscode-workspace-storage.summary" = "UI-tilstand, historikk og utvidelsesdata per workspace for hver mappe du noen gang har åpnet. Oppføringer for slettede prosjekter blir liggende for alltid.";
 "target.vscode-workspace-storage.note" = "Åpne workspaces oppretter oppføringen sin på nytt, men historikk og ulagret editor-tilstand per workspace går tapt.";

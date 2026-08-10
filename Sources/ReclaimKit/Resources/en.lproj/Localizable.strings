@@ -208,6 +208,9 @@
 "target.composer-cache.summary" = "Package archives cached by PHP's Composer.";
 
 /* Targets — Containers & VMs */
+"target.docker-vm-disk.name" = "Docker VM disk";
+"target.docker-vm-disk.summary" = "The virtual disk holding all Docker images, containers and volumes. It only shrinks when Docker itself prunes.";
+"target.docker-vm-disk.instructions" = "Run `docker system prune -a` (and optionally `--volumes`) in Terminal, then let Docker Desktop compact the disk.";
 "target.orbstack-data.name" = "OrbStack data";
 "target.orbstack-data.summary" = "The disk holding all OrbStack containers, images, volumes and Linux machines.";
 "target.orbstack-data.instructions" = "Run `docker system prune -a` in Terminal, or delete machines and volumes in the OrbStack app.";
@@ -285,9 +288,6 @@
 "target.jetbrains-caches.name" = "JetBrains IDE caches";
 "target.jetbrains-caches.summary" = "Caches and indexes for IntelliJ, PyCharm, WebStorm and friends, kept per IDE version.";
 "target.jetbrains-caches.note" = "Each IDE rebuilds its index on next launch.";
-"target.docker-vm-disk.name" = "Docker VM disk";
-"target.docker-vm-disk.summary" = "The virtual disk holding all Docker images, containers and volumes. It only shrinks when Docker itself prunes.";
-"target.docker-vm-disk.instructions" = "Run `docker system prune -a` (and optionally `--volumes`) in Terminal, then let Docker Desktop compact the disk.";
 "target.vscode-workspace-storage.name" = "VS Code workspace storage";
 "target.vscode-workspace-storage.summary" = "Per-workspace UI state, history and extension data for every folder you have ever opened — entries for deleted projects linger forever.";
 "target.vscode-workspace-storage.note" = "Open workspaces recreate their entry, but per-workspace history and unsaved editor state are lost.";
