@@ -13,6 +13,14 @@ on:
     # Dispatch runs are always rehearsals and never publish, regardless of
     # any input parameters (a dispatch has no tag, so it would publish a
     # bogus v0.0.0).
+  workflow_call:
+    # Invoked by release-please.yml after a Release PR merge created a
+    # draft release. The build publishes into that existing draft.
+    inputs:
+      tag:
+        description: "Tag of the existing draft release to build and publish (vX.Y.Z)"
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -41,8 +49,16 @@ jobs:
         id: version
         env:
           EVENT_NAME: ${{ github.event_name }}
+          INPUT_TAG: ${{ inputs.tag }}
         run: |
-          if [ "$EVENT_NAME" = "push" ]; then
+          # Precedence: workflow_call input (release-please chain), then a
+          # direct tag push, else a versionless rehearsal. In a called
+          # workflow EVENT_NAME is the CALLER's event ("push" to main) and
+          # GITHUB_REF_NAME is "main", so the push branch must also check
+          # that the ref is actually a tag.
+          if [ -n "$INPUT_TAG" ]; then
+            TAG="$INPUT_TAG"
+          elif [ "$EVENT_NAME" = "push" ] && [ "${GITHUB_REF#refs/tags/}" != "$GITHUB_REF" ]; then
             TAG="${GITHUB_REF_NAME}"
           else
             TAG="v0.0.0"
@@ -180,8 +196,9 @@ jobs:
             ${{ runner.temp }}/appcast/appcast.xml
 
       - name: Publish release
-        # Only real tag pushes publish — workflow_dispatch is always a
-        # rehearsal and never publishes.
+        # Publishes on real tag pushes and on workflow_call from
+        # release-please (the caller's event is a push to main).
+        # workflow_dispatch is always a rehearsal and never publishes.
         if: github.event_name == 'push'
         env:
           GH_TOKEN: ${{ github.token }}
@@ -190,17 +207,26 @@ jobs:
           PRERELEASE: ${{ steps.version.outputs.prerelease }}
           DMG: ${{ steps.dmg.outputs.dmg }}
         run: |
-          EXTRA=""
-          if [ "$PRERELEASE" = "true" ]; then
-            EXTRA="--prerelease"
+          if gh release view "$TAG" --json isDraft > /dev/null 2>&1; then
+            # Draft created by release-please — attach assets and go live.
+            # --clobber keeps a re-run of a half-failed publish idempotent.
+            gh release upload "$TAG" --clobber \
+              "$DMG" \
+              "$RUNNER_TEMP/appcast/appcast.xml"
+            gh release edit "$TAG" --draft=false
+          else
+            EXTRA=""
+            if [ "$PRERELEASE" = "true" ]; then
+              EXTRA="--prerelease"
+            fi
+            gh release create "$TAG" \
+              --draft \
+              --title "Reclaim $VERSION" \
+              --generate-notes $EXTRA \
+              "$DMG" \
+              "$RUNNER_TEMP/appcast/appcast.xml"
+            gh release edit "$TAG" --draft=false
           fi
-          gh release create "$TAG" \
-            --draft \
-            --title "Reclaim $VERSION" \
-            --generate-notes $EXTRA \
-            "$DMG" \
-            "$RUNNER_TEMP/appcast/appcast.xml"
-          gh release edit "$TAG" --draft=false
 
       - name: Remove signing keychain
         if: always()

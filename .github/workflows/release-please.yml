@@ -1,0 +1,56 @@
+# Maintains a Release PR from Conventional Commits on main. Merging that
+# PR makes release-please create a DRAFT GitHub release; the chained job
+# then runs the full build/notarize/publish pipeline (release.yml) in this
+# same run, so nothing relies on a tag-push event. release-please
+# authenticates with a short-lived GitHub App token (RELEASE_BOT_APP_ID
+# variable + RELEASE_BOT_PRIVATE_KEY secret) instead of GITHUB_TOKEN, so
+# its Release PRs trigger CI like any human-created PR; GITHUB_TOKEN-created
+# events never start workflows, which would leave required checks missing.
+
+name: Release Please
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: release-please
+  cancel-in-progress: false
+
+jobs:
+  release-please:
+    name: Maintain release PR
+    runs-on: ubuntu-latest
+    outputs:
+      release_created: ${{ steps.rp.outputs.release_created }}
+      tag_name: ${{ steps.rp.outputs.tag_name }}
+    steps:
+      - id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.RELEASE_BOT_APP_ID }}
+          private-key: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
+      - id: rp
+        uses: googleapis/release-please-action@v4
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  build-and-publish:
+    name: Build, notarize & publish
+    needs: release-please
+    if: needs.release-please.outputs.release_created == 'true'
+    permissions:
+      contents: write
+    concurrency:
+      group: release
+      cancel-in-progress: false
+    uses: ./.github/workflows/release.yml
+    with:
+      tag: ${{ needs.release-please.outputs.tag_name }}
+    secrets: inherit
