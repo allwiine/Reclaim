@@ -12,6 +12,10 @@
 "category.dotNet.title" = ".NET og Visual Studio";
 "category.aiTools.title" = "AI-verktøy";
 "category.packageManagers.title" = "Pakkebehandlere";
+"category.containers.title" = "Containere og VM-er";
+"category.jvm.title" = "Java og JVM";
+"category.webTools.title" = "Web- og JS-verktøy";
+"category.cloudDevOps.title" = "Sky og DevOps";
 "category.otherTools.title" = "Andre utviklerverktøy";
 
 /* Sikkerhetsnivåer */

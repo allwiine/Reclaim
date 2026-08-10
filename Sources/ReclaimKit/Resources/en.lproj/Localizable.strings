@@ -9,6 +9,10 @@
 "category.dotNet.title" = ".NET & Visual Studio";
 "category.aiTools.title" = "AI Tools";
 "category.packageManagers.title" = "Package Managers";
+"category.containers.title" = "Containers & VMs";
+"category.jvm.title" = "Java & JVM";
+"category.webTools.title" = "Web & JS Tools";
+"category.cloudDevOps.title" = "Cloud & DevOps";
 "category.otherTools.title" = "Other Dev Tools";
 
 /* Safety levels */
