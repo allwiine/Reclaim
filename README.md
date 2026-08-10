@@ -25,17 +25,22 @@ Built with **Swift 6.2**, **SwiftUI**, the **Observation** framework, strict con
 | --- | --- |
 | Xcode & Simulators | Derived data, device support files, archives, simulator caches, SwiftUI Previews data, device logs, XCTest simulator clones, unavailable simulators (`simctl`) |
 | Android Studio | Gradle caches, wrapper distributions, build-scan data, IDE caches, Kotlin/Native toolchains, SDK system images, AVDs |
+| .NET & Visual Studio | NuGet global packages & download caches, orphaned SDK workload packs, Azure Functions bundles, Visual Studio for Mac / Xamarin leftovers |
 | AI tools | Claude Code caches, logs & transcripts, Codex / Gemini / Copilot CLI data, Claude & ChatGPT Desktop caches, Cursor / Windsurf / Antigravity caches, Cline & Roo Code task history, Continue index, aider / Goose / OpenCode data, Ollama / Hugging Face / LM Studio / llama.cpp models |
-| Package managers | Homebrew, npm, pnpm, Yarn (classic & Berry), pip, uv, Poetry, CocoaPods, SwiftPM, Cargo, Go, Deno, node-gyp |
-| Other dev tools | VS Code caches & workspace storage, JetBrains caches & logs, Playwright / Puppeteer browsers, pre-commit environments, Docker VM disk (measured; cleaned via Docker itself) |
+| Package managers | Homebrew, npm, pnpm, Yarn (classic & Berry), pip, uv, Poetry, conda, pyenv, pipx, pub (Flutter/Dart), Composer, CocoaPods, SwiftPM, Cargo, Go, Deno, node-gyp |
+| Containers & VMs | Docker VM disk, OrbStack / Colima / Lima / Podman machines (measured; cleaned via their own tools), Vagrant boxes, minikube cache, Rancher Desktop caches |
+| Java & JVM | Maven local repository, SDKMAN archives, Coursier and Ivy/sbt caches |
+| Web & JS tools | Playwright / Puppeteer browsers, Cypress binaries, Bun install cache, Electron caches, Corepack cache, nvm Node versions |
+| Cloud & DevOps | kubectl, Helm and Pulumi caches, gcloud & Azure CLI logs, Terraform plugin cache |
+| Other dev tools | VS Code caches & workspace storage, JetBrains caches & logs, pre-commit environments |
 
 Every item carries a safety rating:
 
 - **Safe** — regenerated automatically (build caches, logs).
 - **Caution** — restorable, but re-downloading or losing history costs something (AI models, Claude Code transcripts, Xcode archives).
-- **Destructive** — removes things you created (Android emulators).
+- **Destructive** — removes things you created (Android emulators, nvm / pyenv versions).
 
-Items Reclaim should *not* delete itself (Docker's VM disk, Go's read-only module cache) are still measured, but cleaning is delegated to the owning tool with clear instructions. Claude Code's auth, settings and plugins are structurally excluded from the catalogue — a unit test enforces it.
+Items Reclaim should *not* delete itself (Docker's and OrbStack's VM disks, Colima / Lima / Podman machines, Go's read-only module cache) are still measured, but cleaning is delegated to the owning tool with clear instructions. Claude Code's auth, settings and plugins are structurally excluded from the catalogue — a unit test enforces it.
 
 ## Requirements
 
