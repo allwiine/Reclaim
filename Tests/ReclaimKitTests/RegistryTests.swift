@@ -81,6 +81,11 @@ struct RegistryTests {
         #expect(!TargetRegistry.targets(in: .webTools).isEmpty)
     }
 
+    @Test("The cloud & DevOps category has targets")
+    func cloudDevOpsCategoryPopulated() {
+        #expect(!TargetRegistry.targets(in: .cloudDevOps).isEmpty)
+    }
+
     @Test(".NET credentials and installed tools are never registered")
     func dotNetUserDataIsProtected() {
         for target in TargetRegistry.all {

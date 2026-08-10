@@ -241,6 +241,24 @@
 "target.nvm-node-versions.summary" = "Every Node.js version installed through nvm, including their global packages.";
 "target.nvm-node-versions.note" = "Reinstall with `nvm install <version>`; your default version stops working until reinstalled.";
 
+/* Targets — Cloud & DevOps */
+"target.kubectl-cache.name" = "kubectl cache";
+"target.kubectl-cache.summary" = "API discovery and HTTP caches written by kubectl.";
+"target.kubectl-cache.note" = "Your cluster config in ~/.kube/config is never touched.";
+"target.helm-caches.name" = "Helm caches";
+"target.helm-caches.summary" = "Chart repository indexes and downloaded charts cached by Helm.";
+"target.pulumi-plugins.name" = "Pulumi plugins";
+"target.pulumi-plugins.summary" = "Provider plugins downloaded by Pulumi. Re-downloaded on the next `pulumi up`.";
+"target.pulumi-plugins.note" = "Credentials and workspaces in ~/.pulumi are never touched.";
+"target.gcloud-logs.name" = "Google Cloud CLI logs";
+"target.gcloud-logs.summary" = "Logs written by every gcloud invocation. They are never pruned.";
+"target.gcloud-logs.note" = "Auth and config in ~/.config/gcloud are never touched.";
+"target.azure-cli-logs.name" = "Azure CLI logs";
+"target.azure-cli-logs.summary" = "Logs written by the Azure CLI.";
+"target.azure-cli-logs.note" = "Auth in ~/.azure is never touched.";
+"target.terraform-plugin-cache.name" = "Terraform plugin cache";
+"target.terraform-plugin-cache.summary" = "Provider plugins cached when the plugin cache is enabled in .terraformrc. Re-downloaded on the next `terraform init`.";
+
 /* Targets — Other developer tools */
 "target.vscode-caches.name" = "VS Code caches";
 "target.vscode-caches.summary" = "Extension host, rendering and code caches for Visual Studio Code.";

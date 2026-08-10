@@ -244,6 +244,24 @@
 "target.nvm-node-versions.summary" = "Hver Node.js-versjon installert via nvm, inkludert deres globale pakker.";
 "target.nvm-node-versions.note" = "Installer på nytt med `nvm install <versjon>`; standardversjonen din slutter å virke til den er reinstallert.";
 
+/* Mål, sky og DevOps */
+"target.kubectl-cache.name" = "kubectl-cache";
+"target.kubectl-cache.summary" = "API-discovery- og HTTP-cacher skrevet av kubectl.";
+"target.kubectl-cache.note" = "Klusterkonfigen din i ~/.kube/config røres aldri.";
+"target.helm-caches.name" = "Helm-cacher";
+"target.helm-caches.summary" = "Chart-repoindekser og nedlastede charts cachet av Helm.";
+"target.pulumi-plugins.name" = "Pulumi-plugins";
+"target.pulumi-plugins.summary" = "Provider-plugins lastet ned av Pulumi. Lastes ned på nytt ved neste `pulumi up`.";
+"target.pulumi-plugins.note" = "Legitimasjon og workspaces i ~/.pulumi røres aldri.";
+"target.gcloud-logs.name" = "Google Cloud CLI-logger";
+"target.gcloud-logs.summary" = "Logger skrevet av hver gcloud-kjøring. De ryddes aldri.";
+"target.gcloud-logs.note" = "Auth og konfig i ~/.config/gcloud røres aldri.";
+"target.azure-cli-logs.name" = "Azure CLI-logger";
+"target.azure-cli-logs.summary" = "Logger skrevet av Azure CLI.";
+"target.azure-cli-logs.note" = "Auth i ~/.azure røres aldri.";
+"target.terraform-plugin-cache.name" = "Terraform-plugincache";
+"target.terraform-plugin-cache.summary" = "Provider-plugins cachet når plugincachen er slått på i .terraformrc. Lastes ned på nytt ved neste `terraform init`.";
+
 /* Mål, Andre utviklerverktøy */
 "target.vscode-caches.name" = "VS Code-cacher";
 "target.vscode-caches.summary" = "Extension host-, gjengivelses- og kodecacher for Visual Studio Code.";

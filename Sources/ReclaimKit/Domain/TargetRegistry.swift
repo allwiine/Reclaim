@@ -1497,7 +1497,96 @@ public enum TargetRegistry {
 
     // MARK: - Cloud & DevOps
 
-    static let cloudDevOps: [CleanupTarget] = []
+    static let cloudDevOps: [CleanupTarget] = [
+        CleanupTarget(
+            id: "kubectl-cache",
+            name: localized("target.kubectl-cache.name", defaultValue: "kubectl cache"),
+            summary: localized(
+                "target.kubectl-cache.summary",
+                defaultValue: "API discovery and HTTP caches written by kubectl."
+            ),
+            category: .cloudDevOps,
+            safety: .safe,
+            pathPatterns: ["~/.kube/cache", "~/.kube/http-cache"],
+            strategy: .removeContents,
+            note: localized(
+                "target.kubectl-cache.note",
+                defaultValue: "Your cluster config in ~/.kube/config is never touched."
+            )
+        ),
+        CleanupTarget(
+            id: "helm-caches",
+            name: localized("target.helm-caches.name", defaultValue: "Helm caches"),
+            summary: localized(
+                "target.helm-caches.summary",
+                defaultValue: "Chart repository indexes and downloaded charts cached by Helm."
+            ),
+            category: .cloudDevOps,
+            safety: .safe,
+            pathPatterns: ["~/Library/Caches/helm"],
+            strategy: .removeContents
+        ),
+        CleanupTarget(
+            id: "pulumi-plugins",
+            name: localized("target.pulumi-plugins.name", defaultValue: "Pulumi plugins"),
+            summary: localized(
+                "target.pulumi-plugins.summary",
+                defaultValue: "Provider plugins downloaded by Pulumi. Re-downloaded on the next `pulumi up`."
+            ),
+            category: .cloudDevOps,
+            safety: .safe,
+            pathPatterns: ["~/.pulumi/plugins"],
+            strategy: .removeContents,
+            note: localized(
+                "target.pulumi-plugins.note",
+                defaultValue: "Credentials and workspaces in ~/.pulumi are never touched."
+            )
+        ),
+        CleanupTarget(
+            id: "gcloud-logs",
+            name: localized("target.gcloud-logs.name", defaultValue: "Google Cloud CLI logs"),
+            summary: localized(
+                "target.gcloud-logs.summary",
+                defaultValue: "Logs written by every gcloud invocation. They are never pruned."
+            ),
+            category: .cloudDevOps,
+            safety: .safe,
+            pathPatterns: ["~/.config/gcloud/logs"],
+            strategy: .removeContents,
+            note: localized(
+                "target.gcloud-logs.note",
+                defaultValue: "Auth and config in ~/.config/gcloud are never touched."
+            )
+        ),
+        CleanupTarget(
+            id: "azure-cli-logs",
+            name: localized("target.azure-cli-logs.name", defaultValue: "Azure CLI logs"),
+            summary: localized(
+                "target.azure-cli-logs.summary",
+                defaultValue: "Logs written by the Azure CLI."
+            ),
+            category: .cloudDevOps,
+            safety: .safe,
+            pathPatterns: ["~/.azure/logs"],
+            strategy: .removeContents,
+            note: localized(
+                "target.azure-cli-logs.note",
+                defaultValue: "Auth in ~/.azure is never touched."
+            )
+        ),
+        CleanupTarget(
+            id: "terraform-plugin-cache",
+            name: localized("target.terraform-plugin-cache.name", defaultValue: "Terraform plugin cache"),
+            summary: localized(
+                "target.terraform-plugin-cache.summary",
+                defaultValue: "Provider plugins cached when the plugin cache is enabled in .terraformrc. Re-downloaded on the next `terraform init`."
+            ),
+            category: .cloudDevOps,
+            safety: .safe,
+            pathPatterns: ["~/.terraform.d/plugin-cache"],
+            strategy: .removeContents
+        ),
+    ]
 
     // MARK: - Other developer tools
 
