@@ -3,10 +3,12 @@
 [![CI](https://github.com/allwiine/Reclaim/actions/workflows/ci.yml/badge.svg)](https://github.com/allwiine/Reclaim/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Platform: macOS 15+](https://img.shields.io/badge/platform-macOS%2015%2B-lightgrey.svg)](#requirements)
+[![Website](https://img.shields.io/badge/website-reclaim--app.dev-8A2BE2.svg)](https://reclaim-app.dev/)
 
 ## Install
 
 Download the latest `Reclaim-<version>.dmg` from
+[reclaim-app.dev](https://reclaim-app.dev/) or straight from
 [Releases](https://github.com/allwiine/Reclaim/releases/latest), open it and
 drag Reclaim to Applications. The app is notarized and updates itself via
 Sparkle.
