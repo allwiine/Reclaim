@@ -154,12 +154,14 @@ extension ToolCategory {
         case .xcode: Color(hex: 0x67AAED)
         case .android: Color(hex: 0x69BA7C)
         case .dotNet: Color(hex: 0xCF88C8)
+        case .gameEngines: Color(hex: 0xD97A7A)
         case .aiTools: Color(hex: 0xE4896A)
         case .packageManagers: Color(hex: 0xB093E5)
         case .containers: Color(hex: 0xDDB55F)
         case .jvm: Color(hex: 0xB58A66)
         case .webTools: Color(hex: 0xA9C763)
         case .cloudDevOps: Color(hex: 0x8FB6D9)
+        case .embedded: Color(hex: 0x8C9BAB)
         case .otherTools: Color(hex: 0x14BBC2)
         }
     }
@@ -170,12 +172,14 @@ extension ToolCategory {
         case .xcode: localized("category.xcode.letter", defaultValue: "X")
         case .android: localized("category.android.letter", defaultValue: "A")
         case .dotNet: localized("category.dotNet.letter", defaultValue: "N")
+        case .gameEngines: localized("category.gameEngines.letter", defaultValue: "G")
         case .aiTools: localized("category.aiTools.letter", defaultValue: "AI")
         case .packageManagers: localized("category.packageManagers.letter", defaultValue: "P")
         case .containers: localized("category.containers.letter", defaultValue: "C")
         case .jvm: localized("category.jvm.letter", defaultValue: "J")
         case .webTools: localized("category.webTools.letter", defaultValue: "W")
         case .cloudDevOps: localized("category.cloudDevOps.letter", defaultValue: "CD")
+        case .embedded: localized("category.embedded.letter", defaultValue: "E")
         case .otherTools: localized("category.otherTools.letter", defaultValue: "D")
         }
     }

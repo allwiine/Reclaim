@@ -13,7 +13,7 @@ Download the latest `Reclaim-<version>.dmg` from
 drag Reclaim to Applications. The app is notarized and updates itself via
 Sparkle.
 
-A native macOS app for finding and cleaning wasted developer storage, with a focus on the space quietly retained by **Xcode**, **Android Studio**, **Claude Code** and similar tools.
+A native macOS app for finding and cleaning wasted developer storage, covering the space quietly retained by a wide range of developer tools: IDEs and editors, AI assistants, package managers, build systems, game engines, embedded toolchains, containers and cloud CLIs.
 
 Reclaim scans a curated catalogue of known cache and scratch locations, shows what each one is, how risky it is to remove, and cleans your selection. Cleaning goes to the Trash by default, so mistakes are recoverable.
 
@@ -28,21 +28,23 @@ Built with **Swift 6.2**, **SwiftUI**, the **Observation** framework, strict con
 | Xcode & Simulators | Derived data, device support files, archives, simulator caches, SwiftUI Previews data, device logs, XCTest simulator clones, unavailable simulators (`simctl`) |
 | Android Studio | Gradle caches, wrapper distributions, build-scan data, IDE caches, Kotlin/Native toolchains, SDK system images, AVDs |
 | .NET & Visual Studio | NuGet global packages & download caches, orphaned SDK workload packs, Azure Functions bundles, Visual Studio for Mac / Xamarin leftovers |
-| AI tools | Claude Code caches, logs & transcripts, Codex / Gemini / Copilot CLI data, Claude & ChatGPT Desktop caches, Cursor / Windsurf / Antigravity caches, Cline & Roo Code task history, Continue index, aider / Goose / OpenCode data, Ollama / Hugging Face / LM Studio / llama.cpp models |
-| Package managers | Homebrew, npm, pnpm, Yarn (classic & Berry), pip, uv, Poetry, conda, pyenv, pipx, pub (Flutter/Dart), Composer, CocoaPods, SwiftPM, Cargo, Go, Deno, node-gyp |
+| Game Engines | Unity package & editor caches, Unity Asset Store downloads, Unreal derived data (incl. Zen), Godot caches & export templates |
+| AI tools | Claude Code caches, logs & transcripts, Codex / Gemini / Copilot CLI data, Claude & ChatGPT Desktop caches, Cursor / Windsurf / Antigravity caches, Cline & Roo Code task history, Continue index, aider / Goose / OpenCode data, Ollama / Hugging Face / LM Studio / llama.cpp models, PyTorch caches |
+| Package managers | Homebrew, npm, pnpm, Yarn (classic & Berry), pip, uv, Poetry, conda, pyenv, pipx, pub (Flutter/Dart), Composer, CocoaPods, SwiftPM, Cargo, Go, Deno, node-gyp, rustup & rbenv versions, mise cache |
 | Containers & VMs | Docker VM disk, OrbStack / Colima / Lima / Podman machines (measured; cleaned via their own tools), Vagrant boxes, minikube cache, Rancher Desktop caches |
 | Java & JVM | Maven local repository, SDKMAN archives, Coursier and Ivy/sbt caches |
-| Web & JS tools | Playwright / Puppeteer browsers, Cypress binaries, Bun install cache, Electron caches, Corepack cache, nvm Node versions |
-| Cloud & DevOps | kubectl, Helm and Pulumi caches, gcloud & Azure CLI logs, Terraform plugin cache |
-| Other dev tools | VS Code caches & workspace storage, JetBrains caches & logs, pre-commit environments |
+| Web & JS tools | Playwright / Puppeteer browsers, Cypress binaries, Bun install cache, Electron caches, Corepack cache, nvm Node versions, Prisma engine binaries |
+| Cloud & DevOps | kubectl, Helm and Pulumi caches, gcloud & Azure CLI logs, Terraform plugin cache, Firebase emulators |
+| Embedded & IoT | PlatformIO cache, Arduino downloads, ESP-IDF toolchain archives |
+| Other dev tools | VS Code caches & workspace storage, JetBrains caches & logs, Zed caches & language servers, ccache / sccache compiler caches, Bazel output trees, pre-commit environments |
 
 Every item carries a safety rating:
 
 - **Safe**: regenerated automatically (build caches, logs).
-- **Caution**: restorable, but re-downloading or losing history costs something (AI models, Claude Code transcripts, Xcode archives).
-- **Destructive**: removes things you created (Android emulators, nvm / pyenv versions).
+- **Caution**: restorable, but re-downloading or losing history costs something (downloaded models, session history, release archives).
+- **Destructive**: removes things you created (emulators, installed language versions).
 
-Items Reclaim should *not* delete itself (Docker's and OrbStack's VM disks, Colima / Lima / Podman machines, Go's read-only module cache) are still measured, but cleaning is delegated to the owning tool with clear instructions. Claude Code's auth, settings and plugins are structurally excluded from the catalogue; a unit test enforces it.
+Items Reclaim should *not* delete itself (Docker's and OrbStack's VM disks, Colima / Lima / Podman machines, Go's read-only module cache, Bazel's output trees) are still measured, but cleaning is delegated to the owning tool with clear instructions. Claude Code's auth, settings and plugins are structurally excluded from the catalogue; a unit test enforces it.
 
 ## Requirements
 

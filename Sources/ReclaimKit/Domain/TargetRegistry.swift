@@ -29,7 +29,8 @@ import Foundation
 public enum TargetRegistry {
     /// All targets, in display order within their categories.
     public static let all: [CleanupTarget] =
-        xcode + android + dotNet + aiTools + packageManagers + containers + jvmTools + webTools + cloudDevOps + otherTools
+        xcode + android + dotNet + gameEngines + aiTools + packageManagers + containers + jvmTools
+            + webTools + cloudDevOps + embedded + otherTools
 
     /// Convenience: targets grouped by category, preserving order.
     public static func targets(in category: ToolCategory) -> [CleanupTarget] {
@@ -493,6 +494,108 @@ public enum TargetRegistry {
         ),
     ]
 
+    // MARK: - Game engines
+
+    static let gameEngines: [CleanupTarget] = [
+        CleanupTarget(
+            id: "unity-caches",
+            name: localized(
+                "target.unity-caches.name",
+                defaultValue: "Unity caches"
+            ),
+            summary: localized(
+                "target.unity-caches.summary",
+                defaultValue: "Unity's global package cache and editor caches, shared by all projects. Rebuilt and re-downloaded as projects open."
+            ),
+            category: .gameEngines,
+            safety: .safe,
+            pathPatterns: [
+                "~/Library/Unity/cache",
+                "~/Library/Caches/Unity",
+            ],
+            strategy: .removeContents,
+            relatedAppBundleIDs: ["com.unity3d.UnityEditor5.x"]
+        ),
+        CleanupTarget(
+            id: "unity-asset-store-cache",
+            name: localized(
+                "target.unity-asset-store-cache.name",
+                defaultValue: "Unity Asset Store downloads"
+            ),
+            summary: localized(
+                "target.unity-asset-store-cache.summary",
+                defaultValue: "Asset Store packages downloaded through the Unity editor. Kept forever, even for assets you no longer import."
+            ),
+            category: .gameEngines,
+            safety: .caution,
+            pathPatterns: ["~/Library/Unity/Asset Store-5.x"],
+            strategy: .removeContents,
+            note: localized(
+                "target.unity-asset-store-cache.note",
+                defaultValue: "Assets re-download from My Assets in the Package Manager when needed."
+            ),
+            relatedAppBundleIDs: ["com.unity3d.UnityEditor5.x"]
+        ),
+        CleanupTarget(
+            id: "unreal-derived-data",
+            name: localized(
+                "target.unreal-derived-data.name",
+                defaultValue: "Unreal derived data"
+            ),
+            summary: localized(
+                "target.unreal-derived-data.summary",
+                defaultValue: "Unreal Engine's shared derived-data cache, including the Zen storage used by UE 5.4 and newer. Shaders and textures rebuild on demand."
+            ),
+            category: .gameEngines,
+            safety: .caution,
+            pathPatterns: [
+                "~/Library/Application Support/Epic/UnrealEngine/Common/DerivedDataCache",
+                "~/Library/Application Support/Epic/UnrealEngine/Common/Zen/Data",
+            ],
+            strategy: .removeContents,
+            note: localized(
+                "target.unreal-derived-data.note",
+                defaultValue: "Quit Unreal Editor before cleaning. The next open of each project recompiles shaders, which takes a while."
+            )
+        ),
+        CleanupTarget(
+            id: "godot-caches",
+            name: localized(
+                "target.godot-caches.name",
+                defaultValue: "Godot caches"
+            ),
+            summary: localized(
+                "target.godot-caches.summary",
+                defaultValue: "Editor and shader caches kept by Godot. Rebuilt on demand."
+            ),
+            category: .gameEngines,
+            safety: .safe,
+            pathPatterns: ["~/Library/Caches/Godot"],
+            strategy: .removeContents,
+            relatedAppBundleIDs: ["org.godotengine.godot"]
+        ),
+        CleanupTarget(
+            id: "godot-export-templates",
+            name: localized(
+                "target.godot-export-templates.name",
+                defaultValue: "Godot export templates"
+            ),
+            summary: localized(
+                "target.godot-export-templates.summary",
+                defaultValue: "Export templates for every Godot version ever installed. Old versions linger after upgrades."
+            ),
+            category: .gameEngines,
+            safety: .caution,
+            pathPatterns: ["~/Library/Application Support/Godot/export_templates"],
+            strategy: .removeContents,
+            note: localized(
+                "target.godot-export-templates.note",
+                defaultValue: "Download the matching templates from the editor before exporting a project again."
+            ),
+            relatedAppBundleIDs: ["org.godotengine.godot"]
+        ),
+    ]
+
     // MARK: - AI tooling
 
     static let aiTools: [CleanupTarget] = [
@@ -927,6 +1030,25 @@ public enum TargetRegistry {
                 defaultValue: "Models are re-downloaded on next use."
             )
         ),
+        CleanupTarget(
+            id: "pytorch-hub-cache",
+            name: localized(
+                "target.pytorch-hub-cache.name",
+                defaultValue: "PyTorch caches"
+            ),
+            summary: localized(
+                "target.pytorch-hub-cache.summary",
+                defaultValue: "Model weights and datasets downloaded by PyTorch Hub and torchvision."
+            ),
+            category: .aiTools,
+            safety: .caution,
+            pathPatterns: ["~/.cache/torch"],
+            strategy: .removeContents,
+            note: localized(
+                "target.pytorch-hub-cache.note",
+                defaultValue: "Weights are re-downloaded on next use."
+            )
+        ),
     ]
 
     // MARK: - Package managers & toolchains
@@ -1282,6 +1404,50 @@ public enum TargetRegistry {
             strategy: .removeContents
         ),
         CleanupTarget(
+            id: "rustup-toolchains",
+            name: localized("target.rustup-toolchains.name", defaultValue: "rustup toolchains"),
+            summary: localized(
+                "target.rustup-toolchains.summary",
+                defaultValue: "Every Rust toolchain installed through rustup. Old nightlies especially pile up, each taking a gigabyte or more."
+            ),
+            category: .packageManagers,
+            safety: .destructive,
+            pathPatterns: ["~/.rustup/toolchains"],
+            strategy: .removeContents,
+            note: localized(
+                "target.rustup-toolchains.note",
+                defaultValue: "Reinstall with `rustup toolchain install <version>`; builds stop working until then."
+            )
+        ),
+        CleanupTarget(
+            id: "rbenv-versions",
+            name: localized("target.rbenv-versions.name", defaultValue: "rbenv Ruby versions"),
+            summary: localized(
+                "target.rbenv-versions.summary",
+                defaultValue: "Every Ruby version installed through rbenv, including their installed gems."
+            ),
+            category: .packageManagers,
+            safety: .destructive,
+            pathPatterns: ["~/.rbenv/versions"],
+            strategy: .removeContents,
+            note: localized(
+                "target.rbenv-versions.note",
+                defaultValue: "Reinstall with `rbenv install <version>`."
+            )
+        ),
+        CleanupTarget(
+            id: "mise-cache",
+            name: localized("target.mise-cache.name", defaultValue: "mise cache"),
+            summary: localized(
+                "target.mise-cache.summary",
+                defaultValue: "Version lists and downloads cached by the mise version manager. Installed runtimes are not touched."
+            ),
+            category: .packageManagers,
+            safety: .safe,
+            pathPatterns: ["~/Library/Caches/mise", "~/.cache/mise"],
+            strategy: .removeContents
+        ),
+        CleanupTarget(
             id: "composer-cache",
             name: localized("target.composer-cache.name", defaultValue: "Composer cache"),
             summary: localized(
@@ -1603,6 +1769,18 @@ public enum TargetRegistry {
                 defaultValue: "Reinstall with `nvm install <version>`; your default version stops working until reinstalled."
             )
         ),
+        CleanupTarget(
+            id: "prisma-engines-cache",
+            name: localized("target.prisma-engines-cache.name", defaultValue: "Prisma engine binaries"),
+            summary: localized(
+                "target.prisma-engines-cache.summary",
+                defaultValue: "Query and schema engine binaries downloaded for every Prisma version a project has ever used."
+            ),
+            category: .webTools,
+            safety: .safe,
+            pathPatterns: ["~/.cache/prisma"],
+            strategy: .removeContents
+        ),
     ]
 
     // MARK: - Cloud & DevOps
@@ -1694,6 +1872,72 @@ public enum TargetRegistry {
             category: .cloudDevOps,
             safety: .safe,
             pathPatterns: ["~/.terraform.d/plugin-cache"],
+            strategy: .removeContents
+        ),
+        CleanupTarget(
+            id: "firebase-emulators",
+            name: localized("target.firebase-emulators.name", defaultValue: "Firebase emulators"),
+            summary: localized(
+                "target.firebase-emulators.summary",
+                defaultValue: "Emulator binaries (Firestore, Auth, Pub/Sub and friends) downloaded by the Firebase CLI."
+            ),
+            category: .cloudDevOps,
+            safety: .safe,
+            pathPatterns: ["~/.cache/firebase/emulators"],
+            strategy: .removeContents,
+            note: localized(
+                "target.firebase-emulators.note",
+                defaultValue: "Re-downloaded on the next `firebase emulators:start`."
+            )
+        ),
+    ]
+
+    // MARK: - Embedded & IoT
+
+    static let embedded: [CleanupTarget] = [
+        CleanupTarget(
+            id: "platformio-cache",
+            name: localized(
+                "target.platformio-cache.name",
+                defaultValue: "PlatformIO cache"
+            ),
+            summary: localized(
+                "target.platformio-cache.summary",
+                defaultValue: "Download and HTTP caches kept by PlatformIO Core. Installed platforms, toolchains and libraries are not touched."
+            ),
+            category: .embedded,
+            safety: .safe,
+            pathPatterns: ["~/.platformio/.cache"],
+            strategy: .removeContents
+        ),
+        CleanupTarget(
+            id: "arduino-staging",
+            name: localized(
+                "target.arduino-staging.name",
+                defaultValue: "Arduino downloads"
+            ),
+            summary: localized(
+                "target.arduino-staging.summary",
+                defaultValue: "Board core and library archives downloaded by the Arduino IDE and CLI. Kept after installation and re-downloaded on demand."
+            ),
+            category: .embedded,
+            safety: .safe,
+            pathPatterns: ["~/Library/Arduino15/staging"],
+            strategy: .removeContents
+        ),
+        CleanupTarget(
+            id: "esp-idf-dist",
+            name: localized(
+                "target.esp-idf-dist.name",
+                defaultValue: "ESP-IDF download archives"
+            ),
+            summary: localized(
+                "target.esp-idf-dist.summary",
+                defaultValue: "Toolchain and tool archives downloaded by the ESP-IDF installer. The extracted tools stay installed."
+            ),
+            category: .embedded,
+            safety: .safe,
+            pathPatterns: ["~/.espressif/dist"],
             strategy: .removeContents
         ),
     ]
@@ -1790,6 +2034,73 @@ public enum TargetRegistry {
             safety: .safe,
             pathPatterns: ["~/Library/Logs/JetBrains"],
             strategy: .removeContents
+        ),
+        CleanupTarget(
+            id: "zed-caches",
+            name: localized(
+                "target.zed-caches.name",
+                defaultValue: "Zed caches & language servers"
+            ),
+            summary: localized(
+                "target.zed-caches.summary",
+                defaultValue: "Caches and auto-downloaded language servers kept by the Zed editor. Re-downloaded on demand."
+            ),
+            category: .otherTools,
+            safety: .safe,
+            pathPatterns: [
+                "~/Library/Caches/Zed",
+                "~/Library/Application Support/Zed/languages",
+            ],
+            strategy: .removeContents,
+            relatedAppBundleIDs: ["dev.zed.Zed"]
+        ),
+        CleanupTarget(
+            id: "ccache-cache",
+            name: localized(
+                "target.ccache-cache.name",
+                defaultValue: "ccache compiler cache"
+            ),
+            summary: localized(
+                "target.ccache-cache.summary",
+                defaultValue: "Compiled objects cached by ccache to speed up C and C++ rebuilds. Rebuilt as you compile."
+            ),
+            category: .otherTools,
+            safety: .safe,
+            pathPatterns: ["~/.ccache", "~/Library/Caches/ccache"],
+            strategy: .removeContents
+        ),
+        CleanupTarget(
+            id: "sccache-cache",
+            name: localized(
+                "target.sccache-cache.name",
+                defaultValue: "sccache compiler cache"
+            ),
+            summary: localized(
+                "target.sccache-cache.summary",
+                defaultValue: "Compilation results cached by sccache for Rust, C and CUDA builds."
+            ),
+            category: .otherTools,
+            safety: .safe,
+            pathPatterns: ["~/Library/Caches/Mozilla.sccache"],
+            strategy: .removeContents
+        ),
+        CleanupTarget(
+            id: "bazel-output",
+            name: localized(
+                "target.bazel-output.name",
+                defaultValue: "Bazel output trees"
+            ),
+            summary: localized(
+                "target.bazel-output.summary",
+                defaultValue: "Build outputs and repository caches for every Bazel workspace, kept in /private/var/tmp. A running Bazel server holds locks here."
+            ),
+            category: .otherTools,
+            safety: .caution,
+            pathPatterns: ["/private/var/tmp/_bazel_*"],
+            strategy: .manual(instructions: localized(
+                "target.bazel-output.instructions",
+                defaultValue: "Run `bazel clean --expunge` in each workspace, or `bazel shutdown` followed by deleting its output tree."
+            ))
         ),
     ]
 }
