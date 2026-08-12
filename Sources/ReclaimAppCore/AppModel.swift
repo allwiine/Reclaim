@@ -982,12 +982,19 @@ public final class AppModel {
         let estimatedBytes: Int64
     }
 
+    private struct ArtifactCleanJob {
+        let artifact: DiscoveredArtifact
+        let projectName: String
+        let devRoot: URL
+    }
+
     /// Clean everything currently selected — or, with `limitedTo`, only
     /// the selected targets in that set ("Clean just this"; the rest of
     /// the selection stays intact) — then re-scan the cleaned targets
     /// so the numbers on screen stay truthful.
     public func cleanSelected(limitedTo limit: Set<CleanupTarget.ID>? = nil) {
-        guard !isCleaning, !isScanning, !selection.isEmpty else { return }
+        guard !isCleaning, !isScanning else { return }
+        guard !selection.isEmpty || !artifactSelection.isEmpty else { return }
 
         let jobs: [CleanJob] = targets.compactMap { target in
             guard selection.contains(target.id), target.strategy.isCleanable,
@@ -1006,7 +1013,18 @@ public final class AppModel {
                 return nil
             }
         }
-        guard !jobs.isEmpty else { return }
+        // Artifact jobs join full-selection passes only — "Clean just
+        // this" (limitedTo) stays a registry-target affair.
+        let artifactJobs: [ArtifactCleanJob] = limit != nil ? [] : projectScans.flatMap { scan in
+            scan.projects.flatMap { project in
+                project.artifacts
+                    .filter { artifactSelection.contains($0.id) }
+                    .map { ArtifactCleanJob(
+                        artifact: $0, projectName: project.name, devRoot: scan.root
+                    ) }
+            }
+        }
+        guard !jobs.isEmpty || !artifactJobs.isEmpty else { return }
 
         // A dry run is a report, not a pass: project the numbers from
         // the scan-time snapshot and touch nothing — no engine, no
@@ -1024,6 +1042,18 @@ public final class AppModel {
                     category: job.target.category,
                     // Command targets have no measurable projection.
                     bytesFreed: job.paths.isEmpty ? nil : job.estimatedBytes
+                ))
+            }
+            for job in artifactJobs {
+                summary.itemsRemoved += 1
+                summary.cleanedTargets += 1
+                summary.reclaimedBytes += job.artifact.measurement.bytes
+                summary.cleanedArtifacts.append(CleanSummary.CleanedArtifact(
+                    id: job.artifact.id,
+                    name: artifactDisplayName(
+                        kindID: job.artifact.kindID, projectName: job.projectName
+                    ),
+                    bytesFreed: job.artifact.measurement.bytes
                 ))
             }
             lastCleanSummary = summary
@@ -1054,7 +1084,7 @@ public final class AppModel {
                     targetName: job.target.name,
                     targetPath: job.target.pathPatterns.first,
                     index: index + 1,
-                    total: jobs.count
+                    total: jobs.count + artifactJobs.count
                 )
                 self.statuses[job.target.id] = .scanning
 
@@ -1095,6 +1125,70 @@ public final class AppModel {
                 self.partialSelections[job.target.id] = nil
             }
 
+            // Dev-folder artifacts, after the registry targets. Same
+            // sequential, cancellable, best-effort discipline.
+            let removeArtifacts = self.artifactCleanExecutor
+            var cleanedRoots: [URL] = []
+            for (offset, job) in artifactJobs.enumerated() {
+                if Task.isCancelled {
+                    summary.wasStopped = true
+                    break
+                }
+                let name = self.artifactDisplayName(
+                    kindID: job.artifact.kindID, projectName: job.projectName
+                )
+                self.cleanProgress = CleanProgress(
+                    targetName: name,
+                    targetPath: (job.artifact.url.path as NSString).abbreviatingWithTildeInPath,
+                    index: jobs.count + offset + 1,
+                    total: jobs.count + artifactJobs.count
+                )
+
+                let url = job.artifact.url
+                let outcome = await Self.offMain {
+                    removeArtifacts([url], chosenDisposal)
+                }
+                summary.itemsRemoved += outcome.removedItems
+                summary.failures.append(contentsOf: outcome.failures.map {
+                    localized(
+                        "clean.failureLine",
+                        defaultValue: "\(name) — \($0.message)"
+                    )
+                })
+
+                // Freed space is only claimed when the removal is
+                // verifiable: the artifact is gone from disk.
+                let gone = await Self.offMain {
+                    !FileManager.default.fileExists(atPath: url.path)
+                }
+                let freed: Int64? = gone ? job.artifact.measurement.bytes : nil
+                summary.reclaimedBytes += freed ?? 0
+                if outcome.removedItems > 0 {
+                    summary.cleanedTargets += 1
+                    summary.cleanedArtifacts.append(CleanSummary.CleanedArtifact(
+                        id: job.artifact.id, name: name, bytesFreed: freed
+                    ))
+                    if !cleanedRoots.contains(where: { $0.path == job.devRoot.path }) {
+                        cleanedRoots.append(job.devRoot)
+                    }
+                } else if !outcome.failures.isEmpty {
+                    summary.failedTargets += 1
+                }
+                self.artifactSelection.remove(job.artifact.id)
+            }
+
+            // Re-discover the affected roots so the Projects list stays
+            // truthful — reclaimed space is measured, never assumed.
+            let rescan = self.projectScanExecutor
+            for root in cleanedRoots {
+                let refreshed = await Self.offMain { rescan(root) }
+                if let index = self.projectScans.firstIndex(where: {
+                    $0.root.path == root.path
+                }) {
+                    self.projectScans[index] = refreshed
+                }
+            }
+
             self.cleanProgress = nil
             self.lastCleanSummary = summary
             self.isCleaning = false
@@ -1119,13 +1213,18 @@ public final class AppModel {
         guard !summary.isDryRun, summary.itemsRemoved > 0 else { return }
         let entry = CleanHistoryEntry(
             date: .now,
-            targetNames: summary.cleaned.map(\.name),
+            targetNames: summary.cleaned.map(\.name) + summary.cleanedArtifacts.map(\.name),
             itemsRemoved: summary.itemsRemoved,
             reclaimedBytes: summary.reclaimedBytes,
             items: summary.cleaned.map {
                 CleanedHistoryItem(
                     targetID: $0.id, name: $0.name,
                     bytesFreed: $0.bytesFreed, bytesAfter: $0.bytesAfter
+                )
+            } + summary.cleanedArtifacts.map {
+                CleanedHistoryItem(
+                    targetID: "artifact:\($0.id)", name: $0.name,
+                    bytesFreed: $0.bytesFreed
                 )
             },
             disposal: summary.disposal,
