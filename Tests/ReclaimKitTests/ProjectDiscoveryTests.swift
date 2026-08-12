@@ -21,10 +21,6 @@ private func makeGitRepo(at url: URL, epoch: Int = 1_700_000_000) throws {
         .write(to: logs.appending(path: "HEAD"), atomically: true, encoding: .utf8)
 }
 
-private func makeDirectory(_ url: URL) throws {
-    try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
-}
-
 @Suite("Project discovery")
 struct ProjectDiscoveryTests {
     @Test("Finds a node project with its node_modules")
@@ -146,6 +142,22 @@ struct ProjectDiscoveryTests {
         }
     }
 
+    @Test("A nested .git in ordinary content never overrides the project root's git activity")
+    func nestedGitDoesNotOverrideRootActivity() throws {
+        try withTemporaryDirectory { root in
+            let project = root.appending(path: "app")
+            try makeGitRepo(at: project, epoch: 1_690_000_000)
+            try makeFile(in: project, name: "package.json", byteCount: 5)
+            // A vendored/nested repo, in ordinary content, with a newer reflog.
+            try makeGitRepo(at: project.appending(path: "vendor/dep"), epoch: 1_750_000_000)
+
+            let scan = ProjectDiscovery().scan(root: root)
+            #expect(scan.projects.count == 1)
+            let found = try #require(scan.projects.first)
+            #expect(found.lastGitActivityDate == Date(timeIntervalSince1970: 1_690_000_000))
+        }
+    }
+
     @Test("Hidden directories outside projects are pruned")
     func hiddenPrunedOutsideProjects() throws {
         try withTemporaryDirectory { root in
@@ -207,8 +219,8 @@ struct ProjectDiscoveryTests {
         #expect(scan.failureMessage != nil)
     }
 
-    @Test("Cancellation returns completed projects only")
-    func cancellationKeepsCompleted() async throws {
+    @Test("A cancelled scan aborts before any project completes, without a failure")
+    func cancelledScanReturnsNoResults() async throws {
         try await withTemporaryDirectory { root in
             for index in 0..<3 {
                 let project = root.appending(path: "p\(index)")
@@ -216,14 +228,17 @@ struct ProjectDiscoveryTests {
                 try makeFile(in: project, name: "package.json", byteCount: 5)
             }
             let path = root.path
-            let task = Task {
-                ProjectDiscovery().scan(root: URL(filePath: path))
+            let task = Task { () -> DevRootScan in
+                // Guarantee cancellation lands before the scan starts.
+                while !Task.isCancelled {
+                    try? await Task.sleep(nanoseconds: 1_000_000)
+                }
+                return ProjectDiscovery().scan(root: URL(filePath: path))
             }
             task.cancel()
             let scan = await task.value
-            // Cancelled promptly: whatever completed is kept, never more.
-            #expect(scan.projects.count <= 3)
-            #expect(scan.failureMessage == nil)
+            #expect(scan.projects.isEmpty)      // first checkCancellation aborts before any project completes
+            #expect(scan.failureMessage == nil) // cancellation is not a failure
         }
     }
 }

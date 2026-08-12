@@ -115,6 +115,18 @@ public struct ProjectDiscovery: Sendable {
         at projectURL: URL, listing: BulkDirectoryListing, devRoot: URL
     ) throws -> DiscoveredProject {
         var state = ProjectWalkState()
+        // Git signal comes only from the project ROOT's own `.git` — a
+        // nested/vendored repo anywhere below must never overwrite it
+        // (see walkProjectDirectory, which prunes `.git` unconditionally).
+        if let gitEntry = listing.entries.first(where: { $0.name == ".git" && !$0.isSymlink }) {
+            state.isGitRepo = true
+            if gitEntry.isDirectory {
+                state.gitActivity = GitActivityReader.lastActivityDate(
+                    inGitDirectory: projectURL.appending(path: ".git")
+                )
+            }
+            // Regular file (worktree/submodule pointer): a repo, no reflog here.
+        }
         try walkProjectDirectory(projectURL, listing: listing, state: &state)
         return DiscoveredProject(
             url: projectURL,
@@ -138,27 +150,18 @@ public struct ProjectDiscovery: Sendable {
 
         for entry in listing.entries {
             if entry.isSymlink { continue }
+            // Git signal is root-only (resolved once in scanProject); a
+            // `.git` at any depth here is pruned — never descended,
+            // never counted toward mtime, never written to state.
+            if entry.name == ".git" { continue }
 
             if entry.isRegularFile {
-                if entry.name == ".git" {
-                    // Worktree/submodule pointer file: a repo, no reflog here.
-                    state.isGitRepo = true
-                    continue
-                }
                 if let date = entry.modificationDate {
                     state.newestEdit = state.newestEdit.map { max($0, date) } ?? date
                 }
                 continue
             }
             guard entry.isDirectory else { continue }
-
-            if entry.name == ".git" {
-                state.isGitRepo = true
-                state.gitActivity = GitActivityReader.lastActivityDate(
-                    inGitDirectory: directory.appending(path: ".git")
-                )
-                continue // never descend into .git
-            }
 
             let childURL = directory.appending(path: entry.name)
             guard let kind = ArtifactCatalog.match(
