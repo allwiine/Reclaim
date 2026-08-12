@@ -17,6 +17,8 @@ A native macOS app for finding and cleaning wasted developer storage, covering t
 
 Reclaim scans a curated catalogue of known cache and scratch locations, shows what each one is, how risky it is to remove, and cleans your selection. Cleaning goes to the Trash by default, so mistakes are recoverable.
 
+Optionally, add your development folders and Reclaim finds git repos and regenerable artifacts inside them (node_modules, build outputs, virtualenvs, Pods), lists them by size and last activity, and cleans only the artifacts, never your code.
+
 Built with **Swift 6.2**, **SwiftUI**, the **Observation** framework, strict concurrency, and **Swift Testing**.
 
 ![The Reclaim main window after a scan](docs/screenshot.png)

@@ -345,3 +345,18 @@
 "target.bazel-output.name" = "Bazel output trees";
 "target.bazel-output.summary" = "Build outputs and repository caches for every Bazel workspace, kept in /private/var/tmp. A running Bazel server holds locks here.";
 "target.bazel-output.instructions" = "Run `bazel clean --expunge` in each workspace, or `bazel shutdown` followed by deleting its output tree.";
+
+/* Dev-folder artifact kinds */
+"artifact.node-modules.name" = "node_modules";
+"artifact.js-build.name" = "JS build output";
+"artifact.cargo-target.name" = "Rust build (target)";
+"artifact.swiftpm-build.name" = "Swift build (.build)";
+"artifact.gradle-build.name" = "Gradle build";
+"artifact.python-venv.name" = "Python virtualenv";
+"artifact.python-cache.name" = "Python caches";
+"artifact.cocoapods.name" = "CocoaPods (Pods)";
+"artifact.carthage.name" = "Carthage build";
+
+/* Dev-folder discovery */
+"discovery.rootMissing" = "This folder no longer exists.";
+"discovery.rootUnreadable" = "This folder could not be read.";

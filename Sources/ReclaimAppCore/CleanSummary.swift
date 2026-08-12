@@ -35,6 +35,23 @@ public struct CleanSummary: Equatable, Sendable {
         }
     }
 
+    /// One dev-folder artifact processed by the pass.
+    public struct CleanedArtifact: Equatable, Sendable, Identifiable {
+        /// The artifact's absolute path (its stable identity).
+        public let id: String
+        /// Display label, e.g. "node_modules in my-app".
+        public let name: String
+        /// Scan-time bytes when the removal verifiably happened,
+        /// projected bytes on a dry run, nil when unverifiable.
+        public let bytesFreed: Int64?
+
+        public init(id: String, name: String, bytesFreed: Int64?) {
+            self.id = id
+            self.name = name
+            self.bytesFreed = bytesFreed
+        }
+    }
+
     /// How removals were performed (affects the wording of the alert).
     public let disposal: Disposal
     /// True when nothing was touched and the numbers are projections.
@@ -52,6 +69,8 @@ public struct CleanSummary: Equatable, Sendable {
     public var failures: [String] = []
     /// Per-target results for targets that had removals, pass order.
     public var cleaned: [CleanedTarget] = []
+    /// Per-artifact results for dev-folder artifacts, pass order.
+    public var cleanedArtifacts: [CleanedArtifact] = []
 
     public init(disposal: Disposal) {
         self.disposal = disposal

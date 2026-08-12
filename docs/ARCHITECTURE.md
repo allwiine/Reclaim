@@ -26,9 +26,11 @@ Reclaim is deliberately small and layered. The core insight is that a storage cl
 │                                                          │
 │  Domain    CleanupTarget · TargetRegistry · SafetyLevel  │
 │            CleanupStrategy · TargetStatus                │
+│            ArtifactCatalog · DiscoveredProject           │
 │  Services  PathResolver → DiskSizer → TargetScanner      │
 │            CleanupEngine (FileRemoving protocol)         │
 │            FullDiskAccessProbe                           │
+│            BulkDirectoryReader → ProjectDiscovery        │
 │  Support   Log (os.Logger)                               │
 └──────────────────────────────────────────────────────────┘
 ```
@@ -38,7 +40,7 @@ Reclaim is deliberately small and layered. The core insight is that a storage cl
 ## Data flow
 
 1. **Scan.** `AppModel.scanAll()` marks every target `.scanning`, evaluates the `FullDiskAccessProbe`, and fans work out through a `withTaskGroup` bounded to 4 concurrent walks. Each child task runs `TargetScanner.scan(_:)`:
-   `pathPatterns` → `PathResolver` (tilde + glob expansion, drops non-existent paths) → a **cleanup-path snapshot** (for `.removeContents`, the directories' children at this moment) → `DiskSizer` (allocated-size walk of the snapshot; unreadable entries are counted, an unreadable root fails the target) → a `TargetStatus`.
+   `pathPatterns` → `PathResolver` (tilde + glob expansion, drops non-existent paths) → a **cleanup-path snapshot** (for `.removeContents`, the directories' children at this moment) → `DiskSizer` (allocated-size walk of the snapshot; unreadable entries are counted, an unreadable root fails the target) → a `TargetStatus`. Dev-folder discovery runs in the same pass when folders are configured: a single-pass `getattrlistbulk(2)` walk per root that discovers projects, tracks newest mtimes, and sizes artifacts, reading each directory exactly once and no file contents except the reflog tail.
 2. **Display.** Statuses land in `AppModel.statuses`; every view derives from that dictionary plus the registry. There is no duplicated state. A scan stopped early is flagged (`lastScanWasComplete == false`) and the Overview says so; missing Full Disk Access surfaces as a banner.
 3. **Select.** The user ticks targets. Selectability is computed (`isSelectable`): only cleanable strategies with a non-zero measurement (or command targets whose availability probe passes) can be ticked.
 4. **Clean.** After an explicit confirmation (which also warns if a related app is running), `cleanSelected()` runs the `CleanupEngine` per target — sequentially, cancellable between targets — passing **the scan-time cleanup snapshot**. The engine never lists directories itself, so nothing created after the scan can be deleted. Disposal is Trash or permanent delete depending on Settings.
@@ -91,6 +93,7 @@ UI is kept logic-free (views derive everything from `AppModel`), so model-level 
 | A new category | One case in `ToolCategory` (title + SF Symbol) |
 | A new cleanup mechanism | One case in `CleanupStrategy` + one `switch` arm in `CleanupEngine` |
 | A different disposal (e.g. secure erase) | One case in `Disposal` + `CleanupEngine.dispose` |
+| A new project artifact kind | One `ArtifactKind` in `ArtifactCatalog` + its name keys in both Kit catalogues |
 | Scheduled scans, menu-bar mode, per-item drill-down | New UI over the same `AppModel`/`ReclaimKit` APIs |
 
 ## Deliberate decisions
@@ -99,5 +102,6 @@ UI is kept logic-free (views derive everything from `AppModel`), so model-level 
 - **Clean the scan-time snapshot, not re-resolved or re-listed paths.** Globs could match new items between scan and clean, and a directory listed at clean time could contain children created after the scan. The scanner therefore snapshots the exact deletion set (children for `.removeContents`), measures that snapshot, and the engine disposes only those URLs — the user must only ever lose what they saw.
 - **`removeContents` over `removePaths` for caches.** Many tools assume their cache root exists; emptying it is the polite operation.
 - **Allocated size, not logical size.** Sparse files and APFS clones make logical size a lie; allocated size is what deletion actually frees.
+- **`import Darwin` is allowed in exactly one file** (`BulkDirectoryReader.swift`) because `getattrlistbulk` has no Foundation equivalent; everything else in ReclaimKit stays Foundation + os.
 - **No sandbox.** The product's job is reading arbitrary cache locations under `$HOME`; sandboxing would reduce it to a folder-picker ritual. Consequence: no App Store, hardened runtime + notarization for direct distribution.
 - **SPM-first project.** `open Package.swift` runs the app with zero setup; XcodeGen (`project.yml`) is the additive path to a distributable bundle. No `.xcodeproj` churn in code review.

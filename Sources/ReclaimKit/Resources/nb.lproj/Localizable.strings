@@ -348,3 +348,18 @@
 "target.bazel-output.name" = "Bazel-output-trær";
 "target.bazel-output.summary" = "Byggresultater og repo-cacher for hvert Bazel-workspace, lagret i /private/var/tmp. En kjørende Bazel-server holder låser her.";
 "target.bazel-output.instructions" = "Kjør `bazel clean --expunge` i hvert workspace, eller `bazel shutdown` etterfulgt av å slette output-treet.";
+
+/* Dev-folder artifact kinds */
+"artifact.node-modules.name" = "node_modules";
+"artifact.js-build.name" = "JS-byggmappe";
+"artifact.cargo-target.name" = "Rust-bygg (target)";
+"artifact.swiftpm-build.name" = "Swift-bygg (.build)";
+"artifact.gradle-build.name" = "Gradle-bygg";
+"artifact.python-venv.name" = "Python-virtualenv";
+"artifact.python-cache.name" = "Python-mellomlager";
+"artifact.cocoapods.name" = "CocoaPods (Pods)";
+"artifact.carthage.name" = "Carthage-bygg";
+
+/* Dev-folder discovery */
+"discovery.rootMissing" = "Denne mappen finnes ikke lenger.";
+"discovery.rootUnreadable" = "Denne mappen kunne ikke leses.";

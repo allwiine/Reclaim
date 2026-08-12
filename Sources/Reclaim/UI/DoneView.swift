@@ -48,6 +48,11 @@ struct DoneView: View {
                         .padding(.top, 30)
                         .entrance(appeared, delay: 0.32)
                 }
+                if !summary.cleanedArtifacts.isEmpty {
+                    artifactsList
+                        .padding(.top, summary.cleaned.isEmpty ? 30 : 10)
+                        .entrance(appeared, delay: 0.34)
+                }
                 if !summary.failures.isEmpty {
                     failuresCard
                         .padding(.top, 14)
@@ -235,6 +240,37 @@ struct DoneView: View {
             }
         }
         .card(radius: Theme.radiusPanel)
+        .frame(width: 560)
+    }
+
+    /// Dev-folder artifacts removed by this pass.
+    private var artifactsList: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            SectionLabel(localized("done.artifactsHeader", defaultValue: "Project artifacts"))
+            VStack(spacing: 0) {
+                ForEach(summary.cleanedArtifacts) { item in
+                    HStack(spacing: 10) {
+                        Text(item.name)
+                            .font(.system(size: 13))
+                            .foregroundStyle(Theme.textPrimary)
+                        Spacer(minLength: 10)
+                        Text(item.bytesFreed.map(\.formattedBytesCompact)
+                            ?? localized("confirm.sizeUnknown", defaultValue: "size unknown"))
+                            .font(.system(size: 12.5))
+                            .monospacedDigit()
+                            .foregroundStyle(Color(hex: 0x8E8E95))
+                    }
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 10)
+                    .overlay(alignment: .bottom) {
+                        if item.id != summary.cleanedArtifacts.last?.id {
+                            Rectangle().fill(Color.white.opacity(0.06)).frame(height: 1)
+                        }
+                    }
+                }
+            }
+            .card(radius: Theme.radiusPanel)
+        }
         .frame(width: 560)
     }
 

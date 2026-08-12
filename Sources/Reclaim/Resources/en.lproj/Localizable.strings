@@ -198,6 +198,7 @@
 "done.noteTrashEmptied" = "Trash emptied. The space is available now.";
 "done.noteMovedToTrash" = "Moved to the Trash. Empty it to release the space for good.";
 "done.noteDeleted" = "Deleted permanently. The space is available now.";
+"done.artifactsHeader" = "Project artifacts";
 "done.failuresTitle" = "Some items could not be cleaned";
 "done.failuresMore" = "…and %lld more.";
 "done.fullDiskAccessHint" = "If access was denied, grant Reclaim Full Disk Access in System Settings → Privacy & Security.";
@@ -265,6 +266,10 @@
 "settings.showNotInstalledHelp" = "Keep catalogue entries visible even when the tool was not found on this Mac.";
 "settings.showEmpty" = "Show empty locations";
 "settings.showEmptyHelp" = "Keep locations listed even when the last scan measured nothing in them.";
+"settings.sectionDevFolders" = "Development folders";
+"settings.removeDevFolder" = "Remove";
+"settings.addDevFolder" = "Add folder…";
+"settings.devFoldersHelp" = "Reclaim looks for projects and regenerable artifacts (node_modules, build folders, virtualenvs) only inside these folders.";
 "settings.sectionMenuBar" = "Menu bar";
 "settings.menuBarExtra" = "Show Reclaim in the menu bar";
 "settings.menuBarExtraHelp" = "A compact summary with quick access to scanning and safe cleanup.";
@@ -294,3 +299,23 @@
 /* Notifications */
 "notification.title" = "Reclaim found %@";
 "notification.body" = "Developer caches are holding on to space. Review and reclaim it when convenient.";
+
+/* Projects (dev folders) */
+"sidebar.development" = "Development";
+"sidebar.projects" = "Projects";
+"toolbar.projectsSubtitle" = "%lld projects · %@";
+"projects.empty.title" = "Find forgotten projects";
+"projects.empty.body" = "Add the folders where your projects live. Reclaim finds git repositories and regenerable artifacts like node_modules and build folders, and shows what each project last did.";
+"projects.addFolder" = "Add a development folder…";
+"projects.addPrompt" = "Add";
+"projects.addMessage" = "Choose the folders where your development projects live.";
+"projects.sortLabel" = "Sort";
+"projects.sortBySize" = "Largest first";
+"projects.sortByActivity" = "Longest inactive first";
+"projects.notScanned" = "Run a scan to find projects and artifacts.";
+"projects.noneFound" = "No projects found in the added folders.";
+"projects.staleBadge" = "No recent activity";
+"projects.lastEdited" = "Edited %@";
+"projects.lastCommit" = "Git activity %@";
+"projects.revealInFinder" = "Reveal in Finder";
+"projects.noArtifacts" = "No regenerable artifacts found.";

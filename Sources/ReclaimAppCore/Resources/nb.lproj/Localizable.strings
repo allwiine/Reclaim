@@ -4,3 +4,4 @@
 */
 
 "clean.failureLine" = "%1$@: %2$@";
+"projects.artifactLabel" = "%1$@ i %2$@";

@@ -19,13 +19,14 @@ enum Destination: Hashable {
     case overview
     case category(ToolCategory)
     case allFindings
+    case projects
     case history
     case settings
 }
 
 /// The flow state currently occupying the content area.
 enum ContentPhase: Equatable {
-    case idle, scanning, cleaning, done, overview, browser, history, settings
+    case idle, scanning, cleaning, done, overview, browser, projects, history, settings
 }
 
 /// What a pending clean confirmation covers: everything selected, or a
@@ -119,6 +120,7 @@ struct RootView: View {
                 case "history": destination = .history
                 case "settings": destination = .settings
                 case "all": destination = .allFindings
+                case "projects": destination = .projects
                 default:
                     if let category = ToolCategory(rawValue: String(raw)) {
                         destination = .category(category)
@@ -184,7 +186,7 @@ struct RootView: View {
         switch destination {
         case .history: return .history
         case .settings: return .settings
-        case .overview, .category, .allFindings:
+        case .overview, .category, .allFindings, .projects:
             if model.isCleaning { return .cleaning }
             if isShowingDone, model.lastCleanSummary != nil { return .done }
             if model.isScanning { return .scanning }
@@ -194,6 +196,7 @@ struct RootView: View {
             if !searchText.isEmpty { return .browser }
             if case .category = destination { return .browser }
             if destination == .allFindings { return .browser }
+            if destination == .projects { return .projects }
             if model.lastScan == nil { return .idle }
             return .overview
         }
@@ -247,6 +250,9 @@ struct RootView: View {
                 onCleanSingle: { confirmScope = .single($0.id) }
             )
             .transition(.opacity)
+        case .projects:
+            ProjectsView()
+                .transition(.opacity)
         case .history:
             HistoryView()
                 .transition(.opacity)

@@ -44,9 +44,9 @@ struct ToolbarView: View {
                     onReclaim()
                 }
                 .buttonStyle(CompactPrimaryButtonStyle(
-                    enabled: model.selectedBytes > 0 || !model.selection.isEmpty
+                    enabled: model.selectedBytes > 0 || model.hasCleanableSelection
                 ))
-                .disabled(model.selection.isEmpty)
+                .disabled(!model.hasCleanableSelection)
                 .help(localized("toolbar.reclaimHelp", defaultValue: "Clean the selected items"))
             } else if phase == .history || phase == .settings {
                 // These screens stay on screen while a scan runs, so a
@@ -121,7 +121,7 @@ struct ToolbarView: View {
     }
 
     private var showsActions: Bool {
-        phase == .overview || phase == .browser
+        phase == .overview || phase == .browser || phase == .projects
     }
 
     private var reclaimLabel: String {
@@ -148,6 +148,7 @@ struct ToolbarView: View {
         case .done: localized("title.finished", defaultValue: "Finished")
         case .overview: localized("sidebar.overview", defaultValue: "Overview")
         case .browser: browserTitle
+        case .projects: localized("sidebar.projects", defaultValue: "Projects")
         case .history: localized("sidebar.history", defaultValue: "History")
         case .settings: localized("sidebar.settings", defaultValue: "Settings")
         }
@@ -198,6 +199,12 @@ struct ToolbarView: View {
             return localized(
                 "toolbar.historySubtitle",
                 defaultValue: "\(recent) cleans on record"
+            )
+        case .projects:
+            guard model.lastScan != nil, !model.projects.isEmpty else { return "" }
+            return localized(
+                "toolbar.projectsSubtitle",
+                defaultValue: "\(model.projects.count) projects · \(model.projectArtifactBytes.formattedBytesCompact)"
             )
         default:
             return ""
