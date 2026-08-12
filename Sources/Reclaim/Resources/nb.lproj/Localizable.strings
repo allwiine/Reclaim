@@ -85,6 +85,7 @@
 "idle.catalogueTitle" = "Hva Reclaim ser på";
 "idle.catalogueSummary" = "%1$lld kjente plasseringer fordelt på %2$lld verktøykategorier";
 "idle.moreCategories" = "%lld til";
+"idle.projectsPitch" = "Finn git-repoer, node_modules og byggmapper i dine egne prosjekter.";
 "idle.trustNote" = "Ingenting fjernes uten din bekreftelse, og alt går til papirkurven som standard. Påloggingsinformasjon, innstillinger og plugins er aldri i katalogen.";
 
 /* Skanning */

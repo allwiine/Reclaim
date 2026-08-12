@@ -82,6 +82,7 @@
 "idle.catalogueTitle" = "What Reclaim looks at";
 "idle.catalogueSummary" = "%1$lld known locations across %2$lld tool categories";
 "idle.moreCategories" = "%lld more";
+"idle.projectsPitch" = "Find git repos, node_modules and build folders in your own projects.";
 "idle.trustNote" = "Nothing is removed without your confirmation, and everything goes to the Trash by default. Credentials, settings and plugins are never in the catalogue.";
 
 /* Scanning */

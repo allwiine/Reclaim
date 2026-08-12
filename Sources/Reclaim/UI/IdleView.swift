@@ -43,7 +43,7 @@ struct IdleView: View {
 
     private var pitch: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text(localized("idle.versionBadge", defaultValue: "Reclaim \(appVersion)"))
+            Text(versionBadge)
                 .font(.system(size: 11, weight: .bold))
                 .tracking(1.5)
                 .textCase(.uppercase)
@@ -129,8 +129,15 @@ struct IdleView: View {
         }
     }
 
-    private var appVersion: String {
-        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
+    /// "Reclaim 1.2.0" from the bundle, or plain "Reclaim" when there
+    /// is no bundle version (e.g. `swift run`) — a version is shown
+    /// automatically or not at all, never a hardcoded guess.
+    private var versionBadge: String {
+        guard let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String
+        else {
+            return localized("app.name", defaultValue: "Reclaim")
+        }
+        return localized("idle.versionBadge", defaultValue: "Reclaim \(version)")
     }
 
     // MARK: - Right column
@@ -209,6 +216,13 @@ struct IdleView: View {
                 Rectangle().fill(Color.white.opacity(0.05)).frame(height: 1)
             }
 
+            idleProjectsRow
+                .padding(.horizontal, 18)
+                .padding(.vertical, 12)
+                .overlay(alignment: .bottom) {
+                    Rectangle().fill(Color.white.opacity(0.05)).frame(height: 1)
+                }
+
             diskFooter
                 .padding(.horizontal, 18)
                 .padding(.top, 13)
@@ -216,6 +230,47 @@ struct IdleView: View {
         }
         .card(radius: 14, fill: Theme.cardFillQuiet)
         .shadow(color: .black.opacity(0.4), radius: 20, y: 12)
+    }
+
+    /// The dev-folder feature's slot in the catalogue card: configured
+    /// folders when the feature is set up, an inline setup button when
+    /// it is not.
+    private var idleProjectsRow: some View {
+        HStack(spacing: 12) {
+            Image(systemName: "folder.badge.gearshape")
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(Color(hex: 0xB8B8BF))
+                .frame(width: 26, height: 26)
+                .background(Theme.controlFill, in: RoundedRectangle(cornerRadius: 7))
+            VStack(alignment: .leading, spacing: 2) {
+                Text(localized("sidebar.projects", defaultValue: "Projects"))
+                    .font(.system(size: 12.5, weight: .medium))
+                    .foregroundStyle(Theme.textPrimary)
+                Text(model.devRoots.isEmpty
+                    ? localized(
+                        "idle.projectsPitch",
+                        defaultValue: "Find git repos, node_modules and build folders in your own projects."
+                    )
+                    : model.devRoots
+                        .map { ($0.path as NSString).abbreviatingWithTildeInPath }
+                        .joined(separator: " · "))
+                    .font(Theme.caption)
+                    .foregroundStyle(Theme.textTertiary)
+                    .lineLimit(1)
+            }
+            Spacer(minLength: 10)
+            if model.devRoots.isEmpty {
+                Button(localized("settings.addDevFolder", defaultValue: "Add folder…")) {
+                    for url in DevFolderPicker.pickFolders() {
+                        model.addDevRoot(url)
+                    }
+                }
+                .buttonStyle(.rcSecondary)
+            } else {
+                StripedPlaceholder()
+                    .frame(width: 34, height: 4)
+            }
+        }
     }
 
     /// Ceiling on category chips before the card folds into "+N more".
