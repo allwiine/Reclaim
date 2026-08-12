@@ -58,11 +58,11 @@ struct OverviewView: View {
                         .frame(maxWidth: .infinity)
                         .entrance(appeared, delay: 0.18)
                     VStack(spacing: 12) {
-                        if !model.manualTargets.isEmpty {
-                            attentionCard
-                        }
                         if !model.devRoots.isEmpty {
                             projectsCard
+                        }
+                        if !model.manualTargets.isEmpty {
+                            attentionCard
                         }
                         statTiles
                     }
