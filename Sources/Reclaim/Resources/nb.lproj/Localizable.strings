@@ -297,3 +297,23 @@
 /* Varsler */
 "notification.title" = "Reclaim fant %@";
 "notification.body" = "Utviklercacher holder på plass. Se gjennom og frigjør den når det passer.";
+
+/* Projects (dev folders) */
+"sidebar.development" = "Utvikling";
+"sidebar.projects" = "Prosjekter";
+"toolbar.projectsSubtitle" = "%lld prosjekter · %@";
+"projects.empty.title" = "Finn glemte prosjekter";
+"projects.empty.body" = "Legg til mappene der prosjektene dine ligger. Reclaim finner git-repositorier og gjenskapbare artefakter som node_modules og byggmapper, og viser når hvert prosjekt sist var i bruk.";
+"projects.addFolder" = "Legg til en utviklingsmappe …";
+"projects.addPrompt" = "Legg til";
+"projects.addMessage" = "Velg mappene der utviklingsprosjektene dine ligger.";
+"projects.sortLabel" = "Sorter";
+"projects.sortBySize" = "Størst først";
+"projects.sortByActivity" = "Lengst inaktiv først";
+"projects.notScanned" = "Kjør en skanning for å finne prosjekter og artefakter.";
+"projects.noneFound" = "Fant ingen prosjekter i mappene som er lagt til.";
+"projects.staleBadge" = "Ingen nylig aktivitet";
+"projects.lastEdited" = "Endret %@";
+"projects.lastCommit" = "Git-aktivitet %@";
+"projects.revealInFinder" = "Vis i Finder";
+"projects.noArtifacts" = "Fant ingen gjenskapbare artefakter.";

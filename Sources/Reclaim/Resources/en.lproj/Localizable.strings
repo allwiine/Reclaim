@@ -294,3 +294,23 @@
 /* Notifications */
 "notification.title" = "Reclaim found %@";
 "notification.body" = "Developer caches are holding on to space. Review and reclaim it when convenient.";
+
+/* Projects (dev folders) */
+"sidebar.development" = "Development";
+"sidebar.projects" = "Projects";
+"toolbar.projectsSubtitle" = "%lld projects · %@";
+"projects.empty.title" = "Find forgotten projects";
+"projects.empty.body" = "Add the folders where your projects live. Reclaim finds git repositories and regenerable artifacts like node_modules and build folders, and shows what each project last did.";
+"projects.addFolder" = "Add a development folder…";
+"projects.addPrompt" = "Add";
+"projects.addMessage" = "Choose the folders where your development projects live.";
+"projects.sortLabel" = "Sort";
+"projects.sortBySize" = "Largest first";
+"projects.sortByActivity" = "Longest inactive first";
+"projects.notScanned" = "Run a scan to find projects and artifacts.";
+"projects.noneFound" = "No projects found in the added folders.";
+"projects.staleBadge" = "No recent activity";
+"projects.lastEdited" = "Edited %@";
+"projects.lastCommit" = "Git activity %@";
+"projects.revealInFinder" = "Reveal in Finder";
+"projects.noArtifacts" = "No regenerable artifacts found.";
