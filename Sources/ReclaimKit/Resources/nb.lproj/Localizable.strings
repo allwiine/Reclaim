@@ -359,3 +359,7 @@
 "artifact.python-cache.name" = "Python-mellomlager";
 "artifact.cocoapods.name" = "CocoaPods (Pods)";
 "artifact.carthage.name" = "Carthage-bygg";
+
+/* Dev-folder discovery */
+"discovery.rootMissing" = "Denne mappen finnes ikke lenger.";
+"discovery.rootUnreadable" = "Denne mappen kunne ikke leses.";

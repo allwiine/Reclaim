@@ -356,3 +356,7 @@
 "artifact.python-cache.name" = "Python caches";
 "artifact.cocoapods.name" = "CocoaPods (Pods)";
 "artifact.carthage.name" = "Carthage build";
+
+/* Dev-folder discovery */
+"discovery.rootMissing" = "This folder no longer exists.";
+"discovery.rootUnreadable" = "This folder could not be read.";

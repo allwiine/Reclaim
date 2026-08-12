@@ -16,6 +16,16 @@ func withTemporaryDirectory<T>(_ body: (URL) throws -> T) throws -> T {
     return try body(root)
 }
 
+/// Async overload for tests whose fixture body needs to `await`
+/// (e.g. awaiting a cancelled `Task`) before the directory is torn down.
+func withTemporaryDirectory<T>(_ body: (URL) async throws -> T) async throws -> T {
+    let root = FileManager.default.temporaryDirectory
+        .appending(path: "ReclaimTests-\(UUID().uuidString)")
+    try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+    defer { try? FileManager.default.removeItem(at: root) }
+    return try await body(root)
+}
+
 /// Create a file at `directory/name` containing `byteCount` bytes.
 @discardableResult
 func makeFile(in directory: URL, name: String, byteCount: Int) throws -> URL {
