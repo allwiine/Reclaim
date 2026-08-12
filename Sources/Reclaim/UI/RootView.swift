@@ -178,6 +178,12 @@ struct RootView: View {
 
             main
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+            Rectangle()
+                .fill(Theme.divider)
+                .frame(height: 1)
+
+            FooterBar()
         }
         .background(Theme.background)
     }

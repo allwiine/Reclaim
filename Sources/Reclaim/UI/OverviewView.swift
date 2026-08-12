@@ -57,17 +57,20 @@ struct OverviewView: View {
                     biggestCard
                         .frame(maxWidth: .infinity)
                         .entrance(appeared, delay: 0.18)
-                    VStack(spacing: 12) {
-                        if !model.devRoots.isEmpty {
-                            projectsCard
+                    // Lifetime/last/next stats live in the global footer;
+                    // the column only appears when it has cards to show.
+                    if !model.devRoots.isEmpty || !model.manualTargets.isEmpty {
+                        VStack(spacing: 12) {
+                            if !model.devRoots.isEmpty {
+                                projectsCard
+                            }
+                            if !model.manualTargets.isEmpty {
+                                attentionCard
+                            }
                         }
-                        if !model.manualTargets.isEmpty {
-                            attentionCard
-                        }
-                        statTiles
+                        .frame(width: 350)
+                        .entrance(appeared, delay: 0.22)
                     }
-                    .frame(width: 350)
-                    .entrance(appeared, delay: 0.22)
                 }
             }
             .padding(.horizontal, Theme.contentMargin)
@@ -447,54 +450,6 @@ struct OverviewView: View {
         .card()
     }
 
-    private var statTiles: some View {
-        VStack(spacing: 12) {
-            StatTile(
-                label: localized("overview.reclaimedAllTime", defaultValue: "Reclaimed all time"),
-                sub: model.history.isEmpty
-                    ? localized("overview.noCleansYet", defaultValue: "no cleans recorded yet")
-                    : localized("overview.acrossCleans", defaultValue: "across \(model.history.count) cleans"),
-                value: model.reclaimedAllTimeBytes > 0
-                    ? model.reclaimedAllTimeBytes.formattedBytesCompact : "—"
-            )
-            StatTile(
-                label: localized("overview.lastClean", defaultValue: "Last clean"),
-                sub: lastCleanSub,
-                value: lastCleanValue
-            )
-            StatTile(
-                label: localized("overview.nextBackgroundScan", defaultValue: "Next background scan"),
-                sub: model.weeklyScanEnabled
-                    ? localized("overview.weeklyWhileRunning", defaultValue: "weekly, while Reclaim is running")
-                    : localized("overview.backgroundScansOff", defaultValue: "background scans are off"),
-                value: nextScanValue
-            )
-        }
-    }
-
-    private var lastCleanValue: String {
-        guard let last = model.history.first else { return "—" }
-        return last.date.formatted(date: .abbreviated, time: .omitted)
-    }
-
-    private var lastCleanSub: String {
-        guard let last = model.history.first else {
-            return localized("overview.nothingCleanedYet", defaultValue: "nothing cleaned yet")
-        }
-        let freed = last.reclaimedBytes.formattedBytesCompact
-        let when = last.date.formatted(.relative(presentation: .named))
-        return localized("overview.lastCleanSub", defaultValue: "\(freed) freed · \(when)")
-    }
-
-    private var nextScanValue: String {
-        guard model.weeklyScanEnabled else {
-            return localized("overview.off", defaultValue: "Off")
-        }
-        guard let next = model.nextBackgroundScanDate else {
-            return localized("overview.afterFirstScan", defaultValue: "After first scan")
-        }
-        return next.formatted(.dateTime.weekday(.wide).hour().minute())
-    }
 }
 
 // MARK: - Subviews
@@ -716,31 +671,6 @@ private struct AttentionCard: View {
     }
 }
 
-/// One compact statistics tile.
-private struct StatTile: View {
-    let label: String
-    let sub: String
-    let value: String
-
-    var body: some View {
-        HStack(alignment: .firstTextBaseline, spacing: 12) {
-            VStack(alignment: .leading, spacing: 3) {
-                SectionLabel(label)
-                Text(sub)
-                    .font(Theme.footnote)
-                    .foregroundStyle(Theme.textTertiary)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            Text(value)
-                .font(.system(size: 14, weight: .semibold))
-                .monospacedDigit()
-                .foregroundStyle(Theme.textPrimary)
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 13)
-        .card(radius: Theme.radiusTile)
-    }
-}
 
 /// Full Disk Access warning, restyled for the dark shell.
 struct FullDiskAccessBanner: View {
