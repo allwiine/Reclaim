@@ -493,4 +493,60 @@ struct AppModelProjectTests {
         #expect(model.artifactSelection.isEmpty)
         #expect(!model.hasCleanableSelection)
     }
+
+    @Test("Largest projects are sorted by size and exclude artifact-free ones")
+    func largestProjects() async {
+        let store = TemporaryDefaults()
+        let small = project(
+            "/dev/small", devRoot: "/dev",
+            artifacts: [artifact("/dev/small/node_modules", bytes: 500)]
+        )
+        let empty = project("/dev/empty", devRoot: "/dev", artifacts: [])
+        let big = project(
+            "/dev/big", devRoot: "/dev",
+            artifacts: [artifact("/dev/big/node_modules", bytes: 900)]
+        )
+        let model = AppModel(
+            targets: [],
+            defaults: store.defaults,
+            projectScanExecutor: { root in
+                DevRootScan(root: root, projects: [small, empty, big])
+            }
+        )
+        model.addDevRoot(URL(filePath: "/dev"))
+        model.scanAll()
+        await model.scanTask?.value
+
+        #expect(model.largestProjects(limit: 5).map(\.name) == ["big", "small"])
+        #expect(model.largestProjects(limit: 1).map(\.name) == ["big"])
+    }
+
+    @Test("Largest findings mix registry targets and projects by size")
+    func largestFindingsMix() async {
+        let store = TemporaryDefaults()
+        let big = project(
+            "/dev/big", devRoot: "/dev",
+            artifacts: [artifact("/dev/big/node_modules", bytes: 500)]
+        )
+        let small = project(
+            "/dev/small", devRoot: "/dev",
+            artifacts: [artifact("/dev/small/node_modules", bytes: 50)]
+        )
+        let model = AppModel(
+            targets: [target("cache"), target("nothing")],
+            defaults: store.defaults,
+            scanExecutor: { t in t.id == "cache" ? measured(100) : measured(0) },
+            projectScanExecutor: { root in
+                DevRootScan(root: root, projects: [big, small])
+            }
+        )
+        model.addDevRoot(URL(filePath: "/dev"))
+        model.scanAll()
+        await model.scanTask?.value
+
+        let findings = model.largestFindings(limit: 6)
+        #expect(findings.map(\.id) == ["project:/dev/big", "target:cache", "project:/dev/small"])
+        #expect(findings.map(\.bytes) == [500, 100, 50])
+        #expect(model.largestFindings(limit: 1).map(\.id) == ["project:/dev/big"])
+    }
 }
