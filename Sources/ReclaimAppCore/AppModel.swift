@@ -554,11 +554,23 @@ public final class AppModel {
         projects.reduce(0) { $0 + $1.artifactBytes }
     }
 
-    /// Add a development folder. Nested roots are walked once: a folder
-    /// inside an existing root is refused; a folder containing existing
-    /// roots replaces them.
+    /// Add a development folder. The path is resolved (symlinks followed)
+    /// before any comparison, so a symlinked root and its real target are
+    /// recognized as the same root — `ProjectDiscovery` itself resolves
+    /// symlinks, so project and artifact URLs always live under the
+    /// resolved path. Nested roots are walked once: a folder inside an
+    /// existing root is refused; a folder containing existing roots
+    /// replaces them. `~/.claude` (and anything inside it) is refused
+    /// outright — Claude Code's own data is structurally excluded from
+    /// discovery, never a dev root.
     public func addDevRoot(_ url: URL) {
-        let root = url.standardizedFileURL
+        let root = url.standardizedFileURL.resolvingSymlinksInPath()
+        let claudeRoot = FileManager.default.homeDirectoryForCurrentUser
+            .resolvingSymlinksInPath()
+            .appending(path: ".claude")
+        guard root.path != claudeRoot.path, !root.path.hasPrefix(claudeRoot.path + "/") else {
+            return
+        }
         guard !devRoots.contains(where: {
             root.path == $0.path || root.path.hasPrefix($0.path + "/")
         }) else { return }
@@ -571,9 +583,12 @@ public final class AppModel {
     public func removeDevRoot(_ url: URL) {
         devRoots.removeAll { $0.path == url.path }
         projectScans.removeAll { $0.root.path == url.path }
-        artifactSelection = artifactSelection.filter {
-            !$0.hasPrefix(url.path + "/")
-        }
+        // Prune by membership, not by path prefix: discovery resolves
+        // symlinks, so artifact ids live under the *resolved* root, which
+        // can differ from the configured `url` textually even though it
+        // is the same root.
+        let remaining = Set(projects.flatMap(\.artifacts).map(\.id))
+        artifactSelection = artifactSelection.filter { remaining.contains($0) }
         persistDevRoots()
     }
 
@@ -628,9 +643,11 @@ public final class AppModel {
     }
 
     /// Whether a clean pass has anything to do — registry targets or
-    /// dev-folder artifacts.
+    /// dev-folder artifacts. Derived from live projects (via
+    /// ``selectedArtifacts``), not the raw id set, so ids left dangling
+    /// by a root removed out from under the selection never count.
     public var hasCleanableSelection: Bool {
-        !selection.isEmpty || !artifactSelection.isEmpty
+        !selection.isEmpty || !selectedArtifacts.isEmpty
     }
 
     // MARK: - Selection
@@ -955,7 +972,12 @@ public final class AppModel {
             }
             publishProgress()
             while let result = await group.next() {
-                projectScans.append(result)
+                // A root removed mid-scan must not resurrect: with no
+                // configured root left to remove it, its rows would
+                // linger until the next scan.
+                if devRoots.contains(where: { $0.path == result.root.path }) {
+                    projectScans.append(result)
+                }
                 completed += 1
                 inFlight.removeAll { $0.path == result.root.path }
                 startNext()

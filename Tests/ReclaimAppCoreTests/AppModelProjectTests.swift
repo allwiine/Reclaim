@@ -65,6 +65,14 @@ private func temporaryHistoryStore() -> CleanHistoryStore {
         .appending(path: "reclaim-project-history-\(UUID().uuidString).json"))
 }
 
+/// A fresh temporary directory, removed by the caller when done.
+private func makeTemporaryDirectory() throws -> URL {
+    let root = FileManager.default.temporaryDirectory
+        .appending(path: "AppModelProjectTests-\(UUID().uuidString)")
+    try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+    return root
+}
+
 // MARK: - Tests
 
 @MainActor
@@ -386,5 +394,103 @@ struct AppModelProjectTests {
 
         #expect(cleanCalls.withLock { $0 } == 0)
         #expect(model.isArtifactSelected(nodeModules))  // selection survives
+    }
+
+    // MARK: - ~/.claude exclusion
+
+    @Test("Claude Code's own data folder is refused as a dev root")
+    func claudeFolderRefused() {
+        let store = TemporaryDefaults()
+        let model = AppModel(targets: [], defaults: store.defaults)
+        let home = FileManager.default.homeDirectoryForCurrentUser
+
+        model.addDevRoot(home.appending(path: ".claude"))
+        #expect(model.devRoots.isEmpty)
+
+        model.addDevRoot(home.appending(path: ".claude/plugins/foo"))
+        #expect(model.devRoots.isEmpty)
+
+        // A sibling folder is unaffected.
+        model.addDevRoot(home.appending(path: "Source"))
+        #expect(model.devRoots.map(\.path) == [
+            home.appending(path: "Source").resolvingSymlinksInPath().path,
+        ])
+    }
+
+    // MARK: - Symlinked roots
+
+    @Test("A symlinked root is stored resolved")
+    func symlinkedRootResolves() throws {
+        let store = TemporaryDefaults()
+        let base = try makeTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: base) }
+        let real = base.appending(path: "real")
+        try FileManager.default.createDirectory(at: real, withIntermediateDirectories: true)
+        let resolvedReal = real.resolvingSymlinksInPath()
+        let link = base.appending(path: "link")
+        try FileManager.default.createSymbolicLink(at: link, withDestinationURL: real)
+
+        let model = AppModel(targets: [], defaults: store.defaults)
+        model.addDevRoot(link)
+
+        #expect(model.devRoots.map(\.path) == [resolvedReal.path])
+    }
+
+    @Test("A symlinked root and its resolved twin dedup to one root")
+    func symlinkedRootDedups() throws {
+        let store = TemporaryDefaults()
+        let base = try makeTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: base) }
+        let real = base.appending(path: "real")
+        try FileManager.default.createDirectory(at: real, withIntermediateDirectories: true)
+        let resolvedReal = real.resolvingSymlinksInPath()
+        let link = base.appending(path: "link")
+        try FileManager.default.createSymbolicLink(at: link, withDestinationURL: real)
+
+        let model = AppModel(targets: [], defaults: store.defaults)
+        model.addDevRoot(link)
+        model.addDevRoot(resolvedReal)
+
+        #expect(model.devRoots.count == 1)
+    }
+
+    @Test("Removing a symlinked root's resolved twin clears its artifact selection")
+    func removeSymlinkedRootClearsSelection() async throws {
+        let store = TemporaryDefaults()
+        let base = try makeTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: base) }
+        let real = base.appending(path: "real")
+        try FileManager.default.createDirectory(at: real, withIntermediateDirectories: true)
+        let resolvedReal = real.resolvingSymlinksInPath()
+        let link = base.appending(path: "link")
+        try FileManager.default.createSymbolicLink(at: link, withDestinationURL: real)
+
+        // Discovery resolves symlinks, so the fixture project/artifact
+        // live under the RESOLVED path even though the configured root
+        // is the symlink.
+        let artifactURL = resolvedReal.appending(path: "app/node_modules")
+        let nodeModules = artifact(artifactURL.path, bytes: 500)
+        let fixture = project(
+            resolvedReal.appending(path: "app").path,
+            devRoot: resolvedReal.path,
+            artifacts: [nodeModules]
+        )
+        let model = AppModel(
+            targets: [],
+            defaults: store.defaults,
+            projectScanExecutor: { root in DevRootScan(root: root, projects: [fixture]) }
+        )
+        model.addDevRoot(link)
+        model.scanAll()
+        await model.scanTask?.value
+        model.setArtifactSelected(nodeModules, true)
+        #expect(model.hasCleanableSelection)
+
+        // The root is removed by its resolved form, matching what's
+        // actually stored in `devRoots`.
+        model.removeDevRoot(resolvedReal)
+
+        #expect(model.artifactSelection.isEmpty)
+        #expect(!model.hasCleanableSelection)
     }
 }
