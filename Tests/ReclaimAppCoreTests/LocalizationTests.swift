@@ -18,6 +18,7 @@ struct AppCoreLocalizationTests {
     /// Every key AppModel looks up in this module's catalogues.
     static let stringKeys = [
         "clean.failureLine",
+        "projects.artifactLabel",
     ]
 
     private func lproj(_ locale: String) throws -> URL {

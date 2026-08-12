@@ -34,6 +34,10 @@ public final class AppModel {
     /// Sizes a measured target's individual contents. Blocking; called
     /// off-main. `nil` means the computation was cancelled.
     public typealias BreakdownExecutor = @Sendable (TargetStatus) -> [BreakdownEntry]?
+    /// Scans one configured dev folder. Blocking; called off-main.
+    public typealias ProjectScanExecutor = @Sendable (URL) -> DevRootScan
+    /// Disposes discovered artifact paths. Blocking; called off-main.
+    public typealias ArtifactCleanExecutor = @Sendable ([URL], Disposal) -> CleanOutcome
 
     // MARK: - Constants
 
@@ -139,6 +143,16 @@ public final class AppModel {
     /// On-demand "largest contents" per target, cached per scan.
     public private(set) var breakdowns: [CleanupTarget.ID: [BreakdownEntry]] = [:]
 
+    /// User-configured development folders (the dev-folder feature is
+    /// inert until this is non-empty). Persisted.
+    public private(set) var devRoots: [URL] = []
+
+    /// Discovery results per dev root, from the most recent scan.
+    public private(set) var projectScans: [DevRootScan] = []
+
+    /// Artifact ids (absolute paths) ticked for cleaning.
+    public private(set) var artifactSelection: Set<String> = []
+
     @ObservationIgnored
     private(set) var scanTask: Task<Void, Never>?
     @ObservationIgnored
@@ -162,6 +176,10 @@ public final class AppModel {
     @ObservationIgnored
     private let breakdownExecutor: BreakdownExecutor
     @ObservationIgnored
+    private let projectScanExecutor: ProjectScanExecutor
+    @ObservationIgnored
+    private let artifactCleanExecutor: ArtifactCleanExecutor
+    @ObservationIgnored
     private let fullDiskAccessProbe: @Sendable () -> Bool?
     @ObservationIgnored
     private let volumeProbe: @Sendable () -> VolumeSpace?
@@ -183,6 +201,7 @@ public final class AppModel {
         static let menuBarExtra = "settings.menuBarExtra"
         static let autoSelectExclusions = "settings.autoSelectExclusions"
         static let lastScanDate = "state.lastScanDate"
+        static let devRoots = "settings.devRoots"
     }
 
     /// Reads a Bool setting through the ObservationRegistrar so views
@@ -289,6 +308,12 @@ public final class AppModel {
             // its own top-5 collapsing.
             try? BreakdownSizer().largestContents(of: $0, limit: Int.max)
         },
+        projectScanExecutor: @escaping ProjectScanExecutor = {
+            ProjectDiscovery().scan(root: $0)
+        },
+        artifactCleanExecutor: @escaping ArtifactCleanExecutor = {
+            CleanupEngine().remove(paths: $0, disposal: $1)
+        },
         fullDiskAccessProbe: @escaping @Sendable () -> Bool? = {
             FullDiskAccessProbe().check()
         },
@@ -302,6 +327,8 @@ public final class AppModel {
         self.scanExecutor = scanExecutor
         self.cleanExecutor = cleanExecutor
         self.breakdownExecutor = breakdownExecutor
+        self.projectScanExecutor = projectScanExecutor
+        self.artifactCleanExecutor = artifactCleanExecutor
         self.fullDiskAccessProbe = fullDiskAccessProbe
         self.volumeProbe = volumeProbe
         self.historyStore = historyStore
@@ -309,6 +336,8 @@ public final class AppModel {
         self.autoSelectExclusions = Set(
             defaults.stringArray(forKey: DefaultsKey.autoSelectExclusions) ?? []
         )
+        self.devRoots = (defaults.stringArray(forKey: DefaultsKey.devRoots) ?? [])
+            .map { URL(filePath: $0) }
         refreshVolumeSpace()
     }
 
@@ -347,9 +376,10 @@ public final class AppModel {
         }
     }
 
-    /// Everything measured, including manual-only items like Docker.
+    /// Everything measured, including manual-only items like Docker and
+    /// dev-folder artifacts.
     public var totalFoundBytes: Int64 {
-        targets.reduce(0) { $0 + (status(of: $1.id).bytes ?? 0) }
+        targets.reduce(0) { $0 + (status(of: $1.id).bytes ?? 0) } + projectArtifactBytes
     }
 
     /// Only what Reclaim itself can clean.
@@ -357,7 +387,7 @@ public final class AppModel {
         targets.reduce(0) { sum, target in
             guard target.strategy.isCleanable else { return sum }
             return sum + (status(of: target.id).bytes ?? 0)
-        }
+        } + projectArtifactBytes
     }
 
     /// Bytes covered by the current selection, partial picks included.
@@ -509,6 +539,54 @@ public final class AppModel {
         Task {
             self.volumeSpace = await Self.offMain { probe() }
         }
+    }
+
+    // MARK: - Dev-folder projects
+
+    /// All discovered projects across roots, scan order.
+    public var projects: [DiscoveredProject] {
+        projectScans.flatMap(\.projects)
+    }
+
+    /// Measured artifact bytes across all projects.
+    public var projectArtifactBytes: Int64 {
+        projects.reduce(0) { $0 + $1.artifactBytes }
+    }
+
+    /// Add a development folder. Nested roots are walked once: a folder
+    /// inside an existing root is refused; a folder containing existing
+    /// roots replaces them.
+    public func addDevRoot(_ url: URL) {
+        let root = url.standardizedFileURL
+        guard !devRoots.contains(where: {
+            root.path == $0.path || root.path.hasPrefix($0.path + "/")
+        }) else { return }
+        devRoots.removeAll { $0.path.hasPrefix(root.path + "/") }
+        devRoots.append(root)
+        persistDevRoots()
+    }
+
+    /// Remove a development folder and everything derived from it.
+    public func removeDevRoot(_ url: URL) {
+        devRoots.removeAll { $0.path == url.path }
+        projectScans.removeAll { $0.root.path == url.path }
+        artifactSelection = artifactSelection.filter {
+            !$0.hasPrefix(url.path + "/")
+        }
+        persistDevRoots()
+    }
+
+    private func persistDevRoots() {
+        defaults.set(devRoots.map(\.path), forKey: DefaultsKey.devRoots)
+    }
+
+    /// Display label for an artifact: "node_modules in my-app".
+    public func artifactDisplayName(kindID: String, projectName: String) -> String {
+        let kindName = ArtifactCatalog.kind(withID: kindID)?.name ?? kindID
+        return localized(
+            "projects.artifactLabel",
+            defaultValue: "\(kindName) in \(projectName)"
+        )
     }
 
     // MARK: - Selection
@@ -684,8 +762,11 @@ public final class AppModel {
         partialSelections.removeAll()
         lastCleanSummary = nil
         invalidateBreakdowns()
+        projectScans = []
+        artifactSelection.removeAll()
         scanProgress = ScanProgress(
-            completed: 0, total: targets.count, currentTargetName: "", currentPath: ""
+            completed: 0, total: targets.count + devRoots.count,
+            currentTargetName: "", currentPath: ""
         )
         for target in targets {
             statuses[target.id] = .scanning
@@ -699,6 +780,7 @@ public final class AppModel {
             for target in targets where self.statuses[target.id] == .scanning {
                 self.statuses[target.id] = .idle
             }
+            await self.runProjectScan()
             self.lastScan = .now
             self.lastScanWasComplete = !Task.isCancelled
             self.defaults.set(Date.now, forKey: DefaultsKey.lastScanDate)
@@ -758,7 +840,7 @@ public final class AppModel {
                 let current = inFlight.first
                 scanProgress = ScanProgress(
                     completed: completed,
-                    total: targets.count,
+                    total: targets.count + devRoots.count,
                     currentTargetName: current?.name ?? "",
                     currentPath: current.map(Self.displayLocation(of:)) ?? ""
                 )
@@ -783,6 +865,55 @@ public final class AppModel {
                 statuses[id] = resolvedStatus
                 completed += 1
                 inFlight.removeAll { $0.id == id }
+                startNext()
+                publishProgress()
+            }
+        }
+    }
+
+    /// Fan dev-root discovery through the same width-limited pattern as
+    /// target scans, continuing the same progress counter.
+    private func runProjectScan() async {
+        let roots = devRoots
+        guard !roots.isEmpty, !Task.isCancelled else { return }
+        let scan = projectScanExecutor
+        let baseCompleted = targets.count
+
+        await withTaskGroup(of: DevRootScan.self) { group in
+            var pending = roots.makeIterator()
+            var completed = 0
+            var inFlight: [URL] = []
+
+            @MainActor
+            func publishProgress() {
+                let current = inFlight.first
+                scanProgress = ScanProgress(
+                    completed: baseCompleted + completed,
+                    total: targets.count + roots.count,
+                    currentTargetName: current?.lastPathComponent ?? "",
+                    currentPath: current.map {
+                        ($0.path as NSString).abbreviatingWithTildeInPath
+                    } ?? ""
+                )
+            }
+
+            @MainActor
+            @discardableResult
+            func startNext() -> Bool {
+                guard let root = pending.next() else { return false }
+                inFlight.append(root)
+                group.addTask { scan(root) }
+                return true
+            }
+
+            for _ in 0..<Self.maxConcurrentScans {
+                startNext()
+            }
+            publishProgress()
+            while let result = await group.next() {
+                projectScans.append(result)
+                completed += 1
+                inFlight.removeAll { $0.path == result.root.path }
                 startNext()
                 publishProgress()
             }
