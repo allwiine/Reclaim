@@ -201,6 +201,7 @@
 "done.noteTrashEmptied" = "Papirkurven er tømt. Plassen er tilgjengelig nå.";
 "done.noteMovedToTrash" = "Flyttet til papirkurven. Tøm den for å frigjøre plassen for godt.";
 "done.noteDeleted" = "Slettet permanent. Plassen er tilgjengelig nå.";
+"done.artifactsHeader" = "Prosjektartefakter";
 "done.failuresTitle" = "Noen elementer kunne ikke ryddes";
 "done.failuresMore" = "…og %lld til.";
 "done.fullDiskAccessHint" = "Hvis tilgang ble nektet, gi Reclaim full disktilgang i Systeminnstillinger → Personvern og sikkerhet.";
@@ -268,6 +269,10 @@
 "settings.showNotInstalledHelp" = "Behold katalogoppføringer synlige selv når verktøyet ikke ble funnet på denne Macen.";
 "settings.showEmpty" = "Vis tomme plasseringer";
 "settings.showEmptyHelp" = "Behold plasseringer i listen selv når siste skanning ikke målte noe i dem.";
+"settings.sectionDevFolders" = "Utviklingsmapper";
+"settings.removeDevFolder" = "Fjern";
+"settings.addDevFolder" = "Legg til mappe …";
+"settings.devFoldersHelp" = "Reclaim leter etter prosjekter og gjenskapbare artefakter (node_modules, byggmapper, virtualenv) bare i disse mappene.";
 "settings.sectionMenuBar" = "Menylinje";
 "settings.menuBarExtra" = "Vis Reclaim i menylinjen";
 "settings.menuBarExtraHelp" = "Et kompakt sammendrag med rask tilgang til skanning og trygg rydding.";

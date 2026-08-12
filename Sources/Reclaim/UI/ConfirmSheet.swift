@@ -144,14 +144,15 @@ struct ConfirmSheet: View {
             )
         }
         let space = model.selectedBytes.formattedBytesCompact
+        let locationCount = picked.count + model.selectedArtifacts.count
         return model.dryRun
             ? localized(
                 "confirm.titleDryRun",
-                defaultValue: "Dry run: reclaim \(space) from \(picked.count) locations?"
+                defaultValue: "Dry run: reclaim \(space) from \(locationCount) locations?"
             )
             : localized(
                 "confirm.title",
-                defaultValue: "Reclaim \(space) from \(picked.count) locations?"
+                defaultValue: "Reclaim \(space) from \(locationCount) locations?"
             )
     }
 
@@ -216,12 +217,42 @@ struct ConfirmSheet: View {
                 .padding(.horizontal, 12)
                 .padding(.vertical, 9)
                 .overlay(alignment: .bottom) {
-                    if target.id != picked.last?.id {
+                    if target.id != picked.last?.id || !model.selectedArtifacts.isEmpty {
+                        Rectangle().fill(Theme.separator).frame(height: 1)
+                    }
+                }
+            }
+            ForEach(model.selectedArtifacts) { artifact in
+                HStack(spacing: 10) {
+                    Circle()
+                        .fill(Theme.safe)
+                        .frame(width: 7, height: 7)
+                    Text(artifactLabel(artifact))
+                        .font(Theme.body)
+                        .foregroundStyle(Theme.textPrimary)
+                        .lineLimit(1)
+                    Spacer(minLength: 8)
+                    Text(artifact.measurement.bytes.formattedBytesCompact)
+                        .font(.system(size: 12))
+                        .monospacedDigit()
+                        .foregroundStyle(Color(hex: 0x8E8E95))
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 9)
+                .overlay(alignment: .bottom) {
+                    if artifact.id != model.selectedArtifacts.last?.id {
                         Rectangle().fill(Theme.separator).frame(height: 1)
                     }
                 }
             }
         }
+    }
+
+    private func artifactLabel(_ artifact: DiscoveredArtifact) -> String {
+        let projectName = model.projects
+            .first { $0.artifacts.contains(where: { $0.id == artifact.id }) }?
+            .name ?? ""
+        return model.artifactDisplayName(kindID: artifact.kindID, projectName: projectName)
     }
 
     /// "Clean just this": the exact scan-time items that will go.

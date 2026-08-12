@@ -135,6 +135,10 @@ struct SettingsView: View {
                     )
                 }
 
+                section(localized("settings.sectionDevFolders", defaultValue: "Development folders")) {
+                    devFoldersRows
+                }
+
                 section(localized("settings.sectionMenuBar", defaultValue: "Menu bar")) {
                     SettingRow(
                         localized(
@@ -240,6 +244,48 @@ struct SettingsView: View {
             .padding(.bottom, 12)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
+    }
+
+    /// The dev-folder feature's configuration: the roots Reclaim
+    /// searches for projects. Empty list = feature entirely inert.
+    @ViewBuilder
+    private var devFoldersRows: some View {
+        ForEach(model.devRoots, id: \.path) { root in
+            HStack(spacing: 10) {
+                Text((root.path as NSString).abbreviatingWithTildeInPath)
+                    .font(Theme.mono(11.5))
+                    .foregroundStyle(Color(hex: 0xC8C8CF))
+                    .lineLimit(1)
+                Spacer(minLength: 8)
+                Button(localized("settings.removeDevFolder", defaultValue: "Remove")) {
+                    model.removeDevRoot(root)
+                }
+                .buttonStyle(.rcSecondary)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 10)
+            .overlay(alignment: .bottom) {
+                Rectangle().fill(Theme.separator).frame(height: 1)
+            }
+        }
+        HStack {
+            Text(localized(
+                "settings.devFoldersHelp",
+                defaultValue: "Reclaim looks for projects and regenerable artifacts (node_modules, build folders, virtualenvs) only inside these folders."
+            ))
+            .font(.system(size: 12))
+            .lineSpacing(2.5)
+            .foregroundStyle(Color(hex: 0x8E8E95))
+            Spacer(minLength: 8)
+            Button(localized("settings.addDevFolder", defaultValue: "Add folder…")) {
+                for url in DevFolderPicker.pickFolders() {
+                    model.addDevRoot(url)
+                }
+            }
+            .buttonStyle(.rcSecondary)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 13)
     }
 
     /// Shown when the notify toggle is on but macOS blocks the alert —
