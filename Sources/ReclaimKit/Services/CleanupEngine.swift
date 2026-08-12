@@ -126,6 +126,21 @@ public struct CleanupEngine: Sendable {
         return outcome
     }
 
+    /// Dispose of a list of scan-time snapshot paths directly — the
+    /// entry point for dev-folder artifacts, which have no registry
+    /// target. Same per-item best-effort semantics as target cleaning;
+    /// the engine still never lists directories itself.
+    public func remove(paths: [URL], disposal: Disposal) -> CleanOutcome {
+        var outcome = CleanOutcome()
+        for path in paths {
+            dispose(path, disposal: disposal, outcome: &outcome)
+        }
+        Log.cleaner.info(
+            "Removed \(outcome.removedItems) artifact paths, failures \(outcome.failures.count)"
+        )
+        return outcome
+    }
+
     // MARK: - Helpers
 
     private func dispose(_ url: URL, disposal: Disposal, outcome: inout CleanOutcome) {
