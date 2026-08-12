@@ -56,6 +56,9 @@ struct ScanningView: View {
                 ForEach(ToolCategory.allCases) { category in
                     categoryRow(category)
                 }
+                if !model.devRoots.isEmpty {
+                    projectsRow
+                }
             }
             .frame(width: 420)
             .padding(.top, 28)
@@ -98,6 +101,33 @@ struct ScanningView: View {
                 .foregroundStyle(Color(hex: 0x8E8E95))
                 .contentTransition(.numericText())
                 .animation(Theme.smooth, value: bytes)
+        }
+        .padding(.vertical, 6)
+        .opacity(finished ? 1 : 0.4)
+        .animation(Theme.quick, value: finished)
+    }
+
+    /// The dev-folder phase's row, mirroring the category rows: dim
+    /// while roots are queued or walking (the phase runs after the
+    /// registry targets), lit once every configured root is scanned.
+    private var projectsRow: some View {
+        let finished = model.projectScans.count == model.devRoots.count
+        let anyMeasured = !model.projectScans.isEmpty
+
+        return HStack(spacing: 9) {
+            Circle()
+                .fill(Theme.accent)
+                .frame(width: 7, height: 7)
+            Text(localized("sidebar.projects", defaultValue: "Projects"))
+                .font(Theme.body)
+                .foregroundStyle(Theme.textPrimary)
+            Spacer(minLength: 8)
+            Text(anyMeasured ? model.projectArtifactBytes.formattedBytesCompact : "—")
+                .font(.system(size: 12))
+                .monospacedDigit()
+                .foregroundStyle(Color(hex: 0x8E8E95))
+                .contentTransition(.numericText())
+                .animation(Theme.smooth, value: model.projectArtifactBytes)
         }
         .padding(.vertical, 6)
         .opacity(finished ? 1 : 0.4)
