@@ -554,6 +554,55 @@ public final class AppModel {
         projects.reduce(0) { $0 + $1.artifactBytes }
     }
 
+    /// The projects with the most reclaimable artifact bytes, for the
+    /// overview's Projects card. Artifact-free projects are omitted.
+    public func largestProjects(limit: Int) -> [DiscoveredProject] {
+        projects
+            .filter { $0.artifactBytes > 0 }
+            .sorted { $0.artifactBytes > $1.artifactBytes }
+            .prefix(limit)
+            .map { $0 }
+    }
+
+    /// One entry in the overview's "biggest single locations" list —
+    /// either a registry target or a discovered project. Projects are
+    /// represented whole (their artifact total), not per artifact,
+    /// matching how the Projects screen presents them.
+    public enum OverviewFinding: Identifiable, Sendable {
+        case target(CleanupTarget, bytes: Int64)
+        case project(DiscoveredProject)
+
+        public var id: String {
+            switch self {
+            case .target(let target, _): "target:\(target.id)"
+            case .project(let project): "project:\(project.id)"
+            }
+        }
+
+        public var bytes: Int64 {
+            switch self {
+            case .target(_, let bytes): bytes
+            case .project(let project): project.artifactBytes
+            }
+        }
+    }
+
+    /// The largest measured findings across registry targets and
+    /// dev-folder projects, by size.
+    public func largestFindings(limit: Int) -> [OverviewFinding] {
+        let targetFindings: [OverviewFinding] = targets.compactMap { target in
+            let bytes = status(of: target.id).bytes ?? 0
+            return bytes > 0 ? .target(target, bytes: bytes) : nil
+        }
+        let projectFindings: [OverviewFinding] = projects
+            .filter { $0.artifactBytes > 0 }
+            .map { .project($0) }
+        return (targetFindings + projectFindings)
+            .sorted { $0.bytes > $1.bytes }
+            .prefix(limit)
+            .map { $0 }
+    }
+
     /// Add a development folder. The path is resolved (symlinks followed)
     /// before any comparison, so a symlinked root and its real target are
     /// recognized as the same root — `ProjectDiscovery` itself resolves

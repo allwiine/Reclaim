@@ -17,7 +17,7 @@ A native macOS app for finding and cleaning wasted developer storage, covering t
 
 Reclaim scans a curated catalogue of known cache and scratch locations, shows what each one is, how risky it is to remove, and cleans your selection. Cleaning goes to the Trash by default, so mistakes are recoverable.
 
-Optionally, add your development folders and Reclaim finds git repos and regenerable artifacts inside them (node_modules, build outputs, virtualenvs, Pods), lists them by size and last activity, and cleans only the artifacts, never your code.
+Optionally, add your development folders (from the welcome screen, the Projects section or Settings) and Reclaim finds git repos and regenerable artifacts inside them (node_modules, build outputs, virtualenvs, Pods), lists them by size and last activity so forgotten projects stand out, and cleans only the artifacts, never your code. Discovered projects rank alongside the regular catalogue on the overview.
 
 Built with **Swift 6.2**, **SwiftUI**, the **Observation** framework, strict concurrency, and **Swift Testing**.
 
@@ -39,6 +39,7 @@ Built with **Swift 6.2**, **SwiftUI**, the **Observation** framework, strict con
 | Cloud & DevOps | kubectl, Helm and Pulumi caches, gcloud & Azure CLI logs, Terraform plugin cache, Firebase emulators |
 | Embedded & IoT | PlatformIO cache, Arduino downloads, ESP-IDF toolchain archives |
 | Other dev tools | VS Code caches & workspace storage, JetBrains caches & logs, Zed caches & language servers, ccache / sccache compiler caches, Bazel output trees, pre-commit environments |
+| Your projects (optional) | node_modules, JS build outputs (.next, dist), Rust `target`, SwiftPM `.build`, Gradle builds, Python virtualenvs & caches, CocoaPods, Carthage builds, found inside the development folders you add and proven regenerable by their marker files (package.json, Cargo.toml, ...) |
 
 Every item carries a safety rating:
 
@@ -96,6 +97,7 @@ Most locations are readable out of the box. If a scan row shows *Couldn't scan*,
 5. **Manual-only items are never touched**; the UI physically cannot select them.
 6. **Post-clean rescan.** Numbers on screen are re-measured, never assumed; the summary counts only what was actually removed.
 7. **Honest failures.** Unreadable locations show as "Couldn't scan" or "N unreadable" (with a Full Disk Access banner) instead of quietly measuring as empty; scans stopped early are labeled partial; a clean pass can be stopped between items.
+8. **Your code is off limits.** Dev-folder scanning can only clean catalogued artifacts proven regenerable by a marker file; projects and repos themselves have no delete path, and `~/.claude` is refused as a development folder outright.
 
 ## Adding a new tool
 
@@ -122,8 +124,10 @@ Package.swift               Swift 6.2 package (app + libraries + tests)
 project.yml                 Optional XcodeGen spec for a .app bundle
 Sources/
   ReclaimKit/               UI-free core library (fully unit-tested)
-    Domain/                 CleanupTarget, registry, safety levels, status
+    Domain/                 CleanupTarget, registry, artifact catalogue,
+                            safety levels, status
     Services/               PathResolver, DiskSizer, TargetScanner,
+                            BulkDirectoryReader, ProjectDiscovery,
                             CleanupEngine, FullDiskAccessProbe
     Support/                os.log categories
   ReclaimAppCore/           UI-free app state: AppModel, CleanSummary

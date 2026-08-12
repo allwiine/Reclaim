@@ -43,7 +43,7 @@ struct IdleView: View {
 
     private var pitch: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text(localized("idle.versionBadge", defaultValue: "Reclaim \(appVersion)"))
+            Text(versionBadge)
                 .font(.system(size: 11, weight: .bold))
                 .tracking(1.5)
                 .textCase(.uppercase)
@@ -129,8 +129,15 @@ struct IdleView: View {
         }
     }
 
-    private var appVersion: String {
-        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
+    /// "Reclaim 1.2.0" from the bundle, or plain "Reclaim" when there
+    /// is no bundle version (e.g. `swift run`) — a version is shown
+    /// automatically or not at all, never a hardcoded guess.
+    private var versionBadge: String {
+        guard let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String
+        else {
+            return localized("app.name", defaultValue: "Reclaim")
+        }
+        return localized("idle.versionBadge", defaultValue: "Reclaim \(version)")
     }
 
     // MARK: - Right column
@@ -176,9 +183,45 @@ struct IdleView: View {
                 Rectangle().fill(Color.white.opacity(0.07)).frame(height: 1)
             }
 
-            ForEach(ToolCategory.allCases) { category in
-                catalogueRow(category)
+            // Breadth at a glance, not a row per category: the card's
+            // height must stay bounded as the catalogue grows, so the
+            // grid caps at `maxVisibleChips` and folds the rest into a
+            // "+N more" chip instead of stretching forever.
+            VStack(alignment: .leading, spacing: 13) {
+                Text(localized(
+                    "idle.catalogueSummary",
+                    defaultValue: "\(TargetRegistry.all.count) known locations across \(ToolCategory.allCases.count) tool categories"
+                ))
+                .font(Theme.body)
+                .foregroundStyle(Theme.textSecondary)
+
+                LazyVGrid(
+                    columns: [GridItem(.adaptive(minimum: 185), spacing: 8)],
+                    alignment: .leading,
+                    spacing: 8
+                ) {
+                    ForEach(visibleChipCategories) { category in
+                        categoryChip(category)
+                    }
+                    if hiddenChipCount > 0 {
+                        moreChip
+                    }
+                }
             }
+            .padding(.horizontal, 18)
+            .padding(.top, 14)
+            .padding(.bottom, 16)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .overlay(alignment: .bottom) {
+                Rectangle().fill(Color.white.opacity(0.05)).frame(height: 1)
+            }
+
+            idleProjectsRow
+                .padding(.horizontal, 18)
+                .padding(.vertical, 12)
+                .overlay(alignment: .bottom) {
+                    Rectangle().fill(Color.white.opacity(0.05)).frame(height: 1)
+                }
 
             diskFooter
                 .padding(.horizontal, 18)
@@ -189,30 +232,91 @@ struct IdleView: View {
         .shadow(color: .black.opacity(0.4), radius: 20, y: 12)
     }
 
-    private func catalogueRow(_ category: ToolCategory) -> some View {
-        let targets = TargetRegistry.targets(in: category)
-        return HStack(spacing: 12) {
-            CategoryTile(category: category, size: 26)
+    /// The dev-folder feature's slot in the catalogue card: configured
+    /// folders when the feature is set up, an inline setup button when
+    /// it is not.
+    private var idleProjectsRow: some View {
+        HStack(spacing: 12) {
+            Image(systemName: "folder.badge.gearshape")
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(Color(hex: 0xB8B8BF))
+                .frame(width: 26, height: 26)
+                .background(Theme.controlFill, in: RoundedRectangle(cornerRadius: 7))
             VStack(alignment: .leading, spacing: 2) {
-                Text(category.title)
+                Text(localized("sidebar.projects", defaultValue: "Projects"))
                     .font(.system(size: 12.5, weight: .medium))
                     .foregroundStyle(Theme.textPrimary)
-                Text(targets.prefix(3).map(\.name).joined(separator: " · "))
+                Text(model.devRoots.isEmpty
+                    ? localized(
+                        "idle.projectsPitch",
+                        defaultValue: "Find git repos, node_modules and build folders in your own projects."
+                    )
+                    : model.devRoots
+                        .map { ($0.path as NSString).abbreviatingWithTildeInPath }
+                        .joined(separator: " · "))
                     .font(Theme.caption)
                     .foregroundStyle(Theme.textTertiary)
                     .lineLimit(1)
             }
             Spacer(minLength: 10)
-            Text(localized("count.locations", defaultValue: "\(targets.count) locations"))
-                .font(Theme.caption)
-                .foregroundStyle(Theme.textQuaternary)
-            StripedPlaceholder()
-                .frame(width: 34, height: 4)
+            if model.devRoots.isEmpty {
+                Button(localized("settings.addDevFolder", defaultValue: "Add folder…")) {
+                    for url in DevFolderPicker.pickFolders() {
+                        model.addDevRoot(url)
+                    }
+                }
+                .buttonStyle(.rcSecondary)
+            } else {
+                StripedPlaceholder()
+                    .frame(width: 34, height: 4)
+            }
         }
-        .padding(.horizontal, 18)
-        .padding(.vertical, 12)
-        .overlay(alignment: .bottom) {
-            Rectangle().fill(Color.white.opacity(0.05)).frame(height: 1)
+    }
+
+    /// Ceiling on category chips before the card folds into "+N more".
+    private static let maxVisibleChips = 14
+
+    private var visibleChipCategories: [ToolCategory] {
+        let all = ToolCategory.allCases
+        guard all.count > Self.maxVisibleChips else { return all }
+        return Array(all.prefix(Self.maxVisibleChips - 1))
+    }
+
+    private var hiddenChipCount: Int {
+        ToolCategory.allCases.count - visibleChipCategories.count
+    }
+
+    private func categoryChip(_ category: ToolCategory) -> some View {
+        HStack(spacing: 8) {
+            CategoryTile(category: category, size: 22)
+            Text(category.title)
+                .font(.system(size: 11.5, weight: .medium))
+                .foregroundStyle(Color(hex: 0xC8C8CF))
+                .lineLimit(1)
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 6)
+        .background(Color.white.opacity(0.03), in: RoundedRectangle(cornerRadius: 8))
+        .overlay {
+            RoundedRectangle(cornerRadius: 8)
+                .strokeBorder(.white.opacity(0.05), lineWidth: 0.5)
+        }
+    }
+
+    private var moreChip: some View {
+        HStack(spacing: 8) {
+            Text(localized("idle.moreCategories", defaultValue: "\(hiddenChipCount) more"))
+                .font(.system(size: 11.5, weight: .medium))
+                .foregroundStyle(Theme.textTertiary)
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 6)
+        .background(Color.white.opacity(0.02), in: RoundedRectangle(cornerRadius: 8))
+        .overlay {
+            RoundedRectangle(cornerRadius: 8)
+                .strokeBorder(.white.opacity(0.04), lineWidth: 0.5)
         }
     }
 

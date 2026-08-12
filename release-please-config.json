@@ -4,6 +4,8 @@
   "include-component-in-tag": false,
   "draft": true,
   "packages": {
-    ".": {}
+    ".": {
+      "extra-files": ["project.yml"]
+    }
   }
 }

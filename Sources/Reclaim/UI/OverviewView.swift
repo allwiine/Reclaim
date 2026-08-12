@@ -23,6 +23,8 @@ struct OverviewView: View {
     let reviewEverything: () -> Void
     /// Selects everything safe and opens the confirmation.
     let reclaimSafe: () -> Void
+    /// Opens the dev-folder Projects screen.
+    let openProjects: () -> Void
 
     @State private var appeared = false
 
@@ -55,14 +57,20 @@ struct OverviewView: View {
                     biggestCard
                         .frame(maxWidth: .infinity)
                         .entrance(appeared, delay: 0.18)
-                    VStack(spacing: 12) {
-                        if !model.manualTargets.isEmpty {
-                            attentionCard
+                    // Lifetime/last/next stats live in the global footer;
+                    // the column only appears when it has cards to show.
+                    if !model.devRoots.isEmpty || !model.manualTargets.isEmpty {
+                        VStack(spacing: 12) {
+                            if !model.devRoots.isEmpty {
+                                projectsCard
+                            }
+                            if !model.manualTargets.isEmpty {
+                                attentionCard
+                            }
                         }
-                        statTiles
+                        .frame(width: 350)
+                        .entrance(appeared, delay: 0.22)
                     }
-                    .frame(width: 350)
-                    .entrance(appeared, delay: 0.22)
                 }
             }
             .padding(.horizontal, Theme.contentMargin)
@@ -336,17 +344,21 @@ struct OverviewView: View {
     private var biggestCard: some View {
         VStack(alignment: .leading, spacing: 6) {
             SectionLabel(localized("overview.biggestLocations", defaultValue: "Biggest single locations"))
-            let largest = model.largestTargets(limit: 6)
-            let ceiling = largest.first.map { model.bytes(of: $0) } ?? 0
+            // Registry targets and dev-folder projects, ranked together.
+            let largest = model.largestFindings(limit: 6)
+            let ceiling = largest.first?.bytes ?? 0
             VStack(spacing: 0) {
-                ForEach(Array(largest.enumerated()), id: \.element.id) { index, target in
-                    BiggestRow(
-                        rank: index + 1,
-                        target: target,
-                        fraction: ceiling > 0
-                            ? Double(model.bytes(of: target)) / Double(ceiling) : 0
-                    ) {
-                        openTarget(target)
+                ForEach(Array(largest.enumerated()), id: \.element.id) { index, finding in
+                    let fraction = ceiling > 0 ? Double(finding.bytes) / Double(ceiling) : 0
+                    switch finding {
+                    case .target(let target, _):
+                        BiggestRow(rank: index + 1, target: target, fraction: fraction) {
+                            openTarget(target)
+                        }
+                    case .project(let project):
+                        ProjectFindingRow(rank: index + 1, project: project, fraction: fraction) {
+                            openProjects()
+                        }
                     }
                 }
             }
@@ -355,6 +367,69 @@ struct OverviewView: View {
         .padding(.bottom, 12)
         .padding(.horizontal, Theme.cardPadding)
         .card()
+    }
+
+    // MARK: - Projects card
+
+    /// Compact dev-folder summary: how much the discovered projects'
+    /// artifacts hold, and the biggest offenders. Tapping anywhere
+    /// opens the Projects screen. Shown only once dev folders exist.
+    private var projectsCard: some View {
+        Button(action: openProjects) {
+            VStack(alignment: .leading, spacing: 10) {
+                HStack {
+                    SectionLabel(localized("sidebar.projects", defaultValue: "Projects"))
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(Theme.textQuaternary)
+                }
+                if model.projects.isEmpty {
+                    Text(localized(
+                        "projects.noneFound",
+                        defaultValue: "No projects found in the added folders."
+                    ))
+                    .font(Theme.footnote)
+                    .foregroundStyle(Theme.textTertiary)
+                } else {
+                    Text(localized(
+                        "toolbar.projectsSubtitle",
+                        defaultValue: "\(model.projects.count) projects · \(model.projectArtifactBytes.formattedBytesCompact)"
+                    ))
+                    .font(.system(size: 14, weight: .semibold))
+                    .monospacedDigit()
+                    .foregroundStyle(Theme.textPrimary)
+                    .contentTransition(.numericText())
+                    .animation(Theme.smooth, value: model.projectArtifactBytes)
+
+                    VStack(spacing: 6) {
+                        ForEach(model.largestProjects(limit: 2)) { project in
+                            HStack(spacing: 8) {
+                                Image(systemName: "folder.badge.gearshape")
+                                    .font(.system(size: 10.5))
+                                    .foregroundStyle(Theme.textTertiary)
+                                Text(project.name)
+                                    .font(.system(size: 12))
+                                    .foregroundStyle(Color(hex: 0xB4B4BB))
+                                    .lineLimit(1)
+                                Spacer(minLength: 8)
+                                Text(project.artifactBytes.formattedBytesCompact)
+                                    .font(.system(size: 12))
+                                    .monospacedDigit()
+                                    .foregroundStyle(Color(hex: 0x8E8E95))
+                            }
+                        }
+                    }
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 13)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .contentShape(RoundedRectangle(cornerRadius: Theme.radiusTile))
+        }
+        .buttonStyle(.plain)
+        .card(radius: Theme.radiusTile)
+        .hoverHighlight()
     }
 
     // MARK: - Attention & stats
@@ -375,54 +450,6 @@ struct OverviewView: View {
         .card()
     }
 
-    private var statTiles: some View {
-        VStack(spacing: 12) {
-            StatTile(
-                label: localized("overview.reclaimedAllTime", defaultValue: "Reclaimed all time"),
-                sub: model.history.isEmpty
-                    ? localized("overview.noCleansYet", defaultValue: "no cleans recorded yet")
-                    : localized("overview.acrossCleans", defaultValue: "across \(model.history.count) cleans"),
-                value: model.reclaimedAllTimeBytes > 0
-                    ? model.reclaimedAllTimeBytes.formattedBytesCompact : "—"
-            )
-            StatTile(
-                label: localized("overview.lastClean", defaultValue: "Last clean"),
-                sub: lastCleanSub,
-                value: lastCleanValue
-            )
-            StatTile(
-                label: localized("overview.nextBackgroundScan", defaultValue: "Next background scan"),
-                sub: model.weeklyScanEnabled
-                    ? localized("overview.weeklyWhileRunning", defaultValue: "weekly, while Reclaim is running")
-                    : localized("overview.backgroundScansOff", defaultValue: "background scans are off"),
-                value: nextScanValue
-            )
-        }
-    }
-
-    private var lastCleanValue: String {
-        guard let last = model.history.first else { return "—" }
-        return last.date.formatted(date: .abbreviated, time: .omitted)
-    }
-
-    private var lastCleanSub: String {
-        guard let last = model.history.first else {
-            return localized("overview.nothingCleanedYet", defaultValue: "nothing cleaned yet")
-        }
-        let freed = last.reclaimedBytes.formattedBytesCompact
-        let when = last.date.formatted(.relative(presentation: .named))
-        return localized("overview.lastCleanSub", defaultValue: "\(freed) freed · \(when)")
-    }
-
-    private var nextScanValue: String {
-        guard model.weeklyScanEnabled else {
-            return localized("overview.off", defaultValue: "Off")
-        }
-        guard let next = model.nextBackgroundScanDate else {
-            return localized("overview.afterFirstScan", defaultValue: "After first scan")
-        }
-        return next.formatted(.dateTime.weekday(.wide).hour().minute())
-    }
 }
 
 // MARK: - Subviews
@@ -544,6 +571,55 @@ private struct BiggestRow: View {
     }
 }
 
+/// A ranked project row in "Biggest single locations" — mirrors
+/// BiggestRow, but routes to the Projects screen.
+private struct ProjectFindingRow: View {
+    let rank: Int
+    let project: DiscoveredProject
+    let fraction: Double
+    let open: () -> Void
+
+    var body: some View {
+        Button(action: open) {
+            HStack(spacing: 12) {
+                Text(rank.formatted())
+                    .font(Theme.caption)
+                    .monospacedDigit()
+                    .foregroundStyle(Theme.textQuaternary)
+                    .frame(width: 14, alignment: .leading)
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack(spacing: 7) {
+                        Image(systemName: "folder.badge.gearshape")
+                            .font(.system(size: 11))
+                            .foregroundStyle(Theme.textTertiary)
+                        Text(project.name)
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundStyle(Theme.textPrimary)
+                            .lineLimit(1)
+                    }
+                    Text(localized("sidebar.projects", defaultValue: "Projects"))
+                        .font(Theme.caption)
+                        .foregroundStyle(Theme.textTertiary)
+                }
+                Spacer(minLength: 10)
+                VStack(alignment: .trailing, spacing: 5) {
+                    Text(project.artifactBytes.formattedBytesCompact)
+                        .font(.system(size: 12.5, weight: .medium))
+                        .monospacedDigit()
+                        .foregroundStyle(Theme.textPrimary)
+                    MiniBar(fraction: fraction, color: Theme.accent)
+                }
+                .frame(width: 110)
+            }
+            .padding(.vertical, 10)
+            .padding(.horizontal, 8)
+            .contentShape(RoundedRectangle(cornerRadius: Theme.radiusControl))
+        }
+        .buttonStyle(.plain)
+        .hoverHighlight(color: Color.white.opacity(0.05))
+    }
+}
+
 /// A "handled by tool" callout with its terminal command.
 private struct AttentionCard: View {
     @Environment(AppModel.self) private var model
@@ -595,31 +671,6 @@ private struct AttentionCard: View {
     }
 }
 
-/// One compact statistics tile.
-private struct StatTile: View {
-    let label: String
-    let sub: String
-    let value: String
-
-    var body: some View {
-        HStack(alignment: .firstTextBaseline, spacing: 12) {
-            VStack(alignment: .leading, spacing: 3) {
-                SectionLabel(label)
-                Text(sub)
-                    .font(Theme.footnote)
-                    .foregroundStyle(Theme.textTertiary)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            Text(value)
-                .font(.system(size: 14, weight: .semibold))
-                .monospacedDigit()
-                .foregroundStyle(Theme.textPrimary)
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 13)
-        .card(radius: Theme.radiusTile)
-    }
-}
 
 /// Full Disk Access warning, restyled for the dark shell.
 struct FullDiskAccessBanner: View {
@@ -659,7 +710,10 @@ struct FullDiskAccessBanner: View {
 
 #if DEBUG
 #Preview(traits: .fixedLayout(width: 1060, height: 900)) {
-    OverviewView(openCategory: { _ in }, openTarget: { _ in }, reviewEverything: {}, reclaimSafe: {})
+    OverviewView(
+        openCategory: { _ in }, openTarget: { _ in },
+        reviewEverything: {}, reclaimSafe: {}, openProjects: {}
+    )
         .background(Theme.background)
         .environment(PreviewData.scanned())
         .preferredColorScheme(.dark)

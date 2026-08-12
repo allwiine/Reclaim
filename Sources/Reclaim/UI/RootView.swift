@@ -178,6 +178,12 @@ struct RootView: View {
 
             main
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+            Rectangle()
+                .fill(Theme.divider)
+                .frame(height: 1)
+
+            FooterBar()
         }
         .background(Theme.background)
     }
@@ -240,6 +246,10 @@ struct RootView: View {
                 reclaimSafe: {
                     model.selectAllSafe()
                     confirmScope = .selection
+                },
+                openProjects: {
+                    inspectedTargetID = nil
+                    destination = .projects
                 }
             )
             .transition(.opacity)
