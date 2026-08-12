@@ -240,6 +240,10 @@ struct RootView: View {
                 reclaimSafe: {
                     model.selectAllSafe()
                     confirmScope = .selection
+                },
+                openProjects: {
+                    inspectedTargetID = nil
+                    destination = .projects
                 }
             )
             .transition(.opacity)
