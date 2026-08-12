@@ -25,9 +25,9 @@ enum GitActivityReader {
         guard let size = try? handle.seekToEnd() else { return nil }
         let start = size > tailBytes ? size - tailBytes : 0
         do { try handle.seek(toOffset: start) } catch { return nil }
-        guard let data = try? handle.readToEnd(),
-              let text = String(data: data, encoding: .utf8),
-              let line = text.split(separator: "\n").last(where: { !$0.isEmpty })
+        guard let data = try? handle.readToEnd() else { return nil }
+        let text = String(decoding: data, as: UTF8.self)
+        guard let line = text.split(separator: "\n").last(where: { !$0.isEmpty })
         else { return nil }
 
         // The name field may contain spaces, so take the epoch from the
