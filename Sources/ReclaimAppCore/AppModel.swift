@@ -382,7 +382,7 @@ public final class AppModel {
         targets.reduce(0) { $0 + (status(of: $1.id).bytes ?? 0) } + projectArtifactBytes
     }
 
-    /// Only what Reclaim itself can clean.
+    /// Only what Reclaim itself can clean, including dev-folder artifacts.
     public var cleanableBytes: Int64 {
         targets.reduce(0) { sum, target in
             guard target.strategy.isCleanable else { return sum }
@@ -390,9 +390,10 @@ public final class AppModel {
         } + projectArtifactBytes
     }
 
-    /// Bytes covered by the current selection, partial picks included.
+    /// Bytes covered by the current selection, partial picks and
+    /// selected dev-folder artifacts included.
     public var selectedBytes: Int64 {
-        targets.reduce(0) { $0 + selectedBytes(of: $1) }
+        targets.reduce(0) { $0 + selectedBytes(of: $1) } + selectedArtifactBytes
     }
 
     public struct CategoryTotal: Identifiable {
@@ -587,6 +588,49 @@ public final class AppModel {
             "projects.artifactLabel",
             defaultValue: "\(kindName) in \(projectName)"
         )
+    }
+
+    /// Six months without edits or git activity marks a project stale
+    /// (a purely visual badge — staleness changes no behavior).
+    public static let staleProjectInterval: TimeInterval = 183 * 24 * 3600
+
+    /// Whether a project shows the "no recent activity" badge. A
+    /// project with no known dates is unknown, not stale.
+    public func isProjectStale(_ project: DiscoveredProject, now: Date = .now) -> Bool {
+        guard let activity = project.lastActivityDate else { return false }
+        return now.timeIntervalSince(activity) > Self.staleProjectInterval
+    }
+
+    /// Whether the artifact's checkbox is enabled.
+    public func isArtifactSelectable(_ artifact: DiscoveredArtifact) -> Bool {
+        !isScanning && !isCleaning && artifact.measurement.bytes > 0
+    }
+
+    public func isArtifactSelected(_ artifact: DiscoveredArtifact) -> Bool {
+        artifactSelection.contains(artifact.id)
+    }
+
+    public func setArtifactSelected(_ artifact: DiscoveredArtifact, _ selected: Bool) {
+        if selected, isArtifactSelectable(artifact) {
+            artifactSelection.insert(artifact.id)
+        } else {
+            artifactSelection.remove(artifact.id)
+        }
+    }
+
+    /// The selected artifacts, discovery order.
+    public var selectedArtifacts: [DiscoveredArtifact] {
+        projects.flatMap(\.artifacts).filter { artifactSelection.contains($0.id) }
+    }
+
+    public var selectedArtifactBytes: Int64 {
+        selectedArtifacts.reduce(0) { $0 + $1.measurement.bytes }
+    }
+
+    /// Whether a clean pass has anything to do — registry targets or
+    /// dev-folder artifacts.
+    public var hasCleanableSelection: Bool {
+        !selection.isEmpty || !artifactSelection.isEmpty
     }
 
     // MARK: - Selection

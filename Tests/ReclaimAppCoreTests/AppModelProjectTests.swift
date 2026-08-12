@@ -164,29 +164,113 @@ struct AppModelProjectTests {
         #expect(model.projectScans.first?.failureMessage == "gone")
     }
 
-    // enabled in Task 7
-    // @Test("Removing a root drops its results and selections")
-    // func removeRoot() async {
-    //     let store = TemporaryDefaults()
-    //     let fixture = project(
-    //         "/dev/app", devRoot: "/dev",
-    //         artifacts: [artifact("/dev/app/node_modules", bytes: 500)]
-    //     )
-    //     let model = AppModel(
-    //         targets: [],
-    //         defaults: store.defaults,
-    //         projectScanExecutor: { root in DevRootScan(root: root, projects: [fixture]) }
-    //     )
-    //     model.addDevRoot(URL(filePath: "/dev"))
-    //     model.scanAll()
-    //     await model.scanTask?.value
-    //     model.setArtifactSelected(fixture.artifacts[0], true)
-    //     #expect(model.selectedArtifactBytes == 500)
-    //
-    //     model.removeDevRoot(URL(filePath: "/dev"))
-    //
-    //     #expect(model.devRoots.isEmpty)
-    //     #expect(model.projectScans.isEmpty)
-    //     #expect(model.selectedArtifactBytes == 0)
-    // }
+    @Test("Removing a root drops its results and selections")
+    func removeRoot() async {
+        let store = TemporaryDefaults()
+        let fixture = project(
+            "/dev/app", devRoot: "/dev",
+            artifacts: [artifact("/dev/app/node_modules", bytes: 500)]
+        )
+        let model = AppModel(
+            targets: [],
+            defaults: store.defaults,
+            projectScanExecutor: { root in DevRootScan(root: root, projects: [fixture]) }
+        )
+        model.addDevRoot(URL(filePath: "/dev"))
+        model.scanAll()
+        await model.scanTask?.value
+        model.setArtifactSelected(fixture.artifacts[0], true)
+        #expect(model.selectedArtifactBytes == 500)
+
+        model.removeDevRoot(URL(filePath: "/dev"))
+
+        #expect(model.devRoots.isEmpty)
+        #expect(model.projectScans.isEmpty)
+        #expect(model.selectedArtifactBytes == 0)
+    }
+
+    @Test("Artifact selection follows the selectability rules")
+    func artifactSelection() async {
+        let store = TemporaryDefaults()
+        let full = artifact("/dev/app/node_modules", bytes: 500)
+        let empty = artifact("/dev/app/.venv", bytes: 0)
+        let fixture = project("/dev/app", devRoot: "/dev", artifacts: [full, empty])
+        let model = AppModel(
+            targets: [],
+            defaults: store.defaults,
+            projectScanExecutor: { root in DevRootScan(root: root, projects: [fixture]) }
+        )
+        model.addDevRoot(URL(filePath: "/dev"))
+        model.scanAll()
+        await model.scanTask?.value
+
+        // Artifacts are never auto-selected after a scan.
+        #expect(model.artifactSelection.isEmpty)
+
+        #expect(model.isArtifactSelectable(full))
+        #expect(!model.isArtifactSelectable(empty))    // nothing to free
+
+        model.setArtifactSelected(full, true)
+        #expect(model.isArtifactSelected(full))
+        #expect(model.selectedArtifactBytes == 500)
+        #expect(model.hasCleanableSelection)
+
+        model.setArtifactSelected(empty, true)          // refused
+        #expect(!model.isArtifactSelected(empty))
+
+        model.setArtifactSelected(full, false)
+        #expect(!model.hasCleanableSelection)
+    }
+
+    @Test("Selected bytes and totals include artifacts")
+    func totalsIncludeArtifacts() async {
+        let store = TemporaryDefaults()
+        let fixture = project(
+            "/dev/app", devRoot: "/dev",
+            artifacts: [artifact("/dev/app/node_modules", bytes: 500)]
+        )
+        let model = AppModel(
+            targets: [target("cache")],
+            defaults: store.defaults,
+            scanExecutor: { _ in measured(100) },
+            projectScanExecutor: { root in DevRootScan(root: root, projects: [fixture]) }
+        )
+        model.addDevRoot(URL(filePath: "/dev"))
+        model.scanAll()
+        await model.scanTask?.value
+
+        // Post-scan auto-selection ticked the safe target (100).
+        #expect(model.selectedBytes == 100)
+        model.setArtifactSelected(fixture.artifacts[0], true)
+        #expect(model.selectedBytes == 600)
+        #expect(model.selectedArtifactBytes == 500)
+    }
+
+    @Test("Stale detection uses the six-month threshold")
+    func staleProjects() {
+        let store = TemporaryDefaults()
+        let model = AppModel(targets: [], defaults: store.defaults)
+        let now = Date(timeIntervalSince1970: 1_800_000_000)
+        let fresh = DiscoveredProject(
+            url: URL(filePath: "/dev/fresh"), devRoot: URL(filePath: "/dev"),
+            isGitRepo: true,
+            lastEditDate: now.addingTimeInterval(-3600), lastGitActivityDate: nil,
+            artifacts: []
+        )
+        let stale = DiscoveredProject(
+            url: URL(filePath: "/dev/stale"), devRoot: URL(filePath: "/dev"),
+            isGitRepo: true,
+            lastEditDate: now.addingTimeInterval(-200 * 24 * 3600),
+            lastGitActivityDate: nil,
+            artifacts: []
+        )
+        let unknown = DiscoveredProject(
+            url: URL(filePath: "/dev/unknown"), devRoot: URL(filePath: "/dev"),
+            isGitRepo: false, lastEditDate: nil, lastGitActivityDate: nil,
+            artifacts: []
+        )
+        #expect(!model.isProjectStale(fresh, now: now))
+        #expect(model.isProjectStale(stale, now: now))
+        #expect(!model.isProjectStale(unknown, now: now))  // unknown ≠ stale
+    }
 }
