@@ -177,7 +177,9 @@ enum BulkDirectoryReader {
 
     // MARK: - FileManager fallback
 
-    private static func fallbackListing(atPath path: String) -> BulkDirectoryListing? {
+    /// Internal (not `private`) so tests can pin this engine against the
+    /// getattrlistbulk path directly — a test seam only.
+    static func fallbackListing(atPath path: String) -> BulkDirectoryListing? {
         let url = URL(filePath: path)
         let keys: Set<URLResourceKey> = [
             .isDirectoryKey, .isSymbolicLinkKey, .isRegularFileKey,
