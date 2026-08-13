@@ -31,6 +31,7 @@
 /* Tjenester */
 "engine.commandExitStatus" = "Avsluttet med status %lld.";
 "engine.commandTimedOut" = "Stoppet etter %@. Kommandoen ble aldri ferdig.";
+"engine.protectedPath" = "Beskyttet av Reclaims ekskluderingsliste og fjernes aldri.";
 "engine.toolReported" = "Verktøyet meldte: «%@»";
 "sizer.unreadableRoot" = "«%@» finnes, men kunne ikke leses.";
 

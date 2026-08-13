@@ -144,6 +144,20 @@ public struct CleanupEngine: Sendable {
     // MARK: - Helpers
 
     private func dispose(_ url: URL, disposal: Disposal, outcome: inout CleanOutcome) {
+        // Defense in depth: RegistryTests already forbids a catalogue
+        // that reaches a structural exclusion, but the promise in
+        // Settings ("never touched") is enforced here too, so no
+        // future code path can dispose one by accident.
+        if ExclusionRegistry.isProtected(url) {
+            outcome.failures.append(CleanFailure(
+                path: url.path,
+                message: localized(
+                    "engine.protectedPath",
+                    defaultValue: "Protected by Reclaim's exclusion list and never removed."
+                )
+            ))
+            return
+        }
         do {
             switch disposal {
             case .trash: try remover.trash(url)
