@@ -47,7 +47,7 @@ Every item carries a safety rating:
 - **Caution**: restorable, but re-downloading or losing history costs something (downloaded models, session history, release archives).
 - **Destructive**: removes things you created (emulators, installed language versions).
 
-Items Reclaim should *not* delete itself (Docker's and OrbStack's VM disks, Colima / Lima / Podman machines, Go's read-only module cache, Bazel's output trees) are still measured, but cleaning is delegated to the owning tool with clear instructions. Claude Code's auth, settings and plugins are structurally excluded from the catalogue; a unit test enforces it.
+Items Reclaim should *not* delete itself (Docker's and OrbStack's VM disks, Colima / Lima / Podman machines, Go's read-only module cache, Bazel's output trees) are still measured, but cleaning is delegated to the owning tool with clear instructions. Credentials, settings and other user data that live beside targeted caches (Claude Code's auth and plugins, kubeconfigs, signing keys, registry tokens and more) are structurally excluded through a registry of protected paths; a unit test forbids any target from touching them, and the cleanup engine refuses them at runtime.
 
 ## Requirements
 

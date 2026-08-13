@@ -52,6 +52,15 @@ fails if broken):
 - Set `relatedAppBundleIDs` when a running app actively uses the data.
 - **Never register user data.** Anything a person created or configured
   (settings, credentials, projects, chat history they'd miss) is off-limits.
+- **Look beside what you target.** If a target reaches into a folder that
+  also holds credentials, settings, or other user data (`~/.kube/cache`
+  sits next to `~/.kube/config`), register those sibling paths in
+  `Sources/ReclaimKit/Domain/ExclusionRegistry.swift` (with reason
+  strings in both catalogues), or add the folder to
+  `ExclusionRegistry.reviewedSafeRoots` if nothing sensitive lives
+  there. A test fails until you have made that call, and the exclusion
+  list is enforced twice: no target pattern may touch it, and the
+  cleanup engine refuses those paths at runtime.
 
 ## Localization
 
