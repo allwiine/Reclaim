@@ -283,11 +283,7 @@
 "settings.fdaStatusDenied" = "Not granted";
 "settings.fdaStatusUnknown" = "Checked when a scan runs";
 "settings.sectionExclusions" = "Excluded from scans";
-"settings.exclusionAuth" = "auth — never in catalogue";
-"settings.exclusionNever" = "never in catalogue";
-"settings.exclusionCerts" = "dev certs & keys — never in catalogue";
-"settings.exclusionTools" = "installed tools — never in catalogue";
-"settings.exclusionsFootnote" = "Reclaim's catalogue holds only caches, logs and scratch data. Credentials, settings and plugins are excluded structurally — they are not part of the catalogue and cannot be selected.";
+"settings.exclusionsFootnote" = "Reclaim's catalogue holds only caches, logs and scratch data. Credentials, settings and other user data are excluded structurally: they are not part of the catalogue, a unit test forbids any target from touching them, and the cleanup engine refuses them at runtime.";
 
 /* Menu bar extra */
 "menu.scanThisMac" = "Scan This Mac";
