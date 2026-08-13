@@ -363,3 +363,40 @@
 /* Dev-folder discovery */
 "discovery.rootMissing" = "Denne mappen finnes ikke lenger.";
 "discovery.rootUnreadable" = "Denne mappen kunne ikke leses.";
+
+/* Structural exclusions */
+"exclusionGroup.claudeCode.name" = "Claude Code";
+"exclusionGroup.aiTools.name" = "AI-assistenter";
+"exclusionGroup.cloudContainers.name" = "Sky og containere";
+"exclusionGroup.toolchains.name" = "Verktøykjeder og registre";
+"exclusionGroup.keysCertificates.name" = "Nøkler og sertifikater";
+"exclusionGroup.editorSettings.name" = "Editorinnstillinger";
+"exclusion.reason.authAppState" = "pålogging og apptilstand";
+"exclusion.reason.settings" = "innstillinger";
+"exclusion.reason.plugins" = "programtillegg";
+"exclusion.reason.authToken" = "påloggingsnøkkel";
+"exclusion.reason.oauthCredentials" = "OAuth-påloggingsinformasjon";
+"exclusion.reason.authAndConfig" = "pålogging og oppsett";
+"exclusion.reason.signingKey" = "signeringsnøkkel";
+"exclusion.reason.accessTokens" = "tilgangsnøkler";
+"exclusion.reason.configMayHoldKeys" = "oppsett, kan inneholde API-nøkler";
+"exclusion.reason.chatHistory" = "samtalehistorikk";
+"exclusion.reason.mcpConfig" = "MCP-oppsett";
+"exclusion.reason.clusterCredentials" = "klyngepålogging";
+"exclusion.reason.credentials" = "påloggingsinformasjon";
+"exclusion.reason.registryAuth" = "registerpålogging";
+"exclusion.reason.terraformTokens" = "Terraform Cloud-nøkler";
+"exclusion.reason.registryToken" = "registernøkkel";
+"exclusion.reason.signingKeysTokens" = "signeringsnøkler og hemmeligheter";
+"exclusion.reason.repositoryCredentials" = "pålogging for pakkeregistre";
+"exclusion.reason.credentialProviders" = "påloggingsleverandører";
+"exclusion.reason.installedTools" = "installerte verktøy";
+"exclusion.reason.deviceKeys" = "enhetsnøkkel og debug-signering";
+"exclusion.reason.accountState" = "kontotilstand";
+"exclusion.reason.sshKeys" = "SSH-nøkler";
+"exclusion.reason.gpgKeys" = "GPG-nøkler";
+"exclusion.reason.devCerts" = "utviklingssertifikater og nøkler";
+"exclusion.reason.keychains" = "nøkkelringer";
+"exclusion.reason.userSettings" = "brukerinnstillinger";
+"exclusion.reason.ideSettings" = "IDE-innstillinger og programtillegg";
+"exclusion.reason.editorState" = "editortilstand";

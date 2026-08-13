@@ -360,3 +360,40 @@
 /* Dev-folder discovery */
 "discovery.rootMissing" = "This folder no longer exists.";
 "discovery.rootUnreadable" = "This folder could not be read.";
+
+/* Structural exclusions */
+"exclusionGroup.claudeCode.name" = "Claude Code";
+"exclusionGroup.aiTools.name" = "AI assistants";
+"exclusionGroup.cloudContainers.name" = "Cloud & containers";
+"exclusionGroup.toolchains.name" = "Toolchains & registries";
+"exclusionGroup.keysCertificates.name" = "Keys & certificates";
+"exclusionGroup.editorSettings.name" = "Editor settings";
+"exclusion.reason.authAppState" = "auth & app state";
+"exclusion.reason.settings" = "settings";
+"exclusion.reason.plugins" = "plugins";
+"exclusion.reason.authToken" = "auth token";
+"exclusion.reason.oauthCredentials" = "OAuth credentials";
+"exclusion.reason.authAndConfig" = "auth & config";
+"exclusion.reason.signingKey" = "signing key";
+"exclusion.reason.accessTokens" = "access tokens";
+"exclusion.reason.configMayHoldKeys" = "config, may hold API keys";
+"exclusion.reason.chatHistory" = "chat history";
+"exclusion.reason.mcpConfig" = "MCP config";
+"exclusion.reason.clusterCredentials" = "cluster credentials";
+"exclusion.reason.credentials" = "credentials";
+"exclusion.reason.registryAuth" = "registry auth";
+"exclusion.reason.terraformTokens" = "Terraform Cloud tokens";
+"exclusion.reason.registryToken" = "registry token";
+"exclusion.reason.signingKeysTokens" = "signing keys & tokens";
+"exclusion.reason.repositoryCredentials" = "repository credentials";
+"exclusion.reason.credentialProviders" = "credential providers";
+"exclusion.reason.installedTools" = "installed tools";
+"exclusion.reason.deviceKeys" = "device key & debug signing";
+"exclusion.reason.accountState" = "account state";
+"exclusion.reason.sshKeys" = "SSH keys";
+"exclusion.reason.gpgKeys" = "GPG keys";
+"exclusion.reason.devCerts" = "dev certs & keys";
+"exclusion.reason.keychains" = "keychains";
+"exclusion.reason.userSettings" = "user settings";
+"exclusion.reason.ideSettings" = "IDE settings & plugins";
+"exclusion.reason.editorState" = "editor state";
