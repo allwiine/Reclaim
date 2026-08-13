@@ -26,7 +26,8 @@ Reclaim is deliberately small and layered. The core insight is that a storage cl
 │                                                          │
 │  Domain    CleanupTarget · TargetRegistry · SafetyLevel  │
 │            CleanupStrategy · TargetStatus                │
-│            ArtifactCatalog · DiscoveredProject           │
+│            ExclusionRegistry · ArtifactCatalog           │
+│            DiscoveredProject                             │
 │  Services  PathResolver → DiskSizer → TargetScanner      │
 │            CleanupEngine (FileRemoving protocol)         │
 │            FullDiskAccessProbe                           │
@@ -88,6 +89,7 @@ UI is kept logic-free (views derive everything from `AppModel`), so model-level 
 | To add… | Touch… |
 | --- | --- |
 | A new cleanable tool | One `CleanupTarget` in `TargetRegistry` |
+| A protected sibling path (credentials, settings) | One `StructuralExclusion` in `ExclusionRegistry` + reason keys in both Kit catalogues |
 | A running-app warning for it | `relatedAppBundleIDs` on the target |
 | A command tool whose presence needs proving | `availabilityProbePattern` on its `CommandSpec` |
 | A new category | One case in `ToolCategory` (title + SF Symbol) |

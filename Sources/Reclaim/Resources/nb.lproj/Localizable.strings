@@ -286,11 +286,7 @@
 "settings.fdaStatusDenied" = "Ikke gitt";
 "settings.fdaStatusUnknown" = "Sjekkes når en skanning kjører";
 "settings.sectionExclusions" = "Utelatt fra skanning";
-"settings.exclusionAuth" = "auth · aldri i katalogen";
-"settings.exclusionNever" = "aldri i katalogen";
-"settings.exclusionCerts" = "dev-sertifikater og nøkler · aldri i katalogen";
-"settings.exclusionTools" = "installerte verktøy · aldri i katalogen";
-"settings.exclusionsFootnote" = "Reclaims katalog inneholder bare cacher, logger og scratch-data. Påloggingsinformasjon, innstillinger og plugins er utelatt strukturelt: de er ikke en del av katalogen og kan ikke velges.";
+"settings.exclusionsFootnote" = "Reclaims katalog inneholder bare cacher, logger og scratch-data. Påloggingsinformasjon, innstillinger og andre brukerdata er utelatt strukturelt: de er ikke en del av katalogen, en enhetstest forbyr alle mål å røre dem, og oppryddingsmotoren nekter å slette dem.";
 
 /* Menylinjemeny */
 "menu.scanThisMac" = "Skann denne Macen";

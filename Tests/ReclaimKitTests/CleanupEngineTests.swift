@@ -152,6 +152,34 @@ struct CleanupEngineTests {
         #expect(remover.deleted.isEmpty)
     }
 
+    @Test("Structurally excluded paths are refused, never disposed")
+    func protectedPathsAreRefused() {
+        let remover = MockRemover()
+        let engine = CleanupEngine(remover: remover)
+        let home = FileManager.default.homeDirectoryForCurrentUser.path
+        let protected = URL(filePath: "\(home)/.ssh/id_ed25519")
+        let ordinary = URL(filePath: "\(home)/fixture/cache.bin")
+
+        let cleanOutcome = engine.clean(
+            makeTarget(strategy: .removeContents),
+            resolvedPaths: [protected, ordinary],
+            disposal: .trash
+        )
+
+        // The ordinary path went to Trash; the protected one was refused.
+        #expect(cleanOutcome.removedItems == 1)
+        #expect(remover.trashed == [ordinary])
+        #expect(remover.deleted.isEmpty)
+        #expect(cleanOutcome.failures.count == 1)
+        #expect(cleanOutcome.failures.first?.path == protected.path)
+
+        // The artifact entry point funnels through the same guard.
+        let removeOutcome = engine.remove(paths: [protected], disposal: .delete)
+        #expect(removeOutcome.removedItems == 0)
+        #expect(remover.deleted.isEmpty)
+        #expect(removeOutcome.failures.count == 1)
+    }
+
 }
 
 // MARK: - Command execution

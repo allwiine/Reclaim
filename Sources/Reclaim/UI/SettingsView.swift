@@ -374,34 +374,13 @@ struct SettingsView: View {
         VStack(alignment: .leading, spacing: 9) {
             SectionLabel(localized("settings.sectionExclusions", defaultValue: "Excluded from scans"))
             VStack(alignment: .leading, spacing: 8) {
-                exclusionRow(
-                    "~/.claude.json",
-                    localized("settings.exclusionAuth", defaultValue: "auth — never in catalogue")
-                )
-                exclusionRow(
-                    "~/.claude/settings.json",
-                    localized("settings.exclusionNever", defaultValue: "never in catalogue")
-                )
-                exclusionRow(
-                    "~/.claude/plugins",
-                    localized("settings.exclusionNever", defaultValue: "never in catalogue")
-                )
-                exclusionRow(
-                    "~/Library/Keychains",
-                    localized("settings.exclusionNever", defaultValue: "never in catalogue")
-                )
-                exclusionRow(
-                    "~/.aspnet",
-                    localized("settings.exclusionCerts", defaultValue: "dev certs & keys — never in catalogue")
-                )
-                exclusionRow(
-                    "~/.dotnet/tools",
-                    localized("settings.exclusionTools", defaultValue: "installed tools — never in catalogue")
-                )
+                ForEach(ExclusionGroup.allCases) { group in
+                    exclusionGroup(group)
+                }
 
                 Text(localized(
                     "settings.exclusionsFootnote",
-                    defaultValue: "Reclaim's catalogue holds only caches, logs and scratch data. Credentials, settings and plugins are excluded structurally — they are not part of the catalogue and cannot be selected."
+                    defaultValue: "Reclaim's catalogue holds only caches, logs and scratch data. Credentials, settings and other user data are excluded structurally: they are not part of the catalogue, a unit test forbids any target from touching them, and the cleanup engine refuses them at runtime."
                 ))
                 .font(Theme.footnote)
                 .lineSpacing(2.5)
@@ -412,6 +391,21 @@ struct SettingsView: View {
             .padding(.vertical, 12)
             .frame(maxWidth: .infinity, alignment: .leading)
             .card(radius: Theme.radiusPanel)
+        }
+    }
+
+    private func exclusionGroup(_ group: ExclusionGroup) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(group.displayName)
+                .font(Theme.caption)
+                .textCase(.uppercase)
+                .foregroundStyle(Theme.textTertiary)
+                .padding(.top, 4)
+            ForEach(ExclusionRegistry.entries(in: group)) { entry in
+                ForEach(entry.paths, id: \.self) { path in
+                    exclusionRow(path, entry.reason)
+                }
+            }
         }
     }
 

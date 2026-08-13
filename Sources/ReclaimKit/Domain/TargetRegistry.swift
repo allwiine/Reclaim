@@ -986,7 +986,11 @@ public enum TargetRegistry {
             ),
             category: .aiTools,
             safety: .caution,
-            pathPatterns: ["~/.cache/huggingface"],
+            pathPatterns: [
+                "~/.cache/huggingface/hub",
+                "~/.cache/huggingface/datasets",
+                "~/.cache/huggingface/xet",
+            ],
             strategy: .removeContents,
             note: localized(
                 "target.huggingface-cache.note",
