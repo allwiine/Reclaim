@@ -144,6 +144,14 @@ public enum ExclusionRegistry {
         "~/.sdkman",        // archives and tmp; no credentials
         "~/.vagrant.d",     // boxes and the public insecure_private_key
         "~/.yarn",          // berry cache; tokens live in ~/.yarnrc.yml
+        "~/.cache/firebase",     // emulator downloads; firebase auth lives in ~/.config/configstore
+        "~/.cache/lm-studio",    // legacy model cache location
+        "~/.cache/node",         // corepack cache only
+        "~/.local/pipx",         // installed venvs and logs
+        "~/.local/share/goose",  // session transcripts are the targeted data
+        "~/.local/share/pipx",   // installed venvs and logs
+        "~/.local/share/uv",     // downloaded Python toolchains
+        "~/.local/state/goose",  // logs only
         "~/Library/Application Support/Epic",  // Unreal derived data and Zen cache
     ]
 

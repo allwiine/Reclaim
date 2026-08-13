@@ -172,13 +172,26 @@ struct RegistryTests {
         #expect(stale.isEmpty, "reviewedSafeRoots no longer reached by any target: \(stale.sorted())")
     }
 
-    /// The reviewable root of a pattern: `~/.<name>` or
-    /// `~/Library/Application Support/<Name>`, but only when the
-    /// pattern reaches *deeper* than the root itself. A target that
-    /// claims a whole folder (`~/.ccache`) asserts the folder is
-    /// wholly disposable; a target that reaches inside one
-    /// (`~/.codex/sessions`) leaves siblings worth reviewing.
+    /// Shared folders where many tools keep their data side by side.
+    /// Roots under these are derived one component deeper, so each
+    /// tool's folder gets its own review decision. Longest prefix first.
+    private static let umbrellaRoots = [
+        "~/.local/share", "~/.local/state", "~/.local", "~/.cache", "~/.config",
+    ]
+
+    /// The reviewable root of a pattern: `~/.<name>`,
+    /// `~/Library/Application Support/<Name>`, or one component below an
+    /// umbrella folder (`~/.cache/<tool>`), but only when the pattern
+    /// reaches *deeper* than the root itself. A target that claims a
+    /// whole folder (`~/.ccache`) asserts the folder is wholly
+    /// disposable; a target that reaches inside one (`~/.codex/sessions`)
+    /// leaves siblings worth reviewing.
     private static func sensitiveRoot(of pattern: String) -> String? {
+        for umbrella in umbrellaRoots where pattern.hasPrefix(umbrella + "/") {
+            let rest = pattern.dropFirst(umbrella.count + 1)
+            guard let slash = rest.firstIndex(of: "/") else { return nil }
+            return umbrella + "/" + rest[..<slash]
+        }
         let appSupport = "~/Library/Application Support/"
         if pattern.hasPrefix(appSupport) {
             let rest = pattern.dropFirst(appSupport.count)
