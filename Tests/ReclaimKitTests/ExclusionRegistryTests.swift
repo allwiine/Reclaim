@@ -58,6 +58,7 @@ struct ExclusionRegistryTests {
         #expect(ExclusionRegistry.isProtected(URL(filePath: "\(home)/.ssh/id_ed25519")))
         // Disposing the home folder itself would take every exclusion with it.
         #expect(ExclusionRegistry.isProtected(URL(filePath: home)))
+        #expect(ExclusionRegistry.isProtected(URL(filePath: "/")))
         // Plain cache content is not protected.
         #expect(!ExclusionRegistry.isProtected(URL(filePath: "\(home)/.npm/_cacache")))
     }

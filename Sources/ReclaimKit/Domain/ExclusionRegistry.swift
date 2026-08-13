@@ -115,6 +115,8 @@ public enum ExclusionRegistry {
     /// path with it).
     public static func isProtected(_ url: URL) -> Bool {
         let candidate = url.standardizedFileURL.path
+        // The filesystem root is an ancestor of every exclusion.
+        if candidate == "/" { return true }
         return expandedProtectedPaths.contains { protectedPath in
             candidate == protectedPath
                 || candidate.hasPrefix(protectedPath + "/")
