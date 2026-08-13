@@ -136,4 +136,60 @@ struct RegistryTests {
         let viaFilter = TargetRegistry.all.filter { $0.category == category }.map(\.id)
         #expect(viaLookup == viaFilter)
     }
+
+    @Test("Every root a target reaches into is reviewed-safe or carries an exclusion")
+    func rootsAreReviewed() {
+        var roots: Set<String> = []
+        for target in TargetRegistry.all {
+            for pattern in target.pathPatterns {
+                if let root = Self.sensitiveRoot(of: pattern) {
+                    roots.insert(root)
+                }
+            }
+        }
+
+        let exclusionPaths = ExclusionRegistry.all.flatMap(\.paths)
+        for root in roots.sorted() {
+            let covered = exclusionPaths.contains { $0 == root || $0.hasPrefix(root + "/") }
+            let reviewed = ExclusionRegistry.reviewedSafeRoots.contains(root)
+            #expect(
+                covered || reviewed,
+                """
+                \(root): a target reaches into this folder. Register an exclusion \
+                for the credentials/settings that live beside the targeted paths, \
+                or add the root to ExclusionRegistry.reviewedSafeRoots if nothing \
+                sensitive lives there.
+                """
+            )
+            #expect(
+                !(covered && reviewed),
+                "\(root) is declared reviewed-safe but contains exclusions: remove it from reviewedSafeRoots"
+            )
+        }
+
+        // The safe list must not outlive the targets that justified it.
+        let stale = ExclusionRegistry.reviewedSafeRoots.subtracting(roots)
+        #expect(stale.isEmpty, "reviewedSafeRoots no longer reached by any target: \(stale.sorted())")
+    }
+
+    /// The reviewable root of a pattern: `~/.<name>` or
+    /// `~/Library/Application Support/<Name>`, but only when the
+    /// pattern reaches *deeper* than the root itself. A target that
+    /// claims a whole folder (`~/.ccache`) asserts the folder is
+    /// wholly disposable; a target that reaches inside one
+    /// (`~/.codex/sessions`) leaves siblings worth reviewing.
+    private static func sensitiveRoot(of pattern: String) -> String? {
+        let appSupport = "~/Library/Application Support/"
+        if pattern.hasPrefix(appSupport) {
+            let rest = pattern.dropFirst(appSupport.count)
+            guard let slash = rest.firstIndex(of: "/") else { return nil }
+            return appSupport + rest[..<slash]
+        }
+        if pattern.hasPrefix("~/.") {
+            let rest = pattern.dropFirst(2)
+            guard let slash = rest.firstIndex(of: "/") else { return nil }
+            return "~/" + rest[..<slash]
+        }
+        return nil
+    }
 }
