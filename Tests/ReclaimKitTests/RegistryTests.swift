@@ -49,14 +49,26 @@ struct RegistryTests {
         }
     }
 
-    @Test("Claude Code auth, settings and plugins are never registered")
-    func claudeConfigIsProtected() {
+    @Test("No target pattern collides with a structural exclusion")
+    func exclusionsAreRespected() {
         for target in TargetRegistry.all {
             for pattern in target.pathPatterns {
-                #expect(pattern != "~/.claude", "\(target.id) must not target the whole ~/.claude folder")
-                #expect(!pattern.contains(".claude.json"), "\(target.id) must not touch auth")
-                #expect(!pattern.contains(".claude/settings"), "\(target.id) must not touch settings")
-                #expect(!pattern.contains(".claude/plugins"), "\(target.id) must not touch plugins")
+                for exclusion in ExclusionRegistry.all {
+                    for protectedPath in exclusion.paths {
+                        #expect(
+                            pattern != protectedPath,
+                            "\(target.id) targets protected \(protectedPath)"
+                        )
+                        #expect(
+                            !pattern.hasPrefix(protectedPath + "/"),
+                            "\(target.id) targets inside protected \(protectedPath)"
+                        )
+                        #expect(
+                            !protectedPath.hasPrefix(pattern + "/"),
+                            "\(target.id) pattern \(pattern) would dispose an ancestor of protected \(protectedPath)"
+                        )
+                    }
+                }
             }
         }
     }
@@ -94,19 +106,6 @@ struct RegistryTests {
     @Test("The embedded category has targets")
     func embeddedCategoryPopulated() {
         #expect(!TargetRegistry.targets(in: .embedded).isEmpty)
-    }
-
-    @Test(".NET credentials and installed tools are never registered")
-    func dotNetUserDataIsProtected() {
-        for target in TargetRegistry.all {
-            for pattern in target.pathPatterns {
-                #expect(!pattern.contains(".aspnet"), "\(target.id) must not touch dev certs or DataProtection keys")
-                #expect(pattern != "~/.dotnet", "\(target.id) must not target the whole ~/.dotnet folder")
-                #expect(!pattern.contains(".dotnet/tools"), "\(target.id) must not touch installed global tools")
-                #expect(!pattern.contains(".nuget/plugins"), "\(target.id) must not touch credential providers")
-                #expect(pattern != "~/.nuget", "\(target.id) must not target the whole ~/.nuget folder")
-            }
-        }
     }
 
     @Test("IDE cache targets declare their owning app for running-app warnings")
