@@ -321,3 +321,5 @@
 "projects.lastCommit" = "Git-aktivitet %@";
 "projects.revealInFinder" = "Vis i Finder";
 "projects.noArtifacts" = "Fant ingen gjenskapbare artefakter.";
+"projects.selectProject" = "Velg et prosjekt";
+"projects.artifactsSection" = "Gjenskapbare artefakter";

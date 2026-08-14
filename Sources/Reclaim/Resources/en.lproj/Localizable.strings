@@ -318,3 +318,5 @@
 "projects.lastCommit" = "Git activity %@";
 "projects.revealInFinder" = "Reveal in Finder";
 "projects.noArtifacts" = "No regenerable artifacts found.";
+"projects.selectProject" = "Select a project";
+"projects.artifactsSection" = "Regenerable artifacts";
