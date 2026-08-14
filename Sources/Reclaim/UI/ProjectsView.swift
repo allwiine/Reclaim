@@ -2,10 +2,11 @@
 //  ProjectsView.swift
 //  Reclaim
 //
-//  The dev-folder feature's screen: projects found in the user's
-//  development folders, listed by size and activity, with per-artifact
-//  checkboxes. Projects themselves are never cleanable — only their
-//  regenerable artifacts. Inert (empty state) until a folder is added.
+//  The dev-folder feature's screen, in the browser's two-column shape:
+//  projects found in the user's development folders on the left, the
+//  project inspector with per-artifact cherry-picking on the right.
+//  Projects themselves are never cleanable — only their regenerable
+//  artifacts. Inert (empty state) until a folder is added.
 //
 
 import AppKit
@@ -32,20 +33,22 @@ enum DevFolderPicker {
 
 struct ProjectsView: View {
     @Environment(AppModel.self) private var model
+    /// Opens the per-project clean confirmation ("Clean just this").
+    var onCleanProject: (DiscoveredProject) -> Void = { _ in }
 
     private enum SortOrder: Hashable {
         case bySize, byActivity
     }
 
     @State private var sortOrder: SortOrder = .bySize
-    @State private var expandedProjectIDs: Set<String> = []
+    @State private var inspectedProjectID: DiscoveredProject.ID?
 
     var body: some View {
         Group {
             if model.devRoots.isEmpty {
                 emptyState
             } else {
-                projectList
+                browser
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -81,7 +84,7 @@ struct ProjectsView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
-    // MARK: - Project list
+    // MARK: - Data
 
     private var sortedProjects: [DiscoveredProject] {
         switch sortOrder {
@@ -98,52 +101,41 @@ struct ProjectsView: View {
         model.projectScans.filter { $0.failureMessage != nil }
     }
 
-    private var projectList: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 14) {
-                listHeader
+    /// The row the detail column shows: the clicked one, else the first.
+    private var inspectedProject: DiscoveredProject? {
+        sortedProjects.first { $0.id == inspectedProjectID } ?? sortedProjects.first
+    }
 
-                ForEach(failedRoots) { scan in
-                    failedRootRow(scan)
-                }
+    // MARK: - Browser
 
-                if model.lastScan == nil {
-                    Text(localized(
-                        "projects.notScanned",
-                        defaultValue: "Run a scan to find projects and artifacts."
-                    ))
-                    .font(Theme.body)
-                    .foregroundStyle(Theme.textTertiary)
-                    .padding(.top, 8)
-                } else if model.projects.isEmpty {
-                    Text(localized(
-                        "projects.noneFound",
-                        defaultValue: "No projects found in the added folders."
-                    ))
-                    .font(Theme.body)
-                    .foregroundStyle(Theme.textTertiary)
-                    .padding(.top, 8)
-                } else {
-                    VStack(spacing: 0) {
-                        ForEach(sortedProjects) { project in
-                            projectRow(project)
-                            if project.id != sortedProjects.last?.id {
-                                Rectangle().fill(Theme.separator).frame(height: 1)
-                            }
-                        }
-                    }
-                    .card(radius: Theme.radiusPanel)
-                }
+    private var browser: some View {
+        HStack(spacing: 0) {
+            VStack(spacing: 0) {
+                strip
+
+                Rectangle()
+                    .fill(Color.white.opacity(0.07))
+                    .frame(height: 1)
+
+                listColumn
             }
-            .padding(.horizontal, 26)
-            .padding(.top, 20)
-            .padding(.bottom, 40)
-            .frame(maxWidth: 860)
             .frame(maxWidth: .infinity)
+
+            Rectangle()
+                .fill(Theme.divider)
+                .frame(width: 1)
+
+            ProjectInspectorPanel(
+                project: inspectedProject,
+                onCleanProject: onCleanProject
+            )
+            .frame(width: 336)
         }
     }
 
-    private var listHeader: some View {
+    // MARK: - Strip
+
+    private var strip: some View {
         HStack(spacing: 10) {
             Picker(localized("projects.sortLabel", defaultValue: "Sort"), selection: $sortOrder) {
                 Text(localized("projects.sortBySize", defaultValue: "Largest first"))
@@ -153,7 +145,28 @@ struct ProjectsView: View {
             }
             .pickerStyle(.menu)
             .fixedSize()
+
+            Button(localized("projects.selectAllArtifacts", defaultValue: "Select all")) {
+                model.selectAllArtifacts()
+            }
+            .buttonStyle(StripChipButtonStyle())
+            .disabled(model.isScanning || model.isCleaning || model.selectableArtifactCount == 0)
+
+            Button(localized("browser.clear", defaultValue: "Clear")) {
+                model.clearArtifactSelection()
+            }
+            .buttonStyle(StripChipButtonStyle(plain: true))
+            .disabled(model.selectedArtifacts.isEmpty)
+
             Spacer()
+
+            Text(selectionSummary)
+                .font(.system(size: 12))
+                .monospacedDigit()
+                .foregroundStyle(Theme.textLabel)
+                .contentTransition(.numericText())
+                .animation(Theme.smooth, value: model.selectedArtifactBytes)
+
             Button(localized("projects.addFolder", defaultValue: "Add a development folder…")) {
                 for url in DevFolderPicker.pickFolders() {
                     model.addDevRoot(url)
@@ -161,6 +174,67 @@ struct ProjectsView: View {
             }
             .buttonStyle(.rcSecondary)
         }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 9)
+    }
+
+    /// Scoped to the artifacts this screen lists — never the registry
+    /// selection (that count lives in the category browser).
+    private var selectionSummary: String {
+        let picked = model.selectedArtifacts.count
+        guard picked > 0 else {
+            return localized("browser.noItemsSelected", defaultValue: "No items selected")
+        }
+        return localized(
+            "browser.selectionSummary",
+            defaultValue: "\(picked) of \(model.selectableArtifactCount) items selected · \(model.selectedArtifactBytes.formattedBytesCompact)"
+        )
+    }
+
+    // MARK: - List column
+
+    private var listColumn: some View {
+        ScrollView {
+            LazyVStack(spacing: 0) {
+                ForEach(failedRoots) { scan in
+                    failedRootRow(scan)
+                }
+
+                if model.lastScan == nil {
+                    hintText(localized(
+                        "projects.notScanned",
+                        defaultValue: "Run a scan to find projects and artifacts."
+                    ))
+                } else if model.projects.isEmpty {
+                    hintText(localized(
+                        "projects.noneFound",
+                        defaultValue: "No projects found in the added folders."
+                    ))
+                } else {
+                    ForEach(sortedProjects) { project in
+                        ProjectRow(
+                            project: project,
+                            isInspected: inspectedProject?.id == project.id,
+                            maxBytes: sortedProjects.map(\.artifactBytes).max() ?? 0
+                        ) {
+                            inspectedProjectID = project.id
+                        }
+                    }
+                }
+            }
+            .padding(.horizontal, 8)
+            .padding(.top, 6)
+            .padding(.bottom, 20)
+        }
+    }
+
+    private func hintText(_ text: String) -> some View {
+        Text(text)
+            .font(Theme.body)
+            .foregroundStyle(Theme.textTertiary)
+            .padding(.horizontal, 8)
+            .padding(.top, 12)
+            .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private func failedRootRow(_ scan: DevRootScan) -> some View {
@@ -176,82 +250,65 @@ struct ProjectsView: View {
                 .foregroundStyle(Theme.textTertiary)
             Spacer(minLength: 8)
         }
-        .padding(.horizontal, 16)
+        .padding(.horizontal, 12)
         .padding(.vertical, 10)
-        .card(radius: Theme.radiusPanel)
+        .card(radius: Theme.radiusInset)
+        .padding(.bottom, 6)
     }
+}
 
-    // MARK: - Rows
+// MARK: - Row
 
-    private func projectRow(_ project: DiscoveredProject) -> some View {
-        let isExpanded = expandedProjectIDs.contains(project.id)
-        return VStack(spacing: 0) {
-            Button {
-                if isExpanded {
-                    expandedProjectIDs.remove(project.id)
-                } else {
-                    expandedProjectIDs.insert(project.id)
-                }
-            } label: {
-                HStack(spacing: 12) {
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 9, weight: .semibold))
-                        .foregroundStyle(Theme.textQuaternary)
-                        .rotationEffect(.degrees(isExpanded ? 90 : 0))
-                    VStack(alignment: .leading, spacing: 3) {
-                        HStack(spacing: 8) {
-                            Text(project.name)
-                                .font(Theme.rowTitle)
-                                .foregroundStyle(Theme.textPrimary)
-                                .lineLimit(1)
-                            if model.isProjectStale(project) {
-                                Text(localized("projects.staleBadge", defaultValue: "No recent activity"))
-                                    .font(Theme.caption)
-                                    .foregroundStyle(Theme.cautionTitle)
-                                    .padding(.horizontal, 6)
-                                    .padding(.vertical, 2)
-                                    .background(
-                                        Theme.cautionTitle.opacity(0.12),
-                                        in: Capsule()
-                                    )
-                            }
-                        }
-                        Text(activityLine(project))
-                            .font(Theme.caption)
-                            .foregroundStyle(Theme.textTertiary)
+/// One project row: tri-state checkbox, name + stale badge + activity,
+/// artifact size + relative bar.
+private struct ProjectRow: View {
+    @Environment(AppModel.self) private var model
+    let project: DiscoveredProject
+    let isInspected: Bool
+    let maxBytes: Int64
+    let inspect: () -> Void
+
+    var body: some View {
+        Button(action: inspect) {
+            HStack(spacing: 12) {
+                checkbox
+
+                VStack(alignment: .leading, spacing: 3) {
+                    HStack(spacing: 7) {
+                        Text(project.name)
+                            .font(.system(size: 13.5, weight: .medium))
+                            .foregroundStyle(Theme.textPrimary)
                             .lineLimit(1)
+                        if model.isProjectStale(project) {
+                            StaleBadge()
+                        }
                     }
-                    Spacer(minLength: 8)
-                    Text(project.artifactBytes > 0
-                        ? project.artifactBytes.formattedBytesCompact
-                        : "—")
-                        .font(.system(size: 12))
-                        .monospacedDigit()
-                        .foregroundStyle(Color(hex: 0x8E8E95))
-                    Button {
-                        NSWorkspace.shared.activateFileViewerSelecting([project.url])
-                    } label: {
-                        Image(systemName: "magnifyingglass.circle")
-                            .font(.system(size: 13))
-                            .foregroundStyle(Theme.textTertiary)
-                    }
-                    .buttonStyle(.plain)
-                    .help(localized("projects.revealInFinder", defaultValue: "Reveal in Finder"))
+                    Text(activityLine)
+                        .font(Theme.caption)
+                        .foregroundStyle(Theme.textTertiary)
+                        .lineLimit(1)
                 }
-                .padding(.horizontal, 14)
-                .padding(.vertical, 10)
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
 
-            if isExpanded {
-                artifactRows(of: project)
+                Spacer(minLength: 10)
+
+                trailing
+                    .frame(width: 96, alignment: .trailing)
             }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+            .background(
+                isInspected ? Color.white.opacity(0.075) : .clear,
+                in: RoundedRectangle(cornerRadius: Theme.radiusInset)
+            )
+            .contentShape(RoundedRectangle(cornerRadius: Theme.radiusInset))
         }
-        .animation(Theme.quick, value: isExpanded)
+        .buttonStyle(.plain)
+        .hoverHighlight(radius: Theme.radiusInset, color: Color.white.opacity(0.055))
+        .animation(Theme.quick, value: isInspected)
+        .contextMenu { contextMenu }
     }
 
-    private func activityLine(_ project: DiscoveredProject) -> String {
+    private var activityLine: String {
         var parts: [String] = [
             (project.url.path as NSString).abbreviatingWithTildeInPath,
         ]
@@ -270,48 +327,50 @@ struct ProjectsView: View {
         return parts.joined(separator: " · ")
     }
 
+    private var checkbox: some View {
+        Toggle(
+            localized("browser.selectAccessibility", defaultValue: "Select \(project.name)"),
+            isOn: Binding(
+                get: { model.isProjectSelected(project) },
+                set: { model.setProjectSelected(project, $0) }
+            )
+        )
+        .toggleStyle(CheckboxToggleStyle(mixed: model.isProjectPartiallySelected(project)))
+        .labelsHidden()
+        .disabled(!model.isProjectSelectable(project))
+        .opacity(model.isProjectSelectable(project) ? 1 : 0.35)
+    }
+
     @ViewBuilder
-    private func artifactRows(of project: DiscoveredProject) -> some View {
-        if project.artifacts.isEmpty {
-            Text(localized("projects.noArtifacts", defaultValue: "No regenerable artifacts found."))
-                .font(Theme.caption)
-                .foregroundStyle(Theme.textQuaternary)
-                .padding(.horizontal, 40)
-                .padding(.bottom, 10)
-                .frame(maxWidth: .infinity, alignment: .leading)
-        } else {
-            ForEach(project.artifacts) { artifact in
-                artifactRow(artifact)
+    private var trailing: some View {
+        if project.artifactBytes > 0 {
+            VStack(alignment: .trailing, spacing: 5) {
+                Text(project.artifactBytes.formattedBytesCompact)
+                    .font(.system(size: 13, weight: .medium))
+                    .monospacedDigit()
+                    .foregroundStyle(Theme.textPrimary)
+                MiniBar(
+                    fraction: maxBytes > 0
+                        ? Double(project.artifactBytes) / Double(maxBytes) : 0,
+                    color: Theme.safe
+                )
             }
-            .padding(.bottom, 6)
+        } else {
+            Text(verbatim: "—")
+                .font(.system(size: 12))
+                .foregroundStyle(Theme.textTertiary)
         }
     }
 
-    private func artifactRow(_ artifact: DiscoveredArtifact) -> some View {
-        HStack(spacing: 10) {
-            Toggle(isOn: Binding(
-                get: { model.isArtifactSelected(artifact) },
-                set: { model.setArtifactSelected(artifact, $0) }
-            )) {
-                Text(artifact.kind?.name ?? artifact.kindID)
-                    .font(Theme.body)
-                    .foregroundStyle(Theme.textPrimary)
-            }
-            .toggleStyle(.checkbox)
-            .disabled(!model.isArtifactSelectable(artifact))
-            Text(artifact.url.lastPathComponent)
-                .font(Theme.mono(11))
-                .foregroundStyle(Theme.textQuaternary)
-                .lineLimit(1)
-            Spacer(minLength: 8)
-            Text(artifact.measurement.bytes.formattedBytesCompact)
-                .font(.system(size: 12))
-                .monospacedDigit()
-                .foregroundStyle(Color(hex: 0x8E8E95))
+    @ViewBuilder
+    private var contextMenu: some View {
+        Button(localized("projects.revealInFinder", defaultValue: "Reveal in Finder")) {
+            NSWorkspace.shared.activateFileViewerSelecting([project.url])
         }
-        .padding(.leading, 40)
-        .padding(.trailing, 14)
-        .padding(.vertical, 5)
+        Button(localized("browser.copyPaths", defaultValue: "Copy \(1) Paths")) {
+            NSPasteboard.general.clearContents()
+            NSPasteboard.general.setString(project.url.path, forType: .string)
+        }
     }
 }
 
@@ -322,6 +381,13 @@ struct ProjectsView: View {
     ProjectsView()
         .background(Theme.background)
         .environment(PreviewData.idle())
+        .preferredColorScheme(.dark)
+}
+
+#Preview("Browser", traits: .fixedLayout(width: 1060, height: 810)) {
+    ProjectsView()
+        .background(Theme.background)
+        .environment(PreviewData.scannedWithProjects())
         .preferredColorScheme(.dark)
 }
 #endif

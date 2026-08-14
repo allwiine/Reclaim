@@ -266,7 +266,7 @@ struct RootView: View {
             )
             .transition(.opacity)
         case .projects:
-            ProjectsView()
+            ProjectsView(onCleanProject: { confirmScope = .project($0.id) })
                 .transition(.opacity)
         case .history:
             HistoryView()
