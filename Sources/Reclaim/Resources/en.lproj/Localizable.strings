@@ -104,6 +104,7 @@
 "overview.nothingSafeLeft" = "Nothing safe left to remove";
 "overview.nothingSafeLeftSubtitle" = "Everything rated Safe is already clean — scan again to re-measure.";
 "overview.needsDecision" = "%@ needs a decision";
+"overview.projectArtifacts" = "%@ in project artifacts";
 "overview.reclaimSafeButton" = "Reclaim safe space";
 "overview.reviewEverythingButton" = "Review everything";
 "overview.biggestLocations" = "Biggest single locations";
@@ -144,6 +145,7 @@
 "browser.selectAccessibility" = "Select %@";
 "browser.keepOutOfAutoSelect" = "Keep out of automatic selection";
 "browser.partialNote" = "%1$@ · %2$@";
+"browser.projectsRowSubtitle" = "Reviewed and cleaned on the Projects screen";
 
 /* Row statuses */
 "status.empty" = "Empty";

@@ -153,6 +153,21 @@ struct OverviewView: View {
                             defaultValue: "\(model.reviewCount) items worth a look first"
                         )
                     )
+                    // Dev-folder artifacts are inside the ring's total, so
+                    // the rows only sum up to it with this third slice.
+                    if model.projectArtifactBytes > 0 {
+                        breakdownRow(
+                            color: Theme.accent,
+                            title: localized(
+                                "overview.projectArtifacts",
+                                defaultValue: "\(model.projectArtifactBytes.formattedBytesCompact) in project artifacts"
+                            ),
+                            subtitle: localized(
+                                "overview.projectArtifactsSubtitle",
+                                defaultValue: "\(model.projectsWithArtifactsCount) projects, cleaned from the Projects screen"
+                            )
+                        )
+                    }
                 }
                 .padding(.top, 13)
 
@@ -201,16 +216,28 @@ struct OverviewView: View {
             }
     }
 
+    // The center number is `totalFoundBytes`, which counts dev-folder
+    // artifacts — the colored composition must cover the same total,
+    // so projects get their own segment.
     private var ringSegments: [MeterSegment] {
         let totals = model.categoryTotals()
-        let sum = max(1, totals.reduce(Int64(0)) { $0 + $1.bytes })
-        return totals.map {
+        let projectBytes = model.projectArtifactBytes
+        let sum = max(1, totals.reduce(Int64(0)) { $0 + $1.bytes } + projectBytes)
+        var segments = totals.map {
             MeterSegment(
                 id: $0.category.id,
                 fraction: Double($0.bytes) / Double(sum),
                 color: $0.category.color
             )
         }
+        if projectBytes > 0 {
+            segments.append(MeterSegment(
+                id: "projects",
+                fraction: Double(projectBytes) / Double(sum),
+                color: Theme.accent
+            ))
+        }
+        return segments
     }
 
     private func breakdownRow(color: Color, title: String, subtitle: String) -> some View {
@@ -464,7 +491,9 @@ private struct CategoryCard: View {
     var body: some View {
         let totals = model.categoryTotals()
         let bytes = totals.first { $0.category == category }?.bytes ?? 0
-        let all = totals.reduce(Int64(0)) { $0 + $1.bytes }
+        // Share of everything found, dev-folder artifacts included —
+        // the same denominator as the overview ring.
+        let all = model.totalFoundBytes
         let peak = totals.map(\.bytes).max() ?? 1
         let items = model.targets.count { $0.category == category && model.bytes(of: $0) > 0 }
 

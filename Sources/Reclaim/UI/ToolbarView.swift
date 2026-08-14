@@ -189,6 +189,16 @@ struct ToolbarView: View {
                 return localized("count.items", defaultValue: "\(targets.count) items")
             }
             let bytes = targets.reduce(Int64(0)) { $0 + model.bytes(of: $1) }
+            // "All findings" lists a dev-folder pointer row too — its
+            // header must account for those bytes or the rows below
+            // would sum past it.
+            if destination == .allFindings, model.projectArtifactBytes > 0 {
+                let total = bytes + model.projectArtifactBytes
+                return localized(
+                    "toolbar.allFindingsSubtitle",
+                    defaultValue: "\(targets.count) items + \(model.projectsWithArtifactsCount) projects · \(total.formattedBytesCompact)"
+                )
+            }
             return localized(
                 "toolbar.categorySubtitle",
                 defaultValue: "\(targets.count) items · \(bytes.formattedBytesCompact)"

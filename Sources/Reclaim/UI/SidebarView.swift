@@ -129,16 +129,28 @@ struct SidebarView: View {
         .animation(Theme.smooth, value: hasMeasurements)
     }
 
+    // The headline (`cleanableBytes`) counts dev-folder artifacts, so
+    // the bar carries their share too — otherwise the composition
+    // would silently attribute the projects' bytes to the categories.
     private var categorySegments: [MeterSegment] {
         let totals = model.categoryTotals(cleanableOnly: true)
-        let sum = max(1, totals.reduce(Int64(0)) { $0 + $1.bytes })
-        return totals.map { total in
+        let projectBytes = model.projectArtifactBytes
+        let sum = max(1, totals.reduce(Int64(0)) { $0 + $1.bytes } + projectBytes)
+        var segments = totals.map { total in
             MeterSegment(
                 id: total.category.id,
                 fraction: Double(total.bytes) / Double(sum),
                 color: total.category.color
             )
         }
+        if projectBytes > 0 {
+            segments.append(MeterSegment(
+                id: "projects",
+                fraction: Double(projectBytes) / Double(sum),
+                color: Theme.accent
+            ))
+        }
+        return segments
     }
 
     // MARK: - Category rows
