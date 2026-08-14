@@ -19,6 +19,22 @@ packages:
     url: https://github.com/sparkle-project/Sparkle
     exactVersion: 2.9.5
 
+# An explicitly named scheme for the app target. The SPM package also
+# exposes an executable product named "Reclaim" (swift run Reclaim), and
+# Xcode's autocreated schemes give both the same name — xcodebuild's pick
+# between them is not deterministic, and an archive of the bare package
+# executable contains no .app, which breaks -exportArchive. CI archives
+# with -scheme ReclaimApp to sidestep the collision.
+schemes:
+  ReclaimApp:
+    build:
+      targets:
+        Reclaim: all
+    run:
+      config: Debug
+    archive:
+      config: Release
+
 targets:
   Reclaim:
     type: application

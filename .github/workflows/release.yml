@@ -102,7 +102,12 @@ jobs:
           BUILD_VERSION: ${{ steps.version.outputs.build_version }}
         run: |
           xcodegen
-          xcodebuild -project Reclaim.xcodeproj -scheme Reclaim -configuration Release \
+          # -scheme ReclaimApp, not Reclaim: the SPM package's executable
+          # product is also named "Reclaim", and xcodebuild's pick between
+          # the two same-named autocreated schemes is nondeterministic — the
+          # package one archives a bare executable with no .app, which makes
+          # -exportArchive fail with an empty distribution-method set.
+          xcodebuild -project Reclaim.xcodeproj -scheme ReclaimApp -configuration Release \
             -destination "generic/platform=macOS" \
             archive -archivePath "$RUNNER_TEMP/Reclaim.xcarchive" \
             MARKETING_VERSION="$BUILD_VERSION" \
