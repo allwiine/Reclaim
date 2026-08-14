@@ -1,7 +1,9 @@
 # Maintains a Release PR from Conventional Commits on main. Merging that
 # PR makes release-please create a DRAFT GitHub release; the chained job
 # then runs the full build/notarize/publish pipeline (release.yml) in this
-# same run, so nothing relies on a tag-push event. release-please
+# same run, so nothing relies on a tag-push event. The draft's git tag is
+# materialized immediately (see below) so release-please can always find
+# the latest release boundary. release-please
 # authenticates with a short-lived GitHub App token (RELEASE_BOT_APP_ID
 # variable + RELEASE_BOT_PRIVATE_KEY secret) instead of GITHUB_TOKEN, so
 # its Release PRs trigger CI like any human-created PR; GITHUB_TOKEN-created
@@ -40,6 +42,43 @@ jobs:
           token: ${{ steps.app-token.outputs.token }}
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
+
+      # A DRAFT release only materializes its git tag when it is published,
+      # ~15 minutes later. Until then release-please cannot find the release
+      # boundary, so the same run that created the draft also opens a phantom
+      # next-version release PR sweeping the repo's entire history
+      # (googleapis/release-please#1650). Create the tag right away instead.
+      # Deliberately pushed with GITHUB_TOKEN, not the app token: GITHUB_TOKEN
+      # events never start workflows, so this push cannot double-trigger
+      # release.yml alongside the workflow_call chain below.
+      - uses: actions/checkout@v7
+        if: steps.rp.outputs.release_created == 'true'
+      - name: Materialize the draft release's tag
+        if: steps.rp.outputs.release_created == 'true'
+        env:
+          TAG: ${{ steps.rp.outputs.tag_name }}
+        run: |
+          # Re-runs of this job must not move an existing tag.
+          if git ls-remote --exit-code --tags origin "refs/tags/$TAG" > /dev/null; then
+            echo "Tag $TAG already exists on origin"
+          else
+            git tag "$TAG"
+            git push origin "refs/tags/$TAG"
+          fi
+
+      # The phantom PR from this same run predates the tag; close it. The
+      # next push to main regenerates a correct release PR against the tag.
+      - name: Close the phantom next-release PR
+        if: steps.rp.outputs.release_created == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.rp.outputs.tag_name }}
+        run: |
+          for pr in $(gh pr list --label "autorelease: pending" --state open \
+              --json number --jq '.[].number'); do
+            gh pr comment "$pr" --body "Closing: this release PR was generated before the $TAG tag existed and spans the whole history. The next push to main regenerates it correctly."
+            gh pr close "$pr"
+          done
 
   build-and-publish:
     name: Build, notarize & publish
