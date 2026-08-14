@@ -29,11 +29,13 @@ enum ContentPhase: Equatable {
     case idle, scanning, cleaning, done, overview, browser, projects, history, settings
 }
 
-/// What a pending clean confirmation covers: everything selected, or a
-/// single target ("Clean just this" — the rest of the selection stays).
+/// What a pending clean confirmation covers: everything selected, a
+/// single target ("Clean just this" — the rest of the selection
+/// stays), or a single project's ticked artifacts.
 enum ConfirmScope: Hashable {
     case selection
     case single(CleanupTarget.ID)
+    case project(DiscoveredProject.ID)
 }
 
 struct RootView: View {
@@ -67,8 +69,11 @@ struct RootView: View {
                     onCancel: { confirmScope = nil },
                     onConfirm: {
                         confirmScope = nil
-                        let cleanScope: AppModel.CleanScope =
-                            if case .single(let id) = scope { .targets([id]) } else { .selection }
+                        let cleanScope: AppModel.CleanScope = switch scope {
+                        case .selection: .selection
+                        case .single(let id): .targets([id])
+                        case .project(let id): .projectArtifacts(id)
+                        }
                         model.cleanSelected(scope: cleanScope)
                     }
                 )
