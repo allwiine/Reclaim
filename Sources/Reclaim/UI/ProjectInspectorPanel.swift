@@ -184,7 +184,7 @@ struct ProjectInspectorPanel: View {
                     "projects.artifactsSection", defaultValue: "Regenerable artifacts"
                 ))
                 .frame(maxWidth: .infinity, alignment: .leading)
-                if model.isProjectSelectable(project) {
+                if project.artifacts.contains(where: { $0.measurement.bytes > 0 }) {
                     Button(model.isProjectSelected(project)
                         ? localized("inspector.deselectAllContents", defaultValue: "Deselect all")
                         : localized("inspector.selectAllContents", defaultValue: "Select all")

@@ -56,7 +56,7 @@ struct ConfirmSheet: View {
 
     private var panel: some View {
         let picked: [CleanupTarget] =
-            if singleProject != nil { [] }
+            if case .project = scope { [] }
             else { singleTarget.map { [$0] } ?? model.selectedTargets }
         let toTrash = model.disposal == .trash
 

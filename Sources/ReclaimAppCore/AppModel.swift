@@ -699,6 +699,8 @@ public final class AppModel {
         !selection.isEmpty || !selectedArtifacts.isEmpty
     }
 
+    // MARK: - Project selection
+
     /// Whether the project row's checkbox is enabled: it has at least
     /// one artifact with measurable bytes to free.
     public func isProjectSelectable(_ project: DiscoveredProject) -> Bool {
@@ -715,20 +717,28 @@ public final class AppModel {
         selectedArtifacts(of: project).reduce(0) { $0 + $1.measurement.bytes }
     }
 
+    /// Selected vs selectable artifact counts backing the tri-state.
+    private func artifactSelectionCounts(
+        of project: DiscoveredProject
+    ) -> (selected: Int, selectable: Int) {
+        (
+            selected: selectedArtifacts(of: project).count,
+            selectable: project.artifacts.count { $0.measurement.bytes > 0 }
+        )
+    }
+
     /// Whether every selectable artifact of the project is ticked (the
     /// row checkbox's "on"; empty artifacts never count).
     public func isProjectSelected(_ project: DiscoveredProject) -> Bool {
-        let selectable = project.artifacts.count { $0.measurement.bytes > 0 }
-        let selected = selectedArtifacts(of: project).count
-        return selected > 0 && selected == selectable
+        let counts = artifactSelectionCounts(of: project)
+        return counts.selected > 0 && counts.selected == counts.selectable
     }
 
     /// Whether some but not all selectable artifacts are ticked (the
     /// row checkbox's mixed state).
     public func isProjectPartiallySelected(_ project: DiscoveredProject) -> Bool {
-        let selectable = project.artifacts.count { $0.measurement.bytes > 0 }
-        let selected = selectedArtifacts(of: project).count
-        return selected > 0 && selected < selectable
+        let counts = artifactSelectionCounts(of: project)
+        return counts.selected > 0 && counts.selected < counts.selectable
     }
 
     /// Tick or untick all of the project's artifacts (empty ones are
@@ -746,10 +756,8 @@ public final class AppModel {
         of project: DiscoveredProject
     ) -> (selected: Int, total: Int)? {
         guard isProjectPartiallySelected(project) else { return nil }
-        return (
-            selected: selectedArtifacts(of: project).count,
-            total: project.artifacts.count { $0.measurement.bytes > 0 }
-        )
+        let counts = artifactSelectionCounts(of: project)
+        return (selected: counts.selected, total: counts.selectable)
     }
 
     /// Artifacts with measurable bytes across all projects — the

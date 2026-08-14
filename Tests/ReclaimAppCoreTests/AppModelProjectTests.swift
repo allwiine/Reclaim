@@ -758,4 +758,64 @@ struct AppModelProjectTests {
         #expect(model.isArtifactSelected(appModules))
         #expect(model.isArtifactSelected(libModules))
     }
+
+    @Test("A project-scoped clean with an unknown id is a no-op")
+    func cleanUnknownProjectIsNoOp() async {
+        let store = TemporaryDefaults()
+        let nodeModules = artifact("/dev/app/node_modules", bytes: 500)
+        let fixture = project("/dev/app", devRoot: "/dev", artifacts: [nodeModules])
+        let cleanCalls = Mutex(0)
+        let model = AppModel(
+            targets: [],
+            defaults: store.defaults,
+            projectScanExecutor: { root in DevRootScan(root: root, projects: [fixture]) },
+            artifactCleanExecutor: { paths, _ in
+                cleanCalls.withLock { $0 += 1 }
+                return CleanOutcome(removedItems: paths.count)
+            },
+            historyStore: temporaryHistoryStore()
+        )
+        model.addDevRoot(URL(filePath: "/dev"))
+        model.scanAll()
+        await model.scanTask?.value
+        model.setArtifactSelected(nodeModules, true)
+
+        model.cleanSelected(scope: .projectArtifacts("/dev/gone"))
+        await model.cleanTask?.value
+
+        #expect(cleanCalls.withLock { $0 } == 0)
+        #expect(model.lastCleanSummary == nil)
+        #expect(model.isArtifactSelected(nodeModules))
+    }
+
+    @Test("Projects are unselectable while a scan is in flight")
+    func projectUnselectableWhileScanning() async {
+        let store = TemporaryDefaults()
+        let fixture = project(
+            "/dev/app", devRoot: "/dev",
+            artifacts: [artifact("/dev/app/node_modules", bytes: 500)]
+        )
+        let gate = Mutex(false)
+        let model = AppModel(
+            targets: [target("cache")],
+            defaults: store.defaults,
+            scanExecutor: { _ in
+                while !gate.withLock({ $0 }) { usleep(10_000) }
+                return measured(100)
+            },
+            projectScanExecutor: { root in DevRootScan(root: root, projects: [fixture]) }
+        )
+        model.addDevRoot(URL(filePath: "/dev"))
+        #expect(model.isProjectSelectable(fixture))    // idle: selectable
+
+        model.scanAll()
+        #expect(model.isScanning)
+        #expect(!model.isProjectSelectable(fixture))   // busy: not selectable
+        model.setProjectSelected(fixture, true)        // refused while busy
+        #expect(model.artifactSelection.isEmpty)
+
+        gate.withLock { $0 = true }
+        await model.scanTask?.value
+        #expect(model.isProjectSelectable(fixture))    // idle again
+    }
 }
