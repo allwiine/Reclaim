@@ -389,7 +389,7 @@ struct AppModelProjectTests {
         await model.scanTask?.value
         model.setArtifactSelected(nodeModules, true)
 
-        model.cleanSelected(limitedTo: ["cache"])
+        model.cleanSelected(scope: .targets(["cache"]))
         await model.cleanTask?.value
 
         #expect(cleanCalls.withLock { $0 } == 0)
@@ -548,5 +548,274 @@ struct AppModelProjectTests {
         #expect(findings.map(\.id) == ["project:/dev/big", "target:cache", "project:/dev/small"])
         #expect(findings.map(\.bytes) == [500, 100, 50])
         #expect(model.largestFindings(limit: 1).map(\.id) == ["project:/dev/big"])
+    }
+
+    @Test("Project-level selection is tri-state over its artifacts")
+    func projectTriStateSelection() async throws {
+        let store = TemporaryDefaults()
+        let nodeModules = artifact("/dev/app/node_modules", bytes: 500)
+        let build = artifact("/dev/app/.build", bytes: 300)
+        let empty = artifact("/dev/app/.venv", bytes: 0)
+        let fixture = project(
+            "/dev/app", devRoot: "/dev", artifacts: [nodeModules, build, empty]
+        )
+        let model = AppModel(
+            targets: [],
+            defaults: store.defaults,
+            projectScanExecutor: { root in DevRootScan(root: root, projects: [fixture]) }
+        )
+        model.addDevRoot(URL(filePath: "/dev"))
+        model.scanAll()
+        await model.scanTask?.value
+
+        #expect(model.isProjectSelectable(fixture))
+        #expect(!model.isProjectSelected(fixture))
+        #expect(!model.isProjectPartiallySelected(fixture))
+        #expect(model.partialSelectionCounts(of: fixture) == nil)
+
+        model.setArtifactSelected(nodeModules, true)
+        #expect(!model.isProjectSelected(fixture))
+        #expect(model.isProjectPartiallySelected(fixture))
+        let counts = try #require(model.partialSelectionCounts(of: fixture))
+        #expect(counts.selected == 1)
+        #expect(counts.total == 2)          // the empty artifact never counts
+        #expect(model.selectedArtifactBytes(of: fixture) == 500)
+
+        model.setProjectSelected(fixture, true)
+        #expect(model.isProjectSelected(fixture))
+        #expect(!model.isProjectPartiallySelected(fixture))
+        // Full selection is not "partial": counts are nil, like targets.
+        #expect(model.partialSelectionCounts(of: fixture) == nil)
+        // The empty artifact stays unticked (nothing to free).
+        #expect(!model.isArtifactSelected(empty))
+        #expect(model.selectedArtifactBytes(of: fixture) == 800)
+        #expect(model.selectedArtifacts(of: fixture).map(\.id) ==
+            ["/dev/app/node_modules", "/dev/app/.build"])
+
+        model.setProjectSelected(fixture, false)
+        #expect(model.artifactSelection.isEmpty)
+    }
+
+    @Test("An artifact-free project is never selectable")
+    func artifactFreeProjectUnselectable() async {
+        let store = TemporaryDefaults()
+        let bare = project("/dev/bare", devRoot: "/dev", artifacts: [])
+        let onlyEmpty = project(
+            "/dev/hollow", devRoot: "/dev",
+            artifacts: [artifact("/dev/hollow/.venv", bytes: 0)]
+        )
+        let model = AppModel(
+            targets: [],
+            defaults: store.defaults,
+            projectScanExecutor: { root in
+                DevRootScan(root: root, projects: [bare, onlyEmpty])
+            }
+        )
+        model.addDevRoot(URL(filePath: "/dev"))
+        model.scanAll()
+        await model.scanTask?.value
+
+        #expect(!model.isProjectSelectable(bare))
+        #expect(!model.isProjectSelectable(onlyEmpty))
+        model.setProjectSelected(onlyEmpty, true)       // refused per artifact
+        #expect(model.artifactSelection.isEmpty)
+        #expect(model.selectableArtifactCount == 0)
+    }
+
+    @Test("Select all and clear cover every project's artifacts, never targets")
+    func selectAllAndClearArtifacts() async {
+        let store = TemporaryDefaults()
+        let app = project(
+            "/dev/app", devRoot: "/dev",
+            artifacts: [artifact("/dev/app/node_modules", bytes: 500)]
+        )
+        let lib = project(
+            "/dev/lib", devRoot: "/dev",
+            artifacts: [
+                artifact("/dev/lib/.build", bytes: 300),
+                artifact("/dev/lib/.venv", bytes: 0),
+            ]
+        )
+        let model = AppModel(
+            targets: [target("cache")],
+            defaults: store.defaults,
+            scanExecutor: { _ in measured(100) },
+            projectScanExecutor: { root in
+                DevRootScan(root: root, projects: [app, lib])
+            }
+        )
+        model.addDevRoot(URL(filePath: "/dev"))
+        model.scanAll()
+        await model.scanTask?.value
+        // Post-scan auto-selection ticked the safe registry target.
+        #expect(model.selection.contains("cache"))
+
+        model.selectAllArtifacts()
+        #expect(model.selectedArtifacts.map(\.id).sorted() ==
+            ["/dev/app/node_modules", "/dev/lib/.build"])
+        #expect(model.selectableArtifactCount == 2)
+
+        model.clearArtifactSelection()
+        #expect(model.artifactSelection.isEmpty)
+        // The registry-target selection is untouched by either call.
+        #expect(model.selection.contains("cache"))
+    }
+
+    @Test("A project-scoped clean touches only that project's ticked artifacts")
+    func cleanSingleProject() async throws {
+        let store = TemporaryDefaults()
+        let appModules = artifact("/dev/app/node_modules", bytes: 500)
+        let libModules = artifact("/dev/lib/node_modules", bytes: 300)
+        let appBefore = project("/dev/app", devRoot: "/dev", artifacts: [appModules])
+        let appAfter = project("/dev/app", devRoot: "/dev", artifacts: [])
+        let lib = project("/dev/lib", devRoot: "/dev", artifacts: [libModules])
+        let scanCount = Mutex(0)
+        let cleanedPaths = Mutex<[String]>([])
+        let targetCleans = Mutex(0)
+
+        let model = AppModel(
+            targets: [target("cache")],
+            defaults: store.defaults,
+            scanExecutor: { _ in measured(100) },
+            cleanExecutor: { _, _, _ in
+                targetCleans.withLock { $0 += 1 }
+                return CleanOutcome(removedItems: 1)
+            },
+            projectScanExecutor: { root in
+                let pass = scanCount.withLock { count in
+                    count += 1
+                    return count
+                }
+                return DevRootScan(
+                    root: root,
+                    projects: pass == 1 ? [appBefore, lib] : [appAfter, lib]
+                )
+            },
+            artifactCleanExecutor: { paths, _ in
+                cleanedPaths.withLock { $0.append(contentsOf: paths.map(\.path)) }
+                return CleanOutcome(removedItems: paths.count)
+            },
+            historyStore: temporaryHistoryStore()
+        )
+        model.addDevRoot(URL(filePath: "/dev"))
+        model.scanAll()
+        await model.scanTask?.value
+        model.setArtifactSelected(appModules, true)
+        model.setArtifactSelected(libModules, true)
+        // Post-scan auto-selection ticked the safe registry target too.
+        #expect(model.selection.contains("cache"))
+
+        model.cleanSelected(scope: .projectArtifacts("/dev/app"))
+        await model.cleanTask?.value
+
+        // Only the app project's artifact was disposed; no registry pass.
+        #expect(cleanedPaths.withLock { $0 } == ["/dev/app/node_modules"])
+        #expect(targetCleans.withLock { $0 } == 0)
+        // The rest of the selection survives.
+        #expect(model.selection.contains("cache"))
+        #expect(model.isArtifactSelected(libModules))
+        #expect(!model.isArtifactSelected(appModules))
+        let summary = try #require(model.lastCleanSummary)
+        #expect(summary.cleanedArtifacts.map(\.id) == ["/dev/app/node_modules"])
+        #expect(summary.reclaimedBytes == 500)
+    }
+
+    @Test("A project-scoped dry run projects only that project's artifacts")
+    func dryRunSingleProject() async throws {
+        let store = TemporaryDefaults()
+        let appModules = artifact("/dev/app/node_modules", bytes: 500)
+        let libModules = artifact("/dev/lib/node_modules", bytes: 300)
+        let app = project("/dev/app", devRoot: "/dev", artifacts: [appModules])
+        let lib = project("/dev/lib", devRoot: "/dev", artifacts: [libModules])
+        let cleanCalls = Mutex(0)
+        let model = AppModel(
+            targets: [],
+            defaults: store.defaults,
+            projectScanExecutor: { root in
+                DevRootScan(root: root, projects: [app, lib])
+            },
+            artifactCleanExecutor: { paths, _ in
+                cleanCalls.withLock { $0 += 1 }
+                return CleanOutcome(removedItems: paths.count)
+            },
+            historyStore: temporaryHistoryStore()
+        )
+        model.dryRun = true
+        model.addDevRoot(URL(filePath: "/dev"))
+        model.scanAll()
+        await model.scanTask?.value
+        model.setArtifactSelected(appModules, true)
+        model.setArtifactSelected(libModules, true)
+
+        model.cleanSelected(scope: .projectArtifacts("/dev/app"))
+
+        #expect(cleanCalls.withLock { $0 } == 0)
+        let summary = try #require(model.lastCleanSummary)
+        #expect(summary.isDryRun)
+        #expect(summary.cleanedArtifacts.map(\.id) == ["/dev/app/node_modules"])
+        #expect(summary.reclaimedBytes == 500)
+        // Dry run leaves the whole selection intact.
+        #expect(model.isArtifactSelected(appModules))
+        #expect(model.isArtifactSelected(libModules))
+    }
+
+    @Test("A project-scoped clean with an unknown id is a no-op")
+    func cleanUnknownProjectIsNoOp() async {
+        let store = TemporaryDefaults()
+        let nodeModules = artifact("/dev/app/node_modules", bytes: 500)
+        let fixture = project("/dev/app", devRoot: "/dev", artifacts: [nodeModules])
+        let cleanCalls = Mutex(0)
+        let model = AppModel(
+            targets: [],
+            defaults: store.defaults,
+            projectScanExecutor: { root in DevRootScan(root: root, projects: [fixture]) },
+            artifactCleanExecutor: { paths, _ in
+                cleanCalls.withLock { $0 += 1 }
+                return CleanOutcome(removedItems: paths.count)
+            },
+            historyStore: temporaryHistoryStore()
+        )
+        model.addDevRoot(URL(filePath: "/dev"))
+        model.scanAll()
+        await model.scanTask?.value
+        model.setArtifactSelected(nodeModules, true)
+
+        model.cleanSelected(scope: .projectArtifacts("/dev/gone"))
+        await model.cleanTask?.value
+
+        #expect(cleanCalls.withLock { $0 } == 0)
+        #expect(model.lastCleanSummary == nil)
+        #expect(model.isArtifactSelected(nodeModules))
+    }
+
+    @Test("Projects are unselectable while a scan is in flight")
+    func projectUnselectableWhileScanning() async {
+        let store = TemporaryDefaults()
+        let fixture = project(
+            "/dev/app", devRoot: "/dev",
+            artifacts: [artifact("/dev/app/node_modules", bytes: 500)]
+        )
+        let gate = Mutex(false)
+        let model = AppModel(
+            targets: [target("cache")],
+            defaults: store.defaults,
+            scanExecutor: { _ in
+                while !gate.withLock({ $0 }) { usleep(10_000) }
+                return measured(100)
+            },
+            projectScanExecutor: { root in DevRootScan(root: root, projects: [fixture]) }
+        )
+        model.addDevRoot(URL(filePath: "/dev"))
+        #expect(model.isProjectSelectable(fixture))    // idle: selectable
+
+        model.scanAll()
+        #expect(model.isScanning)
+        #expect(!model.isProjectSelectable(fixture))   // busy: not selectable
+        model.setProjectSelected(fixture, true)        // refused while busy
+        #expect(model.artifactSelection.isEmpty)
+
+        gate.withLock { $0 = true }
+        await model.scanTask?.value
+        #expect(model.isProjectSelectable(fixture))    // idle again
     }
 }

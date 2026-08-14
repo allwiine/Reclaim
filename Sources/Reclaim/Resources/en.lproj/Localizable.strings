@@ -311,6 +311,7 @@
 "projects.sortLabel" = "Sort";
 "projects.sortBySize" = "Largest first";
 "projects.sortByActivity" = "Longest inactive first";
+"projects.selectAllArtifacts" = "Select all";
 "projects.notScanned" = "Run a scan to find projects and artifacts.";
 "projects.noneFound" = "No projects found in the added folders.";
 "projects.staleBadge" = "No recent activity";
@@ -318,3 +319,5 @@
 "projects.lastCommit" = "Git activity %@";
 "projects.revealInFinder" = "Reveal in Finder";
 "projects.noArtifacts" = "No regenerable artifacts found.";
+"projects.selectProject" = "Select a project";
+"projects.artifactsSection" = "Regenerable artifacts";

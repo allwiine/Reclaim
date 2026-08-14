@@ -699,6 +699,83 @@ public final class AppModel {
         !selection.isEmpty || !selectedArtifacts.isEmpty
     }
 
+    // MARK: - Project selection
+
+    /// Whether the project row's checkbox is enabled: it has at least
+    /// one artifact with measurable bytes to free.
+    public func isProjectSelectable(_ project: DiscoveredProject) -> Bool {
+        !isScanning && !isCleaning
+            && project.artifacts.contains { $0.measurement.bytes > 0 }
+    }
+
+    /// The project's ticked artifacts, discovery order.
+    public func selectedArtifacts(of project: DiscoveredProject) -> [DiscoveredArtifact] {
+        project.artifacts.filter { artifactSelection.contains($0.id) }
+    }
+
+    public func selectedArtifactBytes(of project: DiscoveredProject) -> Int64 {
+        selectedArtifacts(of: project).reduce(0) { $0 + $1.measurement.bytes }
+    }
+
+    /// Selected vs selectable artifact counts backing the tri-state.
+    private func artifactSelectionCounts(
+        of project: DiscoveredProject
+    ) -> (selected: Int, selectable: Int) {
+        (
+            selected: selectedArtifacts(of: project).count,
+            selectable: project.artifacts.count { $0.measurement.bytes > 0 }
+        )
+    }
+
+    /// Whether every selectable artifact of the project is ticked (the
+    /// row checkbox's "on"; empty artifacts never count).
+    public func isProjectSelected(_ project: DiscoveredProject) -> Bool {
+        let counts = artifactSelectionCounts(of: project)
+        return counts.selected > 0 && counts.selected == counts.selectable
+    }
+
+    /// Whether some but not all selectable artifacts are ticked (the
+    /// row checkbox's mixed state).
+    public func isProjectPartiallySelected(_ project: DiscoveredProject) -> Bool {
+        let counts = artifactSelectionCounts(of: project)
+        return counts.selected > 0 && counts.selected < counts.selectable
+    }
+
+    /// Tick or untick all of the project's artifacts (empty ones are
+    /// refused by the per-artifact rule).
+    public func setProjectSelected(_ project: DiscoveredProject, _ selected: Bool) {
+        for artifact in project.artifacts {
+            setArtifactSelected(artifact, selected)
+        }
+    }
+
+    /// "K of M items" while the project is cherry-picked; nil when
+    /// nothing or everything selectable is ticked (mirrors the target
+    /// counterpart).
+    public func partialSelectionCounts(
+        of project: DiscoveredProject
+    ) -> (selected: Int, total: Int)? {
+        guard isProjectPartiallySelected(project) else { return nil }
+        let counts = artifactSelectionCounts(of: project)
+        return (selected: counts.selected, total: counts.selectable)
+    }
+
+    /// Artifacts with measurable bytes across all projects — the
+    /// projects strip summary's denominator.
+    public var selectableArtifactCount: Int {
+        projects.flatMap(\.artifacts).count { $0.measurement.bytes > 0 }
+    }
+
+    /// Tick every selectable artifact across all projects.
+    public func selectAllArtifacts() {
+        for project in projects { setProjectSelected(project, true) }
+    }
+
+    /// Untick every artifact. The registry-target selection stays.
+    public func clearArtifactSelection() {
+        artifactSelection.removeAll()
+    }
+
     // MARK: - Selection
 
     /// Whether the row's checkbox is enabled.
@@ -1059,17 +1136,34 @@ public final class AppModel {
         let devRoot: URL
     }
 
-    /// Clean everything currently selected — or, with `limitedTo`, only
-    /// the selected targets in that set ("Clean just this"; the rest of
-    /// the selection stays intact) — then re-scan the cleaned targets
-    /// so the numbers on screen stay truthful.
-    public func cleanSelected(limitedTo limit: Set<CleanupTarget.ID>? = nil) {
+    /// What a clean pass covers.
+    public enum CleanScope: Sendable, Equatable {
+        /// Everything selected — registry targets and dev-folder artifacts.
+        case selection
+        /// Only the selected registry targets in the set ("Clean just
+        /// this" on a target; artifacts never join).
+        case targets(Set<CleanupTarget.ID>)
+        /// Only the ticked artifacts of one project ("Clean just this"
+        /// on a project; registry targets never join).
+        case projectArtifacts(DiscoveredProject.ID)
+    }
+
+    /// Clean what the scope covers — everything selected, one target's
+    /// selection, or one project's ticked artifacts (the rest of the
+    /// selection stays intact) — then re-scan the cleaned entries so
+    /// the numbers on screen stay truthful.
+    public func cleanSelected(scope: CleanScope = .selection) {
         guard !isCleaning, !isScanning else { return }
         guard !selection.isEmpty || !artifactSelection.isEmpty else { return }
 
+        let targetLimit: Set<CleanupTarget.ID>? = switch scope {
+        case .selection: nil
+        case .targets(let ids): ids
+        case .projectArtifacts: []      // registry targets never join
+        }
         let jobs: [CleanJob] = targets.compactMap { target in
             guard selection.contains(target.id), target.strategy.isCleanable,
-                  limit?.contains(target.id) != false else { return nil }
+                  targetLimit?.contains(target.id) != false else { return nil }
             switch status(of: target.id) {
             case .measured(let measurement, _, _):
                 return CleanJob(
@@ -1084,15 +1178,25 @@ public final class AppModel {
                 return nil
             }
         }
-        // Artifact jobs join full-selection passes only — "Clean just
-        // this" (limitedTo) stays a registry-target affair.
-        let artifactJobs: [ArtifactCleanJob] = limit != nil ? [] : projectScans.flatMap { scan in
-            scan.projects.flatMap { project in
-                project.artifacts
-                    .filter { artifactSelection.contains($0.id) }
-                    .map { ArtifactCleanJob(
-                        artifact: $0, projectName: project.name, devRoot: scan.root
-                    ) }
+        // Artifact jobs join full passes and per-project passes —
+        // "Clean just this" on a registry target stays a target affair.
+        let artifactJobs: [ArtifactCleanJob]
+        switch scope {
+        case .targets:
+            artifactJobs = []
+        case .selection, .projectArtifacts:
+            let projectLimit: DiscoveredProject.ID? =
+                if case .projectArtifacts(let id) = scope { id } else { nil }
+            artifactJobs = projectScans.flatMap { scan in
+                scan.projects
+                    .filter { projectLimit == nil || $0.id == projectLimit }
+                    .flatMap { project in
+                        project.artifacts
+                            .filter { artifactSelection.contains($0.id) }
+                            .map { ArtifactCleanJob(
+                                artifact: $0, projectName: project.name, devRoot: scan.root
+                            ) }
+                    }
             }
         }
         guard !jobs.isEmpty || !artifactJobs.isEmpty else { return }
@@ -1372,6 +1476,13 @@ public final class AppModel {
         self.lastCleanSummary = lastCleanSummary
         self.lastScan = .now
         self.lastScanWasComplete = true
+    }
+
+    /// Preview-only: canned dev-folder discovery without touching
+    /// UserDefaults persistence or running a scan.
+    public func seedProjectsForPreview(devRoots: [URL], projectScans: [DevRootScan]) {
+        self.devRoots = devRoots
+        self.projectScans = projectScans
     }
     #endif
 }

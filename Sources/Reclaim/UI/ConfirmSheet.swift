@@ -26,6 +26,13 @@ struct ConfirmSheet: View {
         return model.targets.first { $0.id == id }
     }
 
+    /// The one project of a per-project confirmation, if that is what
+    /// this sheet covers.
+    private var singleProject: DiscoveredProject? {
+        guard case .project(let id) = scope else { return nil }
+        return model.projects.first { $0.id == id }
+    }
+
     var body: some View {
         ZStack(alignment: .top) {
             // Dimmed, blurred backdrop; clicking it cancels.
@@ -48,7 +55,9 @@ struct ConfirmSheet: View {
     // MARK: - Panel
 
     private var panel: some View {
-        let picked = singleTarget.map { [$0] } ?? model.selectedTargets
+        let picked: [CleanupTarget] =
+            if case .project = scope { [] }
+            else { singleTarget.map { [$0] } ?? model.selectedTargets }
         let toTrash = model.disposal == .trash
 
         return VStack(alignment: .leading, spacing: 0) {
@@ -70,6 +79,8 @@ struct ConfirmSheet: View {
             Group {
                 if let target = singleTarget {
                     singlePathList(for: target)
+                } else if let project = singleProject {
+                    projectArtifactList(for: project)
                 } else {
                     itemList(picked)
                 }
@@ -143,6 +154,23 @@ struct ConfirmSheet: View {
                 defaultValue: "Reclaim \(space) from \(target.name)?"
             )
         }
+        if let project = singleProject {
+            let space = model.selectedArtifactBytes(of: project).formattedBytesCompact
+            if let counts = model.partialSelectionCounts(of: project) {
+                let scope = localized(
+                    "format.itemsOf",
+                    defaultValue: "\(counts.selected) of \(counts.total) items"
+                )
+                return localized(
+                    "confirm.titleSinglePartial",
+                    defaultValue: "Reclaim \(space) from \(scope) in \(project.name)?"
+                )
+            }
+            return localized(
+                "confirm.titleSingle",
+                defaultValue: "Reclaim \(space) from \(project.name)?"
+            )
+        }
         let space = model.selectedBytes.formattedBytesCompact
         let locationCount = picked.count + model.selectedArtifacts.count
         return model.dryRun
@@ -179,6 +207,12 @@ struct ConfirmSheet: View {
                     "confirm.bodySingleDelete",
                     defaultValue: "This one location is deleted immediately and cannot be recovered."
                 )
+        }
+        if let project = singleProject, model.isProjectPartiallySelected(project) {
+            return localized(
+                "confirm.bodySinglePartial",
+                defaultValue: "Only the items listed below are affected. The rest of \(project.name) stays where it is."
+            )
         }
         return toTrash
             ? localized(
@@ -280,6 +314,40 @@ struct ConfirmSheet: View {
                 .padding(.vertical, 9)
                 .overlay(alignment: .bottom) {
                     if url.path != paths.last?.path {
+                        Rectangle().fill(Theme.separator).frame(height: 1)
+                    }
+                }
+            }
+        }
+    }
+
+    /// Per-project "Clean just this": the ticked artifacts that will go.
+    private func projectArtifactList(for project: DiscoveredProject) -> some View {
+        let picked = model.selectedArtifacts(of: project)
+        return listCard {
+            ForEach(picked) { artifact in
+                HStack(spacing: 10) {
+                    Circle()
+                        .fill(Theme.safe)
+                        .frame(width: 7, height: 7)
+                    Text(artifact.kind?.name ?? artifact.kindID)
+                        .font(Theme.body)
+                        .foregroundStyle(Theme.textPrimary)
+                        .lineLimit(1)
+                    Text(artifact.url.lastPathComponent)
+                        .font(Theme.mono(11))
+                        .foregroundStyle(Theme.textQuaternary)
+                        .lineLimit(1)
+                    Spacer(minLength: 8)
+                    Text(artifact.measurement.bytes.formattedBytesCompact)
+                        .font(.system(size: 12))
+                        .monospacedDigit()
+                        .foregroundStyle(Color(hex: 0x8E8E95))
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 9)
+                .overlay(alignment: .bottom) {
+                    if artifact.id != picked.last?.id {
                         Rectangle().fill(Theme.separator).frame(height: 1)
                     }
                 }

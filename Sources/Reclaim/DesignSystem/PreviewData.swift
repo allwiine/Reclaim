@@ -148,6 +148,55 @@ enum PreviewData {
         return model
     }
 
+    /// Scanned, plus discovered dev-folder projects for the Projects
+    /// screen and its inspector.
+    static func scannedWithProjects() -> AppModel {
+        let model = scanned()
+        let root = URL(filePath: "/Users/dev/Source")
+        let projects = [
+            DiscoveredProject(
+                url: root.appending(path: "orbit-web"), devRoot: root, isGitRepo: true,
+                lastEditDate: .now.addingTimeInterval(-4 * 86_400),
+                lastGitActivityDate: .now.addingTimeInterval(-2 * 86_400),
+                artifacts: [
+                    DiscoveredArtifact(
+                        kindID: "node-modules",
+                        url: root.appending(path: "orbit-web/node_modules"),
+                        measurement: DiskMeasurement(bytes: gb(1.9), fileCount: 84_000)
+                    ),
+                    DiscoveredArtifact(
+                        kindID: "js-build",
+                        url: root.appending(path: "orbit-web/.next"),
+                        measurement: DiskMeasurement(bytes: gb(0.6), fileCount: 3_400)
+                    ),
+                ]
+            ),
+            DiscoveredProject(
+                url: root.appending(path: "ledger-ios"), devRoot: root, isGitRepo: true,
+                lastEditDate: .now.addingTimeInterval(-260 * 86_400),
+                lastGitActivityDate: .now.addingTimeInterval(-290 * 86_400),
+                artifacts: [
+                    DiscoveredArtifact(
+                        kindID: "swiftpm-build",
+                        url: root.appending(path: "ledger-ios/.build"),
+                        measurement: DiskMeasurement(bytes: gb(3.2), fileCount: 22_000)
+                    ),
+                ]
+            ),
+            DiscoveredProject(
+                url: root.appending(path: "dotfiles"), devRoot: root, isGitRepo: true,
+                lastEditDate: .now.addingTimeInterval(-30 * 86_400),
+                lastGitActivityDate: nil,
+                artifacts: []
+            ),
+        ]
+        model.seedProjectsForPreview(
+            devRoots: [root],
+            projectScans: [DevRootScan(root: root, projects: projects)]
+        )
+        return model
+    }
+
     /// Scanned, plus a finished clean pass for the Done screen.
     static func cleaned() -> AppModel {
         let model = scanned()

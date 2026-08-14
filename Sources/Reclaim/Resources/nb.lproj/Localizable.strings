@@ -314,6 +314,7 @@
 "projects.sortLabel" = "Sorter";
 "projects.sortBySize" = "Størst først";
 "projects.sortByActivity" = "Lengst inaktiv først";
+"projects.selectAllArtifacts" = "Velg alle";
 "projects.notScanned" = "Kjør en skanning for å finne prosjekter og artefakter.";
 "projects.noneFound" = "Fant ingen prosjekter i mappene som er lagt til.";
 "projects.staleBadge" = "Ingen nylig aktivitet";
@@ -321,3 +322,5 @@
 "projects.lastCommit" = "Git-aktivitet %@";
 "projects.revealInFinder" = "Vis i Finder";
 "projects.noArtifacts" = "Fant ingen gjenskapbare artefakter.";
+"projects.selectProject" = "Velg et prosjekt";
+"projects.artifactsSection" = "Gjenskapbare artefakter";
