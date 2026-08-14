@@ -1469,5 +1469,12 @@ public final class AppModel {
         self.lastScan = .now
         self.lastScanWasComplete = true
     }
+
+    /// Preview-only: canned dev-folder discovery without touching
+    /// UserDefaults persistence or running a scan.
+    public func seedProjectsForPreview(devRoots: [URL], projectScans: [DevRootScan]) {
+        self.devRoots = devRoots
+        self.projectScans = projectScans
+    }
     #endif
 }
