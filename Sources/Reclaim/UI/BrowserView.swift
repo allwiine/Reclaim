@@ -27,6 +27,9 @@ struct BrowserView: View {
     var initialInspectedID: CleanupTarget.ID?
     /// Opens the single-target clean confirmation ("Clean just this").
     var onCleanSingle: (CleanupTarget) -> Void = { _ in }
+    /// Routes to the Projects screen ("Review everything" covers
+    /// dev-folder artifacts through a pointer row, not inline rows).
+    var onOpenProjects: () -> Void = {}
 
     @State private var inspectedID: CleanupTarget.ID?
 
@@ -41,7 +44,7 @@ struct BrowserView: View {
                     .fill(Color.white.opacity(0.07))
                     .frame(height: 1)
 
-                if targets.isEmpty {
+                if targets.isEmpty && !showsProjectsRow {
                     emptyState
                 } else {
                     list(targets)
@@ -88,6 +91,12 @@ struct BrowserView: View {
 
     private func inspectedTarget(in targets: [CleanupTarget]) -> CleanupTarget? {
         targets.first { $0.id == inspectedID } ?? targets.first
+    }
+
+    /// "Review everything" would under-account the headline it sits
+    /// beneath without the projects' bytes — they get a pointer row.
+    private var showsProjectsRow: Bool {
+        mode == .all && model.projectArtifactBytes > 0
     }
 
     // MARK: - Selection strip
@@ -149,6 +158,13 @@ struct BrowserView: View {
                         ) {
                             inspectedID = target.id
                         }
+                    }
+                    if showsProjectsRow {
+                        ProjectsLinkRow(
+                            count: model.projectsWithArtifactsCount,
+                            bytes: model.projectArtifactBytes,
+                            open: onOpenProjects
+                        )
                     }
                 }
                 .padding(.horizontal, 8)
@@ -383,6 +399,59 @@ private struct TargetRow: View {
                 )
             )
         }
+    }
+}
+
+/// The dev-folder pointer at the end of "Review everything": projects
+/// are part of the totals above, but their artifacts are reviewed and
+/// cleaned on the Projects screen, so this row routes there instead of
+/// offering a checkbox.
+private struct ProjectsLinkRow: View {
+    let count: Int
+    let bytes: Int64
+    let open: () -> Void
+
+    var body: some View {
+        Button(action: open) {
+            HStack(spacing: 12) {
+                Image(systemName: "folder.badge.gearshape")
+                    .font(.system(size: 10.5, weight: .medium))
+                    .foregroundStyle(Color(hex: 0xB8B8BF))
+                    .frame(width: 22, height: 22)
+                    .background(Theme.controlFill, in: RoundedRectangle(cornerRadius: 6))
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(localized("sidebar.projects", defaultValue: "Projects"))
+                        .font(.system(size: 13.5, weight: .medium))
+                        .foregroundStyle(Theme.textPrimary)
+                    Text(localized(
+                        "browser.projectsRowSubtitle",
+                        defaultValue: "Reviewed and cleaned on the Projects screen"
+                    ))
+                    .font(Theme.caption)
+                    .foregroundStyle(Theme.textTertiary)
+                }
+
+                Spacer(minLength: 10)
+
+                Text(localized(
+                    "toolbar.projectsSubtitle",
+                    defaultValue: "\(count) projects · \(bytes.formattedBytesCompact)"
+                ))
+                .font(.system(size: 13, weight: .medium))
+                .monospacedDigit()
+                .foregroundStyle(Theme.textPrimary)
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(Theme.textQuaternary)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+            .contentShape(RoundedRectangle(cornerRadius: Theme.radiusInset))
+        }
+        .buttonStyle(.plain)
+        .hoverHighlight(radius: Theme.radiusInset, color: Color.white.opacity(0.055))
     }
 }
 

@@ -554,6 +554,12 @@ public final class AppModel {
         projects.reduce(0) { $0 + $1.artifactBytes }
     }
 
+    /// Number of projects currently holding artifact bytes — the count
+    /// that pairs honestly with ``projectArtifactBytes`` in UI copy.
+    public var projectsWithArtifactsCount: Int {
+        projects.count { $0.artifactBytes > 0 }
+    }
+
     /// The projects with the most reclaimable artifact bytes, for the
     /// overview's Projects card. Artifact-free projects are omitted.
     public func largestProjects(limit: Int) -> [DiscoveredProject] {

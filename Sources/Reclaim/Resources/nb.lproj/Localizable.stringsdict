@@ -98,6 +98,33 @@
 			<string>%lld elementer</string>
 		</dict>
 	</dict>
+	<key>toolbar.allFindingsSubtitle</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%1$#@items@ + %2$#@projects@ · %3$@</string>
+		<key>items</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>one</key>
+			<string>%lld element</string>
+			<key>other</key>
+			<string>%lld elementer</string>
+		</dict>
+		<key>projects</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>one</key>
+			<string>%lld prosjekt</string>
+			<key>other</key>
+			<string>%lld prosjekter</string>
+		</dict>
+	</dict>
 	<key>toolbar.historySubtitle</key>
 	<dict>
 		<key>NSStringLocalizedFormatKey</key>
@@ -144,6 +171,22 @@
 			<string>%lld element</string>
 			<key>other</key>
 			<string>%lld elementer</string>
+		</dict>
+	</dict>
+	<key>overview.projectArtifactsSubtitle</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@projects@, ryddes under Prosjekter</string>
+		<key>projects</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>one</key>
+			<string>%lld prosjekt</string>
+			<key>other</key>
+			<string>%lld prosjekter</string>
 		</dict>
 	</dict>
 	<key>overview.acrossCleans</key>

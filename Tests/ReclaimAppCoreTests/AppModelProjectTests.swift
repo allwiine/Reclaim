@@ -111,12 +111,13 @@ struct AppModelProjectTests {
             "/dev/app", devRoot: "/dev",
             artifacts: [artifact("/dev/app/node_modules", bytes: 500)]
         )
+        let clean = project("/dev/tidy", devRoot: "/dev", artifacts: [])
         let model = AppModel(
             targets: [target("cache")],
             defaults: store.defaults,
             scanExecutor: { _ in measured(100) },
             projectScanExecutor: { root in
-                DevRootScan(root: root, projects: [fixture])
+                DevRootScan(root: root, projects: [fixture, clean])
             }
         )
         model.addDevRoot(URL(filePath: "/dev"))
@@ -125,8 +126,9 @@ struct AppModelProjectTests {
         await model.scanTask?.value
 
         #expect(model.projectScans.count == 1)
-        #expect(model.projects.map(\.name) == ["app"])
+        #expect(model.projects.map(\.name) == ["app", "tidy"])
         #expect(model.projectArtifactBytes == 500)
+        #expect(model.projectsWithArtifactsCount == 1)   // artifact-free "tidy" not counted
         #expect(model.totalFoundBytes == 600)   // 100 target + 500 artifacts
         #expect(model.cleanableBytes == 600)
         #expect(model.lastScanWasComplete)

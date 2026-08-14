@@ -107,6 +107,7 @@
 "overview.nothingSafeLeft" = "Ingenting trygt igjen å fjerne";
 "overview.nothingSafeLeftSubtitle" = "Alt merket Trygt er allerede ryddet. Skann på nytt for å måle igjen.";
 "overview.needsDecision" = "%@ trenger en avgjørelse";
+"overview.projectArtifacts" = "%@ i prosjektartefakter";
 "overview.reclaimSafeButton" = "Frigjør trygg plass";
 "overview.reviewEverythingButton" = "Se gjennom alt";
 "overview.biggestLocations" = "Største enkeltplasseringer";
@@ -147,6 +148,7 @@
 "browser.selectAccessibility" = "Velg %@";
 "browser.keepOutOfAutoSelect" = "Hold utenfor automatisk valg";
 "browser.partialNote" = "%1$@ · %2$@";
+"browser.projectsRowSubtitle" = "Ses gjennom og ryddes under Prosjekter";
 
 /* Radstatuser */
 "status.empty" = "Tomt";

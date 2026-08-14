@@ -262,7 +262,11 @@ struct RootView: View {
             BrowserView(
                 mode: browserMode,
                 initialInspectedID: inspectedTargetID,
-                onCleanSingle: { confirmScope = .single($0.id) }
+                onCleanSingle: { confirmScope = .single($0.id) },
+                onOpenProjects: {
+                    inspectedTargetID = nil
+                    destination = .projects
+                }
             )
             .transition(.opacity)
         case .projects:
