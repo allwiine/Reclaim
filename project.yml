@@ -53,7 +53,7 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.allwiine.reclaim
-        MARKETING_VERSION: "1.4.0" # x-release-please-version
+        MARKETING_VERSION: "1.4.1" # x-release-please-version
         CURRENT_PROJECT_VERSION: "1"
         SWIFT_VERSION: "6.2"
         GENERATE_INFOPLIST_FILE: YES
