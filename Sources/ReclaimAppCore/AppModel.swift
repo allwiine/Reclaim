@@ -1128,17 +1128,34 @@ public final class AppModel {
         let devRoot: URL
     }
 
-    /// Clean everything currently selected — or, with `limitedTo`, only
-    /// the selected targets in that set ("Clean just this"; the rest of
-    /// the selection stays intact) — then re-scan the cleaned targets
-    /// so the numbers on screen stay truthful.
-    public func cleanSelected(limitedTo limit: Set<CleanupTarget.ID>? = nil) {
+    /// What a clean pass covers.
+    public enum CleanScope: Sendable, Equatable {
+        /// Everything selected — registry targets and dev-folder artifacts.
+        case selection
+        /// Only the selected registry targets in the set ("Clean just
+        /// this" on a target; artifacts never join).
+        case targets(Set<CleanupTarget.ID>)
+        /// Only the ticked artifacts of one project ("Clean just this"
+        /// on a project; registry targets never join).
+        case projectArtifacts(DiscoveredProject.ID)
+    }
+
+    /// Clean what the scope covers — everything selected, one target's
+    /// selection, or one project's ticked artifacts (the rest of the
+    /// selection stays intact) — then re-scan the cleaned entries so
+    /// the numbers on screen stay truthful.
+    public func cleanSelected(scope: CleanScope = .selection) {
         guard !isCleaning, !isScanning else { return }
         guard !selection.isEmpty || !artifactSelection.isEmpty else { return }
 
+        let targetLimit: Set<CleanupTarget.ID>? = switch scope {
+        case .selection: nil
+        case .targets(let ids): ids
+        case .projectArtifacts: []      // registry targets never join
+        }
         let jobs: [CleanJob] = targets.compactMap { target in
             guard selection.contains(target.id), target.strategy.isCleanable,
-                  limit?.contains(target.id) != false else { return nil }
+                  targetLimit?.contains(target.id) != false else { return nil }
             switch status(of: target.id) {
             case .measured(let measurement, _, _):
                 return CleanJob(
@@ -1153,15 +1170,25 @@ public final class AppModel {
                 return nil
             }
         }
-        // Artifact jobs join full-selection passes only — "Clean just
-        // this" (limitedTo) stays a registry-target affair.
-        let artifactJobs: [ArtifactCleanJob] = limit != nil ? [] : projectScans.flatMap { scan in
-            scan.projects.flatMap { project in
-                project.artifacts
-                    .filter { artifactSelection.contains($0.id) }
-                    .map { ArtifactCleanJob(
-                        artifact: $0, projectName: project.name, devRoot: scan.root
-                    ) }
+        // Artifact jobs join full passes and per-project passes —
+        // "Clean just this" on a registry target stays a target affair.
+        let artifactJobs: [ArtifactCleanJob]
+        switch scope {
+        case .targets:
+            artifactJobs = []
+        case .selection, .projectArtifacts:
+            let projectLimit: DiscoveredProject.ID? =
+                if case .projectArtifacts(let id) = scope { id } else { nil }
+            artifactJobs = projectScans.flatMap { scan in
+                scan.projects
+                    .filter { projectLimit == nil || $0.id == projectLimit }
+                    .flatMap { project in
+                        project.artifacts
+                            .filter { artifactSelection.contains($0.id) }
+                            .map { ArtifactCleanJob(
+                                artifact: $0, projectName: project.name, devRoot: scan.root
+                            ) }
+                    }
             }
         }
         guard !jobs.isEmpty || !artifactJobs.isEmpty else { return }

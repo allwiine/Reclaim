@@ -738,7 +738,7 @@ struct AppModelTests {
         #expect(model.history.first?.items?.first?.bytesFreed == 40)
     }
 
-    @Test("cleanSelected(limitedTo:) cleans one target, the rest stays selected")
+    @Test("A target-scoped clean cleans one target, the rest stays selected")
     func singleTargetClean() async {
         let store = TemporaryDefaults()
         let first = target("first")
@@ -759,7 +759,7 @@ struct AppModelTests {
         await model.scanTask?.value
         #expect(model.isSelected(first) && model.isSelected(second))
 
-        model.cleanSelected(limitedTo: [first.id])
+        model.cleanSelected(scope: .targets([first.id]))
         await model.cleanTask?.value
 
         #expect(cleanedIDs.withLock { $0 } == ["first"])

@@ -67,9 +67,9 @@ struct RootView: View {
                     onCancel: { confirmScope = nil },
                     onConfirm: {
                         confirmScope = nil
-                        let limit: Set<CleanupTarget.ID>? =
-                            if case .single(let id) = scope { [id] } else { nil }
-                        model.cleanSelected(limitedTo: limit)
+                        let cleanScope: AppModel.CleanScope =
+                            if case .single(let id) = scope { .targets([id]) } else { .selection }
+                        model.cleanSelected(scope: cleanScope)
                     }
                 )
                 .transition(.opacity)
