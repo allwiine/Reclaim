@@ -549,4 +549,115 @@ struct AppModelProjectTests {
         #expect(findings.map(\.bytes) == [500, 100, 50])
         #expect(model.largestFindings(limit: 1).map(\.id) == ["project:/dev/big"])
     }
+
+    @Test("Project-level selection is tri-state over its artifacts")
+    func projectTriStateSelection() async throws {
+        let store = TemporaryDefaults()
+        let nodeModules = artifact("/dev/app/node_modules", bytes: 500)
+        let build = artifact("/dev/app/.build", bytes: 300)
+        let empty = artifact("/dev/app/.venv", bytes: 0)
+        let fixture = project(
+            "/dev/app", devRoot: "/dev", artifacts: [nodeModules, build, empty]
+        )
+        let model = AppModel(
+            targets: [],
+            defaults: store.defaults,
+            projectScanExecutor: { root in DevRootScan(root: root, projects: [fixture]) }
+        )
+        model.addDevRoot(URL(filePath: "/dev"))
+        model.scanAll()
+        await model.scanTask?.value
+
+        #expect(model.isProjectSelectable(fixture))
+        #expect(!model.isProjectSelected(fixture))
+        #expect(!model.isProjectPartiallySelected(fixture))
+        #expect(model.partialSelectionCounts(of: fixture) == nil)
+
+        model.setArtifactSelected(nodeModules, true)
+        #expect(!model.isProjectSelected(fixture))
+        #expect(model.isProjectPartiallySelected(fixture))
+        let counts = try #require(model.partialSelectionCounts(of: fixture))
+        #expect(counts.selected == 1)
+        #expect(counts.total == 2)          // the empty artifact never counts
+        #expect(model.selectedArtifactBytes(of: fixture) == 500)
+
+        model.setProjectSelected(fixture, true)
+        #expect(model.isProjectSelected(fixture))
+        #expect(!model.isProjectPartiallySelected(fixture))
+        // Full selection is not "partial": counts are nil, like targets.
+        #expect(model.partialSelectionCounts(of: fixture) == nil)
+        // The empty artifact stays unticked (nothing to free).
+        #expect(!model.isArtifactSelected(empty))
+        #expect(model.selectedArtifactBytes(of: fixture) == 800)
+        #expect(model.selectedArtifacts(of: fixture).map(\.id) ==
+            ["/dev/app/node_modules", "/dev/app/.build"])
+
+        model.setProjectSelected(fixture, false)
+        #expect(model.artifactSelection.isEmpty)
+    }
+
+    @Test("An artifact-free project is never selectable")
+    func artifactFreeProjectUnselectable() async {
+        let store = TemporaryDefaults()
+        let bare = project("/dev/bare", devRoot: "/dev", artifacts: [])
+        let onlyEmpty = project(
+            "/dev/hollow", devRoot: "/dev",
+            artifacts: [artifact("/dev/hollow/.venv", bytes: 0)]
+        )
+        let model = AppModel(
+            targets: [],
+            defaults: store.defaults,
+            projectScanExecutor: { root in
+                DevRootScan(root: root, projects: [bare, onlyEmpty])
+            }
+        )
+        model.addDevRoot(URL(filePath: "/dev"))
+        model.scanAll()
+        await model.scanTask?.value
+
+        #expect(!model.isProjectSelectable(bare))
+        #expect(!model.isProjectSelectable(onlyEmpty))
+        model.setProjectSelected(onlyEmpty, true)       // refused per artifact
+        #expect(model.artifactSelection.isEmpty)
+        #expect(model.selectableArtifactCount == 0)
+    }
+
+    @Test("Select all and clear cover every project's artifacts, never targets")
+    func selectAllAndClearArtifacts() async {
+        let store = TemporaryDefaults()
+        let app = project(
+            "/dev/app", devRoot: "/dev",
+            artifacts: [artifact("/dev/app/node_modules", bytes: 500)]
+        )
+        let lib = project(
+            "/dev/lib", devRoot: "/dev",
+            artifacts: [
+                artifact("/dev/lib/.build", bytes: 300),
+                artifact("/dev/lib/.venv", bytes: 0),
+            ]
+        )
+        let model = AppModel(
+            targets: [target("cache")],
+            defaults: store.defaults,
+            scanExecutor: { _ in measured(100) },
+            projectScanExecutor: { root in
+                DevRootScan(root: root, projects: [app, lib])
+            }
+        )
+        model.addDevRoot(URL(filePath: "/dev"))
+        model.scanAll()
+        await model.scanTask?.value
+        // Post-scan auto-selection ticked the safe registry target.
+        #expect(model.selection.contains("cache"))
+
+        model.selectAllArtifacts()
+        #expect(model.selectedArtifacts.map(\.id).sorted() ==
+            ["/dev/app/node_modules", "/dev/lib/.build"])
+        #expect(model.selectableArtifactCount == 2)
+
+        model.clearArtifactSelection()
+        #expect(model.artifactSelection.isEmpty)
+        // The registry-target selection is untouched by either call.
+        #expect(model.selection.contains("cache"))
+    }
 }

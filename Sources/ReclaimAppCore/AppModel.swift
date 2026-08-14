@@ -699,6 +699,75 @@ public final class AppModel {
         !selection.isEmpty || !selectedArtifacts.isEmpty
     }
 
+    /// Whether the project row's checkbox is enabled: it has at least
+    /// one artifact with measurable bytes to free.
+    public func isProjectSelectable(_ project: DiscoveredProject) -> Bool {
+        !isScanning && !isCleaning
+            && project.artifacts.contains { $0.measurement.bytes > 0 }
+    }
+
+    /// The project's ticked artifacts, discovery order.
+    public func selectedArtifacts(of project: DiscoveredProject) -> [DiscoveredArtifact] {
+        project.artifacts.filter { artifactSelection.contains($0.id) }
+    }
+
+    public func selectedArtifactBytes(of project: DiscoveredProject) -> Int64 {
+        selectedArtifacts(of: project).reduce(0) { $0 + $1.measurement.bytes }
+    }
+
+    /// Whether every selectable artifact of the project is ticked (the
+    /// row checkbox's "on"; empty artifacts never count).
+    public func isProjectSelected(_ project: DiscoveredProject) -> Bool {
+        let selectable = project.artifacts.count { $0.measurement.bytes > 0 }
+        let selected = selectedArtifacts(of: project).count
+        return selected > 0 && selected == selectable
+    }
+
+    /// Whether some but not all selectable artifacts are ticked (the
+    /// row checkbox's mixed state).
+    public func isProjectPartiallySelected(_ project: DiscoveredProject) -> Bool {
+        let selectable = project.artifacts.count { $0.measurement.bytes > 0 }
+        let selected = selectedArtifacts(of: project).count
+        return selected > 0 && selected < selectable
+    }
+
+    /// Tick or untick all of the project's artifacts (empty ones are
+    /// refused by the per-artifact rule).
+    public func setProjectSelected(_ project: DiscoveredProject, _ selected: Bool) {
+        for artifact in project.artifacts {
+            setArtifactSelected(artifact, selected)
+        }
+    }
+
+    /// "K of M items" while the project is cherry-picked; nil when
+    /// nothing or everything selectable is ticked (mirrors the target
+    /// counterpart).
+    public func partialSelectionCounts(
+        of project: DiscoveredProject
+    ) -> (selected: Int, total: Int)? {
+        guard isProjectPartiallySelected(project) else { return nil }
+        return (
+            selected: selectedArtifacts(of: project).count,
+            total: project.artifacts.count { $0.measurement.bytes > 0 }
+        )
+    }
+
+    /// Artifacts with measurable bytes across all projects — the
+    /// projects strip summary's denominator.
+    public var selectableArtifactCount: Int {
+        projects.flatMap(\.artifacts).count { $0.measurement.bytes > 0 }
+    }
+
+    /// Tick every selectable artifact across all projects.
+    public func selectAllArtifacts() {
+        for project in projects { setProjectSelected(project, true) }
+    }
+
+    /// Untick every artifact. The registry-target selection stays.
+    public func clearArtifactSelection() {
+        artifactSelection.removeAll()
+    }
+
     // MARK: - Selection
 
     /// Whether the row's checkbox is enabled.
