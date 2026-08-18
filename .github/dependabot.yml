@@ -1,8 +1,19 @@
 # Keep GitHub Actions current. The Swift package has zero external
 # dependencies today — add a `swift` ecosystem entry when the first one lands.
+#
+# NOT covered here: Sparkle. It is pinned in project.yml (an XcodeGen spec
+# Dependabot cannot read) and again in .github/workflows/release.yml (the
+# generate_appcast tarball URL plus its SHA-256). Track it out-of-band —
+# watch https://github.com/sparkle-project/Sparkle/releases and bump both
+# pins and the tarball checksum together.
 version: 2
 updates:
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
+    # Batch action bumps into one PR; actions are pinned to commit SHAs
+    # with `# vX.Y.Z` comments, which Dependabot understands and updates.
+    groups:
+      github-actions:
+        patterns: ["*"]

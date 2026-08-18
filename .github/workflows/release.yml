@@ -33,8 +33,11 @@ jobs:
   release:
     name: Build, notarize & publish
     runs-on: macos-26
+    # Two notarization round-trips (app, then DMG) can be slow on Apple's
+    # side; generous but bounded.
+    timeout-minutes: 90
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Select newest Xcode
         run: sudo xcode-select -s "$(ls -d /Applications/Xcode*.app | grep -vi beta | sort -V | tail -1)/Contents/Developer"
@@ -123,6 +126,43 @@ jobs:
           codesign -d --verbose=2 "$RUNNER_TEMP/export/Reclaim.app" 2>&1 | grep -q "flags=.*runtime" \
             || { echo "::error::Hardened runtime missing on exported app"; exit 1; }
 
+      - name: Notarize and staple app
+        # The DMG notarization below covers the container, but the .app it
+        # carries needs its own stapled ticket: users copy the app out of
+        # the DMG, and an unstapled app validates poorly on an offline
+        # first launch. A ticket can only be stapled after the app itself
+        # passes notarization, and the DMG snapshots the app when it is
+        # built — so the order is: notarize app (zipped) → staple app →
+        # package DMG → notarize DMG → staple DMG.
+        env:
+          ASC_KEY_P8: ${{ secrets.ASC_API_KEY_P8 }}
+          ASC_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_API_ISSUER_ID }}
+        run: |
+          printf '%s' "$ASC_KEY_P8" > "$RUNNER_TEMP/AuthKey.p8"
+          ditto -c -k --keepParent "$RUNNER_TEMP/export/Reclaim.app" "$RUNNER_TEMP/Reclaim-app.zip"
+          set +e
+          RESULT="$(xcrun notarytool submit "$RUNNER_TEMP/Reclaim-app.zip" \
+            --key "$RUNNER_TEMP/AuthKey.p8" --key-id "$ASC_KEY_ID" --issuer "$ASC_ISSUER_ID" \
+            --wait --timeout 30m --output-format json)"
+          SUBMIT_EXIT=$?
+          set -e
+          echo "$RESULT"
+          STATUS="$(echo "$RESULT" | jq -r '.status // empty')"
+          SUBMISSION_ID="$(echo "$RESULT" | jq -r '.id // empty')"
+          if [ "$SUBMIT_EXIT" -ne 0 ] || [ "$STATUS" != "Accepted" ]; then
+            echo "::error::App notarization failed (exit $SUBMIT_EXIT, status ${STATUS:-unknown}) — full log follows"
+            if [ -n "$SUBMISSION_ID" ]; then
+              xcrun notarytool log "$SUBMISSION_ID" \
+                --key "$RUNNER_TEMP/AuthKey.p8" --key-id "$ASC_KEY_ID" --issuer "$ASC_ISSUER_ID" || true
+            fi
+            rm -f "$RUNNER_TEMP/AuthKey.p8"
+            exit 1
+          fi
+          rm -f "$RUNNER_TEMP/AuthKey.p8" "$RUNNER_TEMP/Reclaim-app.zip"
+          xcrun stapler staple "$RUNNER_TEMP/export/Reclaim.app"
+          xcrun stapler validate "$RUNNER_TEMP/export/Reclaim.app"
+
       - name: Package DMG
         id: dmg
         env:
@@ -140,7 +180,7 @@ jobs:
           codesign --force --sign "Developer ID Application" --timestamp "$DMG"
           echo "dmg=$DMG" >> "$GITHUB_OUTPUT"
 
-      - name: Notarize and staple
+      - name: Notarize and staple DMG
         env:
           ASC_KEY_P8: ${{ secrets.ASC_API_KEY_P8 }}
           ASC_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
@@ -175,8 +215,14 @@ jobs:
           TAG: ${{ steps.version.outputs.tag }}
           DMG: ${{ steps.dmg.outputs.dmg }}
         run: |
+          # Sparkle version pinned in sync with project.yml (exactVersion).
           curl -fsSL -o "$RUNNER_TEMP/Sparkle.tar.xz" \
-            https://github.com/sparkle-project/Sparkle/releases/download/2.9.5/Sparkle-2.9.5.tar.xz
+            https://github.com/sparkle-project/Sparkle/releases/download/2.9.6/Sparkle-2.9.6.tar.xz
+          # This runner holds the Sparkle EdDSA signing key, so the
+          # generate_appcast binary it runs must be exactly the pinned
+          # release — verify the tarball before extracting anything.
+          echo "52bf9e88cdd972fc0c81501377a880e90d47031bd8ca5462488f843e2609e192  $RUNNER_TEMP/Sparkle.tar.xz" \
+            | shasum -a 256 -c -
           mkdir -p "$RUNNER_TEMP/sparkle" && tar -xf "$RUNNER_TEMP/Sparkle.tar.xz" -C "$RUNNER_TEMP/sparkle"
           printf '%s' "$SPARKLE_PRIVATE_KEY" > "$RUNNER_TEMP/sparkle_key"
           mkdir -p "$RUNNER_TEMP/appcast"
@@ -193,7 +239,7 @@ jobs:
 
       - name: Upload rehearsal artifacts
         if: github.event_name == 'workflow_dispatch'
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: rehearsal-dmg-and-appcast
           path: |

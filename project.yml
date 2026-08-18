@@ -17,7 +17,9 @@ packages:
     path: .
   Sparkle:
     url: https://github.com/sparkle-project/Sparkle
-    exactVersion: 2.9.5
+    # Keep in sync with .github/workflows/release.yml, which downloads the
+    # matching Sparkle tarball (generate_appcast) and pins its SHA-256.
+    exactVersion: 2.9.6
 
 # An explicitly named scheme for the app target. The SPM package also
 # exposes an executable product named "Reclaim" (swift run Reclaim), and

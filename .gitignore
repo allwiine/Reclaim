@@ -11,3 +11,6 @@ Reclaim.entitlements
 Reclaim-Info.plist
 xcuserdata/
 DerivedData/
+
+# Claude Code (local agent state; .claude/worktrees can hold whole checkouts)
+.claude/
