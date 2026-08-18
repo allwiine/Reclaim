@@ -59,16 +59,16 @@ struct ProjectsView: View {
     private var emptyState: some View {
         VStack(spacing: 14) {
             Image(systemName: "folder.badge.gearshape")
-                .font(.system(size: 34, weight: .light))
+                .scaledFont(size: 34, weight: .light)
                 .foregroundStyle(Theme.textTertiary)
             Text(localized("projects.empty.title", defaultValue: "Find forgotten projects"))
-                .font(.system(size: 16, weight: .semibold))
+                .scaledFont(size: 16, weight: .semibold)
                 .foregroundStyle(Theme.textPrimary)
             Text(localized(
                 "projects.empty.body",
                 defaultValue: "Add the folders where your projects live. Reclaim finds git repositories and regenerable artifacts like node_modules and build folders, and shows what each project last did."
             ))
-            .font(Theme.body)
+            .themeFont(.body)
             .lineSpacing(3.5)
             .multilineTextAlignment(.center)
             .foregroundStyle(Theme.textSecondary)
@@ -161,7 +161,7 @@ struct ProjectsView: View {
             Spacer()
 
             Text(selectionSummary)
-                .font(.system(size: 12))
+                .scaledFont(size: 12)
                 .monospacedDigit()
                 .foregroundStyle(Theme.textLabel)
                 .contentTransition(.numericText())
@@ -230,7 +230,7 @@ struct ProjectsView: View {
 
     private func hintText(_ text: String) -> some View {
         Text(text)
-            .font(Theme.body)
+            .themeFont(.body)
             .foregroundStyle(Theme.textTertiary)
             .padding(.horizontal, 8)
             .padding(.top, 12)
@@ -240,13 +240,13 @@ struct ProjectsView: View {
     private func failedRootRow(_ scan: DevRootScan) -> some View {
         HStack(spacing: 10) {
             Image(systemName: "exclamationmark.triangle")
-                .font(.system(size: 12))
+                .scaledFont(size: 12)
                 .foregroundStyle(Theme.cautionTitle)
             Text((scan.root.path as NSString).abbreviatingWithTildeInPath)
                 .font(Theme.mono(11.5))
                 .foregroundStyle(Theme.textSecondary)
             Text(scan.failureMessage ?? "")
-                .font(Theme.caption)
+                .themeFont(.caption)
                 .foregroundStyle(Theme.textTertiary)
             Spacer(minLength: 8)
         }
@@ -276,7 +276,7 @@ private struct ProjectRow: View {
                 VStack(alignment: .leading, spacing: 3) {
                     HStack(spacing: 7) {
                         Text(project.name)
-                            .font(.system(size: 13.5, weight: .medium))
+                            .scaledFont(size: 13.5, weight: .medium)
                             .foregroundStyle(Theme.textPrimary)
                             .lineLimit(1)
                         if model.isProjectStale(project) {
@@ -284,7 +284,7 @@ private struct ProjectRow: View {
                         }
                     }
                     Text(activityLine)
-                        .font(Theme.caption)
+                        .themeFont(.caption)
                         .foregroundStyle(Theme.textTertiary)
                         .lineLimit(1)
                 }
@@ -346,7 +346,7 @@ private struct ProjectRow: View {
         if project.artifactBytes > 0 {
             VStack(alignment: .trailing, spacing: 5) {
                 Text(project.artifactBytes.formattedBytesCompact)
-                    .font(.system(size: 13, weight: .medium))
+                    .scaledFont(size: 13, weight: .medium)
                     .monospacedDigit()
                     .foregroundStyle(Theme.textPrimary)
                 MiniBar(
@@ -357,7 +357,7 @@ private struct ProjectRow: View {
             }
         } else {
             Text(verbatim: "—")
-                .font(.system(size: 12))
+                .scaledFont(size: 12)
                 .foregroundStyle(Theme.textTertiary)
         }
     }

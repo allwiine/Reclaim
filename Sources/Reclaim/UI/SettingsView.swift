@@ -249,7 +249,7 @@ struct SettingsView: View {
                 "settings.launchAtLoginFailed",
                 defaultValue: "Couldn't change the login item — manage it under System Settings → General → Login Items."
             ))
-            .font(Theme.caption)
+            .themeFont(.caption)
             .foregroundStyle(Theme.dangerWarn)
             .padding(.horizontal, 16)
             .padding(.bottom, 12)
@@ -284,7 +284,7 @@ struct SettingsView: View {
                 "settings.devFoldersHelp",
                 defaultValue: "Reclaim looks for projects and regenerable artifacts (node_modules, build folders, virtualenvs) only inside these folders."
             ))
-            .font(.system(size: 12))
+            .scaledFont(size: 12)
             .lineSpacing(2.5)
             .foregroundStyle(Color(hex: 0x8E8E95))
             Spacer(minLength: 8)
@@ -304,13 +304,13 @@ struct SettingsView: View {
     private var notificationsDeniedRow: some View {
         HStack(spacing: 10) {
             Image(systemName: "bell.slash")
-                .font(.system(size: 12))
+                .scaledFont(size: 12)
                 .foregroundStyle(Theme.cautionTitle)
             Text(localized(
                 "settings.notificationsDenied",
                 defaultValue: "Notifications for Reclaim are turned off in System Settings, so this alert cannot appear."
             ))
-            .font(Theme.caption)
+            .themeFont(.caption)
             .foregroundStyle(Theme.textSecondary)
             .frame(maxWidth: .infinity, alignment: .leading)
             Button(localized("settings.openNotificationSettings", defaultValue: "Open Notification Settings…")) {
@@ -331,13 +331,13 @@ struct SettingsView: View {
             HStack(spacing: 16) {
                 VStack(alignment: .leading, spacing: 3) {
                     Text(localized("settings.fullDiskAccess", defaultValue: "Full Disk Access"))
-                        .font(Theme.rowTitle)
+                        .themeFont(.rowTitle)
                         .foregroundStyle(Theme.textPrimary)
                     Text(localized(
                         "settings.fullDiskAccessHelp",
                         defaultValue: "Some locations (for example parts of ~/Library) may require Full Disk Access to scan or clean."
                     ))
-                    .font(.system(size: 12))
+                    .scaledFont(size: 12)
                     .lineSpacing(2.5)
                     .foregroundStyle(Color(hex: 0x8E8E95))
                     HStack(spacing: 6) {
@@ -345,7 +345,7 @@ struct SettingsView: View {
                             .fill(fdaStatusColor)
                             .frame(width: 7, height: 7)
                         Text(fdaStatusText)
-                            .font(Theme.caption)
+                            .themeFont(.caption)
                             .foregroundStyle(Theme.textTertiary)
                     }
                     .padding(.top, 4)
@@ -393,7 +393,7 @@ struct SettingsView: View {
                     "settings.exclusionsFootnote",
                     defaultValue: "Reclaim's catalogue holds only caches, logs and scratch data. Credentials, settings and other user data are excluded structurally: they are not part of the catalogue, a unit test forbids any target from touching them, and the cleanup engine refuses them at runtime."
                 ))
-                .font(Theme.footnote)
+                .themeFont(.footnote)
                 .lineSpacing(2.5)
                 .foregroundStyle(Theme.textQuaternary)
                 .padding(.top, 6)
@@ -408,7 +408,7 @@ struct SettingsView: View {
     private func exclusionGroup(_ group: ExclusionGroup) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(group.displayName)
-                .font(Theme.caption)
+                .themeFont(.caption)
                 .textCase(.uppercase)
                 .foregroundStyle(Theme.textTertiary)
                 .padding(.top, 4)
@@ -427,7 +427,7 @@ struct SettingsView: View {
                 .foregroundStyle(Color(hex: 0xC8C8CF))
             Spacer(minLength: 8)
             Text(reason)
-                .font(Theme.caption)
+                .themeFont(.caption)
                 .foregroundStyle(Theme.textTertiary)
         }
     }
@@ -453,10 +453,10 @@ private struct SettingRow: View {
         Toggle(isOn: $isOn) {
             VStack(alignment: .leading, spacing: 3) {
                 Text(title)
-                    .font(Theme.rowTitle)
+                    .themeFont(.rowTitle)
                     .foregroundStyle(Theme.textPrimary)
                 Text(help)
-                    .font(.system(size: 12))
+                    .scaledFont(size: 12)
                     .lineSpacing(2.5)
                     .foregroundStyle(Color(hex: 0x8E8E95))
             }

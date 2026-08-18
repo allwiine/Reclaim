@@ -16,7 +16,7 @@ import SwiftUI
 struct StaleBadge: View {
     var body: some View {
         Text(localized("projects.staleBadge", defaultValue: "No recent activity"))
-            .font(Theme.caption)
+            .themeFont(.caption)
             .foregroundStyle(Theme.cautionTitle)
             .padding(.horizontal, 6)
             .padding(.vertical, 2)
@@ -36,7 +36,7 @@ struct ProjectInspectorPanel: View {
                 details(for: project)
             } else {
                 Text(localized("projects.selectProject", defaultValue: "Select a project"))
-                    .font(Theme.body)
+                    .themeFont(.body)
                     .foregroundStyle(Theme.textQuaternary)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
@@ -50,7 +50,7 @@ struct ProjectInspectorPanel: View {
                 projectTile
 
                 Text(project.name)
-                    .font(.system(size: 17, weight: .bold))
+                    .scaledFont(size: 17, weight: .bold)
                     .foregroundStyle(Theme.textPrimary)
                     .padding(.top, 14)
 
@@ -59,7 +59,7 @@ struct ProjectInspectorPanel: View {
                         StaleBadge()
                     }
                     Text((project.devRoot.path as NSString).abbreviatingWithTildeInPath)
-                        .font(.system(size: 12))
+                        .scaledFont(size: 12)
                         .foregroundStyle(Color(hex: 0x8E8E95))
                         .lineLimit(1)
                 }
@@ -88,7 +88,7 @@ struct ProjectInspectorPanel: View {
 
     private var projectTile: some View {
         Image(systemName: "folder.badge.gearshape")
-            .font(.system(size: 15, weight: .semibold))
+            .scaledFont(size: 15, weight: .semibold)
             .foregroundStyle(Theme.safe)
             .frame(width: 34, height: 34)
             .background(Theme.safe.opacity(0.16), in: RoundedRectangle(cornerRadius: 9))
@@ -110,12 +110,12 @@ struct ProjectInspectorPanel: View {
                     .contentTransition(.numericText())
                     .animation(Theme.smooth, value: project.artifactBytes)
                 Text(parts.unit)
-                    .font(.system(size: 13))
+                    .scaledFont(size: 13)
                     .foregroundStyle(Theme.textSecondary)
             }
         } else {
             Text(localized("projects.noArtifacts", defaultValue: "No regenerable artifacts found."))
-                .font(Theme.cardTitle)
+                .themeFont(.cardTitle)
                 .foregroundStyle(Theme.textSecondary)
         }
     }
@@ -142,7 +142,7 @@ struct ProjectInspectorPanel: View {
                 )
             }
         }
-        .font(Theme.caption)
+        .themeFont(.caption)
         .foregroundStyle(Theme.textSecondary)
     }
 
@@ -157,7 +157,7 @@ struct ProjectInspectorPanel: View {
                     .multilineTextAlignment(.leading)
                 Spacer(minLength: 4)
                 Image(systemName: "arrow.up.forward.square")
-                    .font(.system(size: 10))
+                    .scaledFont(size: 10)
                     .foregroundStyle(Theme.textQuaternary)
             }
             .padding(.horizontal, 10)
@@ -192,7 +192,7 @@ struct ProjectInspectorPanel: View {
                         model.setProjectSelected(project, !model.isProjectSelected(project))
                     }
                     .buttonStyle(.plain)
-                    .font(.system(size: 11, weight: .medium))
+                    .scaledFont(size: 11, weight: .medium)
                     .foregroundStyle(Theme.textSecondary)
                     .disabled(model.isScanning || model.isCleaning)
                 }
@@ -229,7 +229,7 @@ struct ProjectInspectorPanel: View {
                 .disabled(!model.isArtifactSelectable(artifact))
                 .opacity(model.isArtifactSelectable(artifact) ? 1 : 0.35)
                 Text(artifact.kind?.name ?? artifact.kindID)
-                    .font(.system(size: 12))
+                    .scaledFont(size: 12)
                     .foregroundStyle(Theme.textPrimary)
                     .lineLimit(1)
                 Text(artifact.url.lastPathComponent)
@@ -238,7 +238,7 @@ struct ProjectInspectorPanel: View {
                     .lineLimit(1)
                     .frame(maxWidth: .infinity, alignment: .leading)
                 Text(artifact.measurement.bytes.formattedBytesCompact)
-                    .font(Theme.footnote)
+                    .themeFont(.footnote)
                     .monospacedDigit()
                     .foregroundStyle(Color(hex: 0x8E8E95))
             }
@@ -255,7 +255,7 @@ struct ProjectInspectorPanel: View {
     @ViewBuilder
     private func cherryPickFooter(for project: DiscoveredProject) -> some View {
         Text(pickNote(for: project))
-            .font(Theme.caption)
+            .themeFont(.caption)
             .foregroundStyle(Theme.textQuaternary)
             .padding(.top, 9)
 

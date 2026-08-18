@@ -22,13 +22,13 @@ struct ToolbarView: View {
     var body: some View {
         HStack(spacing: 12) {
             Text(title)
-                .font(.system(size: 13, weight: .semibold))
+                .scaledFont(size: 13, weight: .semibold)
                 .foregroundStyle(Theme.textPrimary)
                 .contentTransition(.opacity)
 
             if !subtitle.isEmpty {
                 Text(subtitle)
-                    .font(.system(size: 12))
+                    .scaledFont(size: 12)
                     .foregroundStyle(Theme.textLabel)
                     .contentTransition(.opacity)
             }
@@ -72,7 +72,7 @@ struct ToolbarView: View {
         } label: {
             HStack(spacing: 5) {
                 Image(systemName: "arrow.clockwise")
-                    .font(.system(size: 10, weight: .medium))
+                    .scaledFont(size: 10, weight: .medium)
                 Text(model.isScanning
                     ? localized("menu.scanning", defaultValue: "Scanning…")
                     : model.lastScan == nil
@@ -90,11 +90,11 @@ struct ToolbarView: View {
     private var searchField: some View {
         HStack(spacing: 6) {
             Image(systemName: "magnifyingglass")
-                .font(.system(size: 10))
+                .scaledFont(size: 10)
                 .foregroundStyle(Color(hex: 0x8B8B92))
             TextField(localized("toolbar.searchPlaceholder", defaultValue: "Search paths"), text: $searchText)
                 .textFieldStyle(.plain)
-                .font(.system(size: 12))
+                .scaledFont(size: 12)
                 .foregroundStyle(Theme.textPrimary)
                 .focused($searchFocused)
                 .frame(width: 110)
@@ -104,7 +104,7 @@ struct ToolbarView: View {
                     searchFocused = false
                 } label: {
                     Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: 10))
+                        .scaledFont(size: 10)
                         .foregroundStyle(Theme.textTertiary)
                 }
                 .buttonStyle(.plain)
@@ -229,7 +229,7 @@ private struct CompactPrimaryButtonStyle: ButtonStyle {
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(.system(size: 12.5, weight: .semibold))
+            .scaledFont(size: 12.5, weight: .semibold)
             .foregroundStyle(enabled ? Theme.onAccent : Theme.textQuaternary)
             .padding(.horizontal, 13)
             .frame(height: 26)

@@ -62,13 +62,13 @@ struct ConfirmSheet: View {
 
         return VStack(alignment: .leading, spacing: 0) {
             Text(title(picked))
-                .font(.system(size: 15, weight: .bold))
+                .scaledFont(size: 15, weight: .bold)
                 .foregroundStyle(Theme.textPrimary)
                 .padding(.horizontal, 24)
                 .padding(.top, 22)
 
             Text(bodyText(toTrash: toTrash))
-                .font(Theme.body)
+                .themeFont(.body)
                 .lineSpacing(3.5)
                 .foregroundStyle(Color(hex: 0xA8A8AF))
                 .padding(.horizontal, 24)
@@ -90,7 +90,7 @@ struct ConfirmSheet: View {
 
             if let warning = warningText(picked) {
                 Text(warning)
-                    .font(.system(size: 12))
+                    .scaledFont(size: 12)
                     .lineSpacing(3)
                     .foregroundStyle(Color(hex: 0xE8C9C6))
                     .padding(12)
@@ -235,18 +235,18 @@ struct ConfirmSheet: View {
                         .fill(BadgeKind(for: target).color)
                         .frame(width: 7, height: 7)
                     Text(target.name)
-                        .font(Theme.body)
+                        .themeFont(.body)
                         .foregroundStyle(Theme.textPrimary)
                         .lineLimit(1)
                     if let scope = partialScopeLabel(for: target) {
                         Text(scope)
-                            .font(Theme.caption)
+                            .themeFont(.caption)
                             .foregroundStyle(Theme.textTertiary)
                             .lineLimit(1)
                     }
                     Spacer(minLength: 8)
                     Text(sizeLabel(for: target))
-                        .font(.system(size: 12))
+                        .scaledFont(size: 12)
                         .monospacedDigit()
                         .foregroundStyle(Color(hex: 0x8E8E95))
                 }
@@ -264,12 +264,12 @@ struct ConfirmSheet: View {
                         .fill(Theme.safe)
                         .frame(width: 7, height: 7)
                     Text(artifactLabel(artifact))
-                        .font(Theme.body)
+                        .themeFont(.body)
                         .foregroundStyle(Theme.textPrimary)
                         .lineLimit(1)
                     Spacer(minLength: 8)
                     Text(artifact.measurement.bytes.formattedBytesCompact)
-                        .font(.system(size: 12))
+                        .scaledFont(size: 12)
                         .monospacedDigit()
                         .foregroundStyle(Color(hex: 0x8E8E95))
                 }
@@ -301,14 +301,14 @@ struct ConfirmSheet: View {
                         .fill(BadgeKind(for: target).color)
                         .frame(width: 7, height: 7)
                     Text(url.lastPathComponent)
-                        .font(Theme.body)
+                        .themeFont(.body)
                         .foregroundStyle(Theme.textPrimary)
                         .lineLimit(1)
                     Spacer(minLength: 8)
                     Text(model.breakdownBytes(of: target, path: url.path)
                         .map(\.formattedBytesCompact)
                         ?? localized("confirm.sizeUnknown", defaultValue: "size unknown"))
-                        .font(.system(size: 12))
+                        .scaledFont(size: 12)
                         .monospacedDigit()
                         .foregroundStyle(Color(hex: 0x8E8E95))
                 }
@@ -333,7 +333,7 @@ struct ConfirmSheet: View {
                         .fill(Theme.safe)
                         .frame(width: 7, height: 7)
                     Text(artifact.kind?.name ?? artifact.kindID)
-                        .font(Theme.body)
+                        .themeFont(.body)
                         .foregroundStyle(Theme.textPrimary)
                         .lineLimit(1)
                     Text(artifact.url.lastPathComponent)
@@ -342,7 +342,7 @@ struct ConfirmSheet: View {
                         .lineLimit(1)
                     Spacer(minLength: 8)
                     Text(artifact.measurement.bytes.formattedBytesCompact)
-                        .font(.system(size: 12))
+                        .scaledFont(size: 12)
                         .monospacedDigit()
                         .foregroundStyle(Color(hex: 0x8E8E95))
                 }
@@ -410,7 +410,7 @@ struct ConfirmSheet: View {
             set: { model.disposal = $0 ? .trash : .delete }
         )) {
             Text(localized("confirm.trashToggle", defaultValue: "Move to Trash instead of deleting"))
-                .font(Theme.body)
+                .themeFont(.body)
                 .foregroundStyle(Color(hex: 0xC8C8CF))
         }
         .toggleStyle(SmallCheckToggleStyle())
@@ -434,7 +434,7 @@ private struct SmallCheckToggleStyle: ToggleStyle {
                     if configuration.isOn {
                         RoundedRectangle(cornerRadius: 5).fill(Theme.accentGradient)
                         Image(systemName: "checkmark")
-                            .font(.system(size: 8.5, weight: .bold))
+                            .scaledFont(size: 8.5, weight: .bold)
                             .foregroundStyle(Theme.onAccent)
                     }
                 }

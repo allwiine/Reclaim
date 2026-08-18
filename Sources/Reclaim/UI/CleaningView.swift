@@ -18,7 +18,7 @@ struct CleaningView: View {
             Text(model.disposal == .trash
                 ? localized("title.movingToTrash", defaultValue: "Moving to Trash")
                 : localized("title.deleting", defaultValue: "Deleting"))
-                .font(.system(size: 20, weight: .semibold))
+                .scaledFont(size: 20, weight: .semibold)
                 .foregroundStyle(Theme.textPrimary)
 
             Text(model.cleanProgress?.targetPath
@@ -41,7 +41,7 @@ struct CleaningView: View {
                     "cleaning.progress",
                     defaultValue: "\(progress.index) of \(progress.total) locations"
                 ))
-                .font(.system(size: 12.5))
+                .scaledFont(size: 12.5)
                 .monospacedDigit()
                 .foregroundStyle(Theme.textSecondary)
                 .padding(.top, 14)

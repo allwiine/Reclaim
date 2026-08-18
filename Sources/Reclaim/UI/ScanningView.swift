@@ -18,7 +18,7 @@ struct ScanningView: View {
             ArcSpinner()
 
             Text(localized("title.scanning", defaultValue: "Scanning"))
-                .font(.system(size: 20, weight: .semibold))
+                .scaledFont(size: 20, weight: .semibold)
                 .foregroundStyle(Theme.textPrimary)
                 .padding(.top, 26)
 
@@ -47,7 +47,7 @@ struct ScanningView: View {
                     "scanning.foundSoFar",
                     defaultValue: "\(model.totalFoundBytes.byteParts.unit) found so far"
                 ))
-                .font(.system(size: 15))
+                .scaledFont(size: 15)
                 .foregroundStyle(Theme.textSecondary)
             }
             .padding(.top, 26)
@@ -92,11 +92,11 @@ struct ScanningView: View {
                 .fill(category.color)
                 .frame(width: 7, height: 7)
             Text(category.title)
-                .font(Theme.body)
+                .themeFont(.body)
                 .foregroundStyle(Theme.textPrimary)
             Spacer(minLength: 8)
             Text(anyMeasured ? bytes.formattedBytesCompact : "—")
-                .font(.system(size: 12))
+                .scaledFont(size: 12)
                 .monospacedDigit()
                 .foregroundStyle(Color(hex: 0x8E8E95))
                 .contentTransition(.numericText())
@@ -119,11 +119,11 @@ struct ScanningView: View {
                 .fill(Theme.accent)
                 .frame(width: 7, height: 7)
             Text(localized("sidebar.projects", defaultValue: "Projects"))
-                .font(Theme.body)
+                .themeFont(.body)
                 .foregroundStyle(Theme.textPrimary)
             Spacer(minLength: 8)
             Text(anyMeasured ? model.projectArtifactBytes.formattedBytesCompact : "—")
-                .font(.system(size: 12))
+                .scaledFont(size: 12)
                 .monospacedDigit()
                 .foregroundStyle(Color(hex: 0x8E8E95))
                 .contentTransition(.numericText())

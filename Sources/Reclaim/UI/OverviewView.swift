@@ -90,7 +90,7 @@ struct OverviewView: View {
             ),
             systemImage: "exclamationmark.circle"
         )
-        .font(Theme.body)
+        .themeFont(.body)
         .foregroundStyle(Theme.cautionTitle)
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
@@ -209,7 +209,7 @@ struct OverviewView: View {
                         .contentTransition(.numericText())
                         .animation(Theme.smooth, value: model.totalFoundBytes)
                     Text(model.totalFoundBytes.byteParts.unit)
-                        .font(.system(size: 10.5, weight: .semibold))
+                        .scaledFont(size: 10.5, weight: .semibold)
                         .tracking(0.7)
                         .foregroundStyle(Theme.textLabel)
                 }
@@ -248,12 +248,12 @@ struct OverviewView: View {
                 .padding(.top, 5)
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
-                    .font(Theme.cardTitle)
+                    .themeFont(.cardTitle)
                     .foregroundStyle(Theme.textPrimary)
                     .contentTransition(.numericText())
                     .animation(Theme.smooth, value: title)
                 Text(subtitle)
-                    .font(Theme.footnote)
+                    .themeFont(.footnote)
                     .foregroundStyle(Theme.textLabel)
             }
         }
@@ -271,7 +271,7 @@ struct OverviewView: View {
                         "disk.usedOfTotal",
                         defaultValue: "\(space.usedBytes.wholeGB) used of \(space.totalBytes.wholeGB)"
                     ))
-                    .font(Theme.footnote)
+                    .themeFont(.footnote)
                     .monospacedDigit()
                     .foregroundStyle(Theme.textTertiary)
                 }
@@ -285,7 +285,7 @@ struct OverviewView: View {
                     .contentTransition(.numericText())
                     .animation(Theme.smooth, value: freeGBNumber)
                 Text(localized("disk.gbFree", defaultValue: "GB free"))
-                    .font(Theme.cardTitle)
+                    .themeFont(.cardTitle)
                     .fontWeight(.regular)
                     .foregroundStyle(Theme.textSecondary)
             }
@@ -341,11 +341,11 @@ struct OverviewView: View {
         HStack(spacing: 8) {
             Circle().fill(color).frame(width: 7, height: 7)
             Text(name)
-                .font(.system(size: 12))
+                .scaledFont(size: 12)
                 .foregroundStyle(Color(hex: 0xB4B4BB))
             Spacer(minLength: 8)
             Text(value)
-                .font(.system(size: 12))
+                .scaledFont(size: 12)
                 .monospacedDigit()
                 .foregroundStyle(Color(hex: 0x8E8E95))
         }
@@ -408,7 +408,7 @@ struct OverviewView: View {
                     SectionLabel(localized("sidebar.projects", defaultValue: "Projects"))
                     Spacer()
                     Image(systemName: "chevron.right")
-                        .font(.system(size: 10, weight: .semibold))
+                        .scaledFont(size: 10, weight: .semibold)
                         .foregroundStyle(Theme.textQuaternary)
                 }
                 if model.projects.isEmpty {
@@ -416,14 +416,14 @@ struct OverviewView: View {
                         "projects.noneFound",
                         defaultValue: "No projects found in the added folders."
                     ))
-                    .font(Theme.footnote)
+                    .themeFont(.footnote)
                     .foregroundStyle(Theme.textTertiary)
                 } else {
                     Text(localized(
                         "toolbar.projectsSubtitle",
                         defaultValue: "\(model.projects.count) projects · \(model.projectArtifactBytes.formattedBytesCompact)"
                     ))
-                    .font(.system(size: 14, weight: .semibold))
+                    .scaledFont(size: 14, weight: .semibold)
                     .monospacedDigit()
                     .foregroundStyle(Theme.textPrimary)
                     .contentTransition(.numericText())
@@ -433,15 +433,15 @@ struct OverviewView: View {
                         ForEach(model.largestProjects(limit: 2)) { project in
                             HStack(spacing: 8) {
                                 Image(systemName: "folder.badge.gearshape")
-                                    .font(.system(size: 10.5))
+                                    .scaledFont(size: 10.5)
                                     .foregroundStyle(Theme.textTertiary)
                                 Text(project.name)
-                                    .font(.system(size: 12))
+                                    .scaledFont(size: 12)
                                     .foregroundStyle(Color(hex: 0xB4B4BB))
                                     .lineLimit(1)
                                 Spacer(minLength: 8)
                                 Text(project.artifactBytes.formattedBytesCompact)
-                                    .font(.system(size: 12))
+                                    .scaledFont(size: 12)
                                     .monospacedDigit()
                                     .foregroundStyle(Color(hex: 0x8E8E95))
                             }
@@ -506,19 +506,19 @@ private struct CategoryCard: View {
                         ? (Double(bytes) / Double(all))
                             .formatted(.percent.precision(.fractionLength(0)))
                         : "—")
-                        .font(Theme.caption)
+                        .themeFont(.caption)
                         .monospacedDigit()
                         .foregroundStyle(Theme.textTertiary)
                 }
                 Text(category.title)
-                    .font(.system(size: 12, weight: .medium))
+                    .scaledFont(size: 12, weight: .medium)
                     .foregroundStyle(Color(hex: 0xD5D5DB))
                     .lineLimit(2)
                     .multilineTextAlignment(.leading)
                     .frame(minHeight: 31, alignment: .topLeading)
                     .padding(.top, 11)
                 Text(bytes > 0 ? bytes.formattedBytesCompact : "—")
-                    .font(.system(size: 17, weight: .bold))
+                    .scaledFont(size: 17, weight: .bold)
                     .monospacedDigit()
                     .foregroundStyle(Theme.textPrimary)
                     .contentTransition(.numericText())
@@ -530,7 +530,7 @@ private struct CategoryCard: View {
                 )
                 .padding(.top, 9)
                 Text(localized("count.items", defaultValue: "\(items) items"))
-                    .font(Theme.caption)
+                    .themeFont(.caption)
                     .foregroundStyle(Theme.textTertiary)
                     .padding(.top, 8)
             }
@@ -565,26 +565,26 @@ private struct BiggestRow: View {
         Button(action: open) {
             HStack(spacing: 12) {
                 Text(rank.formatted())
-                    .font(Theme.caption)
+                    .themeFont(.caption)
                     .monospacedDigit()
                     .foregroundStyle(Theme.textQuaternary)
                     .frame(width: 14, alignment: .leading)
                 VStack(alignment: .leading, spacing: 2) {
                     HStack(spacing: 7) {
                         Text(target.name)
-                            .font(.system(size: 13, weight: .medium))
+                            .scaledFont(size: 13, weight: .medium)
                             .foregroundStyle(Theme.textPrimary)
                             .lineLimit(1)
                         Badge(for: target)
                     }
                     Text(target.category.title)
-                        .font(Theme.caption)
+                        .themeFont(.caption)
                         .foregroundStyle(Theme.textTertiary)
                 }
                 Spacer(minLength: 10)
                 VStack(alignment: .trailing, spacing: 5) {
                     Text(model.bytes(of: target).formattedBytesCompact)
-                        .font(.system(size: 12.5, weight: .medium))
+                        .scaledFont(size: 12.5, weight: .medium)
                         .monospacedDigit()
                         .foregroundStyle(Theme.textPrimary)
                     MiniBar(fraction: fraction, color: BadgeKind(for: target).color)
@@ -612,28 +612,28 @@ private struct ProjectFindingRow: View {
         Button(action: open) {
             HStack(spacing: 12) {
                 Text(rank.formatted())
-                    .font(Theme.caption)
+                    .themeFont(.caption)
                     .monospacedDigit()
                     .foregroundStyle(Theme.textQuaternary)
                     .frame(width: 14, alignment: .leading)
                 VStack(alignment: .leading, spacing: 2) {
                     HStack(spacing: 7) {
                         Image(systemName: "folder.badge.gearshape")
-                            .font(.system(size: 11))
+                            .scaledFont(size: 11)
                             .foregroundStyle(Theme.textTertiary)
                         Text(project.name)
-                            .font(.system(size: 13, weight: .medium))
+                            .scaledFont(size: 13, weight: .medium)
                             .foregroundStyle(Theme.textPrimary)
                             .lineLimit(1)
                     }
                     Text(localized("sidebar.projects", defaultValue: "Projects"))
-                        .font(Theme.caption)
+                        .themeFont(.caption)
                         .foregroundStyle(Theme.textTertiary)
                 }
                 Spacer(minLength: 10)
                 VStack(alignment: .trailing, spacing: 5) {
                     Text(project.artifactBytes.formattedBytesCompact)
-                        .font(.system(size: 12.5, weight: .medium))
+                        .scaledFont(size: 12.5, weight: .medium)
                         .monospacedDigit()
                         .foregroundStyle(Theme.textPrimary)
                     MiniBar(fraction: fraction, color: Theme.accent)
@@ -661,16 +661,16 @@ private struct AttentionCard: View {
             VStack(alignment: .leading, spacing: 4) {
                 HStack(alignment: .firstTextBaseline, spacing: 10) {
                     Text(target.name)
-                        .font(.system(size: 13, weight: .medium))
+                        .scaledFont(size: 13, weight: .medium)
                         .foregroundStyle(Theme.textPrimary)
                         .frame(maxWidth: .infinity, alignment: .leading)
                     Text(model.bytes(of: target).formattedBytesCompact)
-                        .font(.system(size: 12.5, weight: .medium))
+                        .scaledFont(size: 12.5, weight: .medium)
                         .monospacedDigit()
                         .foregroundStyle(Theme.textPrimary)
                 }
                 Text(target.summary)
-                    .font(Theme.footnote)
+                    .themeFont(.footnote)
                     .lineSpacing(2)
                     .foregroundStyle(Theme.textSecondary)
                     .lineLimit(2)
@@ -706,17 +706,17 @@ struct FullDiskAccessBanner: View {
     var body: some View {
         HStack(spacing: 12) {
             Image(systemName: "lock.shield")
-                .font(.system(size: 16))
+                .scaledFont(size: 16)
                 .foregroundStyle(Theme.cautionBright)
             VStack(alignment: .leading, spacing: 2) {
                 Text(localized("fda.title", defaultValue: "Full Disk Access is not granted"))
-                    .font(.system(size: 13, weight: .medium))
+                    .scaledFont(size: 13, weight: .medium)
                     .foregroundStyle(Theme.textPrimary)
                 Text(localized(
                     "fda.body",
                     defaultValue: "Some locations cannot be measured or cleaned, so results may be incomplete."
                 ))
-                .font(Theme.caption)
+                .themeFont(.caption)
                 .foregroundStyle(Theme.textSecondary)
             }
             Spacer()
