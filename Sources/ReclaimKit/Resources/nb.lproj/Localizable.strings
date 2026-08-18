@@ -143,6 +143,12 @@
 "target.windsurf-caches.summary" = "Extension host-, gjengivelses- og kodecacher for Windsurf-editoren.";
 "target.antigravity-caches.name" = "Antigravity-cacher";
 "target.antigravity-caches.summary" = "Extension host-, gjengivelses- og kodecacher for Googles Antigravity-IDE.";
+"target.kiro-caches.name" = "Kiro-cacher";
+"target.kiro-caches.summary" = "Extension host-, gjengivelses- og kodecacher for AWS sin Kiro-IDE.";
+"target.kiro-caches.note" = "Kiro CLI-ens egne data (~/Library/Application Support/kiro-cli) ligger i en egen mappe og røres aldri.";
+"target.qwen-cli-scratch.name" = "Qwen Code-scratchdata";
+"target.qwen-cli-scratch.summary" = "Midlertidige filer, sjekkpunkter og shell-historikk per prosjekt fra Qwen Code CLI. Rydding fjerner muligheten til å gjenoppta eller spole tilbake tidligere økter.";
+"target.qwen-cli-scratch.note" = "Innstillinger og auth i ~/.qwen røres aldri av Reclaim.";
 "target.cline-tasks.name" = "Cline-oppgavehistorikk";
 "target.cline-tasks.summary" = "Samtalehistorikk og filsjekkpunkter for hver Cline-oppgave, lagret i VS Code, Cursor og Windsurf. Vokser med gigabyte ved tung bruk.";
 "target.cline-tasks.note" = "Clines innstillinger og MCP-konfigurasjon røres aldri av Reclaim.";
@@ -190,6 +196,13 @@
 "target.uv-cache.summary" = "Wheel- og kildecachen til pakkebehandleren uv.";
 "target.cocoapods-cache.name" = "CocoaPods-cache";
 "target.cocoapods-cache.summary" = "Nedlastede pod-utgivelser og spec-data.";
+"target.cocoapods-spec-repos.name" = "CocoaPods spec-repoer";
+"target.cocoapods-spec-repos.summary" = "Klonede podspec-repoer. Det gamle master-repoet er flere gigabyte stort og ubrukt etter trunk-CDN-en; klones på nytt ved behov.";
+"target.asdf-installs.name" = "asdf-installerte versjoner";
+"target.asdf-installs.summary" = "Språkruntimer installert av asdf. Å fjerne dem betyr å installere hver versjon på nytt med `asdf install`.";
+"target.nix-store.name" = "Nix-lager";
+"target.nix-store.summary" = "Pakker og byggresultater fra Nix. Reclaim måler det, men overlater opprydding til Nix.";
+"target.nix-store.instructions" = "Kjør `nix-collect-garbage -d` for å fjerne ubrukte lagerstier og gamle generasjoner.";
 "target.spm-cache.name" = "Swift Package Manager-cache";
 "target.spm-cache.summary" = "Utsjekkede repoer og manifester cachet av SwiftPM (delt av Xcode og CLI-en).";
 "target.cargo-registry.name" = "Cargo-registry";
@@ -330,6 +343,8 @@
 /* Mål, Andre utviklerverktøy */
 "target.vscode-caches.name" = "VS Code-cacher";
 "target.vscode-caches.summary" = "Extension host-, gjengivelses- og kodecacher for Visual Studio Code.";
+"target.vscode-insiders-caches.name" = "VS Code Insiders-cacher";
+"target.vscode-insiders-caches.summary" = "Extension host-, gjengivelses- og kodecacher for Insiders-utgaven av Visual Studio Code.";
 "target.jetbrains-caches.name" = "JetBrains IDE-cacher";
 "target.jetbrains-caches.summary" = "Cacher og indekser for IntelliJ, PyCharm, WebStorm og venner, lagret per IDE-versjon.";
 "target.jetbrains-caches.note" = "Hver IDE bygger indeksen sin på nytt ved neste oppstart.";

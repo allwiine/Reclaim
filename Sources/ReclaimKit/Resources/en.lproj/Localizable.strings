@@ -140,6 +140,12 @@
 "target.windsurf-caches.summary" = "Extension host, rendering and code caches for the Windsurf editor.";
 "target.antigravity-caches.name" = "Antigravity caches";
 "target.antigravity-caches.summary" = "Extension host, rendering and code caches for Google's Antigravity IDE.";
+"target.kiro-caches.name" = "Kiro caches";
+"target.kiro-caches.summary" = "Extension host, rendering and code caches for AWS's Kiro IDE.";
+"target.kiro-caches.note" = "The Kiro CLI's own data (~/Library/Application Support/kiro-cli) is a separate folder and is never touched.";
+"target.qwen-cli-scratch.name" = "Qwen Code scratch data";
+"target.qwen-cli-scratch.summary" = "Per-project temp files, checkpoints and shell history from the Qwen Code CLI. Cleaning removes the ability to resume or rewind past sessions.";
+"target.qwen-cli-scratch.note" = "Settings and auth in ~/.qwen are never touched by Reclaim.";
 "target.cline-tasks.name" = "Cline task history";
 "target.cline-tasks.summary" = "Conversation history and file checkpoints for every Cline task, stored inside VS Code, Cursor and Windsurf. Grows by gigabytes under heavy use.";
 "target.cline-tasks.note" = "Cline's settings and MCP configuration are never touched by Reclaim.";
@@ -187,6 +193,13 @@
 "target.uv-cache.summary" = "The uv package manager's wheel and source cache.";
 "target.cocoapods-cache.name" = "CocoaPods cache";
 "target.cocoapods-cache.summary" = "Downloaded pod releases and spec data.";
+"target.cocoapods-spec-repos.name" = "CocoaPods spec repos";
+"target.cocoapods-spec-repos.summary" = "Cloned podspec repositories. The legacy master repo is multi-gigabyte and unused since the trunk CDN; re-cloned on demand.";
+"target.asdf-installs.name" = "asdf installed versions";
+"target.asdf-installs.summary" = "Language runtimes installed by asdf. Removing them means reinstalling each version with `asdf install`.";
+"target.nix-store.name" = "Nix store";
+"target.nix-store.summary" = "Packages and build outputs kept by Nix. Reclaim measures it but leaves collection to Nix.";
+"target.nix-store.instructions" = "Run `nix-collect-garbage -d` to remove unreferenced store paths and old generations.";
 "target.spm-cache.name" = "Swift Package Manager cache";
 "target.spm-cache.summary" = "Checked-out repositories and manifests cached by SwiftPM (shared by Xcode and the CLI).";
 "target.cargo-registry.name" = "Cargo registry";
@@ -327,6 +340,8 @@
 /* Targets — Other developer tools */
 "target.vscode-caches.name" = "VS Code caches";
 "target.vscode-caches.summary" = "Extension host, rendering and code caches for Visual Studio Code.";
+"target.vscode-insiders-caches.name" = "VS Code Insiders caches";
+"target.vscode-insiders-caches.summary" = "Extension host, rendering and code caches for the Insiders build of Visual Studio Code.";
 "target.jetbrains-caches.name" = "JetBrains IDE caches";
 "target.jetbrains-caches.summary" = "Caches and indexes for IntelliJ, PyCharm, WebStorm and friends, kept per IDE version.";
 "target.jetbrains-caches.note" = "Each IDE rebuilds its index on next launch.";
