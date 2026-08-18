@@ -825,6 +825,49 @@ public enum TargetRegistry {
             relatedAppBundleIDs: ["com.google.antigravity"]
         ),
         CleanupTarget(
+            id: "kiro-caches",
+            name: localized(
+                "target.kiro-caches.name",
+                defaultValue: "Kiro caches"
+            ),
+            summary: localized(
+                "target.kiro-caches.summary",
+                defaultValue: "Extension host, rendering and code caches for AWS's Kiro IDE."
+            ),
+            category: .aiTools,
+            safety: .safe,
+            pathPatterns: [
+                "~/Library/Application Support/Kiro/Cache",
+                "~/Library/Application Support/Kiro/CachedData",
+                "~/Library/Application Support/Kiro/Code Cache",
+                "~/Library/Application Support/Kiro/GPUCache",
+            ],
+            strategy: .removeContents,
+            note: localized(
+                "target.kiro-caches.note",
+                defaultValue: "The Kiro CLI's own data (~/Library/Application Support/kiro-cli) is a separate folder and is never touched."
+            )
+        ),
+        CleanupTarget(
+            id: "qwen-cli-scratch",
+            name: localized(
+                "target.qwen-cli-scratch.name",
+                defaultValue: "Qwen Code scratch data"
+            ),
+            summary: localized(
+                "target.qwen-cli-scratch.summary",
+                defaultValue: "Per-project temp files, checkpoints and shell history from the Qwen Code CLI. Cleaning removes the ability to resume or rewind past sessions."
+            ),
+            category: .aiTools,
+            safety: .caution,
+            pathPatterns: ["~/.qwen/tmp"],
+            strategy: .removeContents,
+            note: localized(
+                "target.qwen-cli-scratch.note",
+                defaultValue: "Settings and auth in ~/.qwen are never touched by Reclaim."
+            )
+        ),
+        CleanupTarget(
             id: "cline-tasks",
             name: localized(
                 "target.cline-tasks.name",
@@ -1171,6 +1214,54 @@ public enum TargetRegistry {
             safety: .safe,
             pathPatterns: ["~/Library/Caches/CocoaPods"],
             strategy: .removeContents
+        ),
+        CleanupTarget(
+            id: "cocoapods-spec-repos",
+            name: localized(
+                "target.cocoapods-spec-repos.name",
+                defaultValue: "CocoaPods spec repos"
+            ),
+            summary: localized(
+                "target.cocoapods-spec-repos.summary",
+                defaultValue: "Cloned podspec repositories. The legacy master repo is multi-gigabyte and unused since the trunk CDN; re-cloned on demand."
+            ),
+            category: .packageManagers,
+            safety: .caution,
+            pathPatterns: ["~/.cocoapods/repos"],
+            strategy: .removeContents
+        ),
+        CleanupTarget(
+            id: "asdf-installs",
+            name: localized(
+                "target.asdf-installs.name",
+                defaultValue: "asdf installed versions"
+            ),
+            summary: localized(
+                "target.asdf-installs.summary",
+                defaultValue: "Language runtimes installed by asdf. Removing them means reinstalling each version with `asdf install`."
+            ),
+            category: .packageManagers,
+            safety: .destructive,
+            pathPatterns: ["~/.asdf/installs"],
+            strategy: .removeContents
+        ),
+        CleanupTarget(
+            id: "nix-store",
+            name: localized(
+                "target.nix-store.name",
+                defaultValue: "Nix store"
+            ),
+            summary: localized(
+                "target.nix-store.summary",
+                defaultValue: "Packages and build outputs kept by Nix. Reclaim measures it but leaves collection to Nix."
+            ),
+            category: .packageManagers,
+            safety: .caution,
+            pathPatterns: ["/nix/store"],
+            strategy: .manual(instructions: localized(
+                "target.nix-store.instructions",
+                defaultValue: "Run `nix-collect-garbage -d` to remove unreferenced store paths and old generations."
+            ))
         ),
         CleanupTarget(
             id: "spm-cache",
@@ -1979,6 +2070,27 @@ public enum TargetRegistry {
             ],
             strategy: .removeContents,
             relatedAppBundleIDs: ["com.microsoft.VSCode"]
+        ),
+        CleanupTarget(
+            id: "vscode-insiders-caches",
+            name: localized(
+                "target.vscode-insiders-caches.name",
+                defaultValue: "VS Code Insiders caches"
+            ),
+            summary: localized(
+                "target.vscode-insiders-caches.summary",
+                defaultValue: "Extension host, rendering and code caches for the Insiders build of Visual Studio Code."
+            ),
+            category: .otherTools,
+            safety: .safe,
+            pathPatterns: [
+                "~/Library/Application Support/Code - Insiders/Cache",
+                "~/Library/Application Support/Code - Insiders/CachedData",
+                "~/Library/Application Support/Code - Insiders/Code Cache",
+                "~/Library/Application Support/Code - Insiders/CachedExtensionVSIXs",
+            ],
+            strategy: .removeContents,
+            relatedAppBundleIDs: ["com.microsoft.VSCodeInsiders"]
         ),
         CleanupTarget(
             id: "jetbrains-caches",

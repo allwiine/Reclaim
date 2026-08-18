@@ -31,14 +31,14 @@ Sparkle.
 | Android Studio | Gradle caches, wrapper distributions, build-scan data, IDE caches, Kotlin/Native toolchains, SDK system images, AVDs |
 | .NET & Visual Studio | NuGet global packages & download caches, orphaned SDK workload packs, Azure Functions bundles, Visual Studio for Mac / Xamarin leftovers |
 | Game Engines | Unity package & editor caches, Unity Asset Store downloads, Unreal derived data (incl. Zen), Godot caches & export templates |
-| AI tools | Claude Code caches, logs & transcripts, Codex / Gemini / Copilot CLI data, Claude & ChatGPT Desktop caches, Cursor / Windsurf / Antigravity caches, Cline & Roo Code task history, Continue index, aider / Goose / OpenCode data, Ollama / Hugging Face / LM Studio / llama.cpp models, PyTorch caches |
-| Package managers | Homebrew, npm, pnpm, Yarn (classic & Berry), pip, uv, Poetry, conda, pyenv, pipx, pub (Flutter/Dart), Composer, CocoaPods, SwiftPM, Cargo, Go, Deno, node-gyp, rustup & rbenv versions, mise cache |
+| AI tools | Claude Code caches, logs & transcripts, Codex / Gemini / Qwen Code CLI data, Claude & ChatGPT Desktop caches, Cursor / Windsurf / Antigravity / Kiro caches, Cline & Roo Code task history, Continue index, aider / Goose / OpenCode data, Ollama / Hugging Face / LM Studio / llama.cpp models, PyTorch caches |
+| Package managers | Homebrew, npm, pnpm, Yarn (classic & Berry), pip, uv, Poetry, conda, pyenv / asdf versions, pipx, pub (Flutter/Dart), Composer, CocoaPods (caches & spec repos), SwiftPM, Cargo, Go, Deno, node-gyp, rustup & rbenv versions, mise cache, Nix store (measured) |
 | Containers & VMs | Docker VM disk, OrbStack / Colima / Lima / Podman machines (measured; cleaned via their own tools), Vagrant boxes, minikube cache, Rancher Desktop caches |
 | Java & JVM | Maven local repository, SDKMAN archives, Coursier and Ivy/sbt caches |
 | Web & JS tools | Playwright / Puppeteer browsers, Cypress binaries, Bun install cache, Electron caches, Corepack cache, nvm Node versions, Prisma engine binaries |
 | Cloud & DevOps | kubectl, Helm and Pulumi caches, gcloud & Azure CLI logs, Terraform plugin cache, Firebase emulators |
 | Embedded & IoT | PlatformIO cache, Arduino downloads, ESP-IDF toolchain archives |
-| Other dev tools | VS Code caches & workspace storage, JetBrains caches & logs, Zed caches & language servers, ccache / sccache compiler caches, Bazel output trees, pre-commit environments |
+| Other dev tools | VS Code (stable & Insiders) caches & workspace storage, JetBrains caches & logs, Zed caches & language servers, ccache / sccache compiler caches, Bazel output trees, pre-commit environments |
 | Your projects (optional) | node_modules, JS build outputs (.next, dist), Rust `target`, SwiftPM `.build`, Gradle builds, Python virtualenvs & caches, CocoaPods, Carthage builds, found inside the development folders you add and proven regenerable by their marker files (package.json, Cargo.toml, ...) |
 
 Every item carries a safety rating:
