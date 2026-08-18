@@ -180,21 +180,27 @@ struct CleanupEngineTests {
         #expect(removeOutcome.failures.count == 1)
     }
 
-    @Test("A path resolving through a symlink into a protected location is refused")
+    @Test("A path resolving through a symlink into an existing protected dir is refused")
     func symlinkRedirectIntoProtectedIsRefused() throws {
         try withTemporaryDirectory { root in
             let remover = MockRemover()
             let engine = CleanupEngine(remover: remover)
-            let home = FileManager.default.homeDirectoryForCurrentUser
-            // Simulate a cache root swapped for a symlink into ~/.ssh
-            // between scan and clean. The symlink's own path is not
-            // protected, so only the engine's symlink-resolved guard
-            // stops the redirection.
-            let link = root.appending(path: "cache")
-            try FileManager.default.createSymbolicLink(
-                at: link, withDestinationURL: home.appending(path: ".ssh")
+            // Point the symlink at a real, protected directory that
+            // exists everywhere: ~/Library/Keychains is created before
+            // the link so `resolvingSymlinksInPath` actually resolves it
+            // (it leaves dangling links unresolved, which is why the
+            // scan-time pin in AppModel — not this backstop — is the
+            // primary defence; see AppModelTests).
+            let protectedDir = FileManager.default.homeDirectoryForCurrentUser
+                .appending(path: "Library/Keychains")
+            try? FileManager.default.createDirectory(
+                at: protectedDir, withIntermediateDirectories: true
             )
-            let redirected = link.appending(path: "id_ed25519")
+            guard FileManager.default.fileExists(atPath: protectedDir.path) else { return }
+
+            let link = root.appending(path: "cache")
+            try FileManager.default.createSymbolicLink(at: link, withDestinationURL: protectedDir)
+            let redirected = link.appending(path: "login.keychain-db")
 
             let outcome = engine.clean(
                 makeTarget(strategy: .removeContents),
