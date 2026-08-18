@@ -44,14 +44,14 @@ struct IdleView: View {
     private var pitch: some View {
         VStack(alignment: .leading, spacing: 0) {
             Text(versionBadge)
-                .font(.system(size: 11, weight: .bold))
+                .scaledFont(size: 11, weight: .bold)
                 .tracking(1.5)
                 .textCase(.uppercase)
                 .foregroundStyle(Theme.accentLabel)
                 .entrance(appeared, delay: 0)
 
             Text(localized("idle.headline", defaultValue: "Reclaim the space your tools quietly keep."))
-                .font(.system(size: 40, weight: .bold))
+                .scaledFont(size: 40, weight: .bold)
                 .lineSpacing(2)
                 .foregroundStyle(Theme.textPrimary)
                 .frame(maxWidth: 480, alignment: .leading)
@@ -62,7 +62,7 @@ struct IdleView: View {
                 "idle.pitch",
                 defaultValue: "Reclaim checks a curated catalogue of known cache and scratch locations, tells you what each one is and what it costs to lose, then cleans only what you select."
             ))
-            .font(.system(size: 14.5))
+            .scaledFont(size: 14.5)
             .lineSpacing(4)
             .foregroundStyle(Theme.textBody)
             .frame(maxWidth: 430, alignment: .leading)
@@ -80,7 +80,7 @@ struct IdleView: View {
                     "idle.readOnlyNote",
                     defaultValue: "Read-only — nothing is removed by scanning"
                 ))
-                .font(.system(size: 12.5))
+                .scaledFont(size: 12.5)
                 .foregroundStyle(Theme.textTertiary)
             }
             .padding(.top, 30)
@@ -123,7 +123,7 @@ struct IdleView: View {
             (Text(level.title).fontWeight(.semibold).foregroundStyle(Theme.textPrimary)
                 + Text(verbatim: ": ")
                 + Text(text))
-                .font(Theme.body)
+                .themeFont(.body)
                 .foregroundStyle(Color(hex: 0x8E8E95))
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -151,13 +151,13 @@ struct IdleView: View {
                 // A trust statement, not a setting: a sealed checkmark in
                 // the accent color, never anything that reads as a checkbox.
                 Image(systemName: "checkmark.seal.fill")
-                    .font(.system(size: 17))
+                    .scaledFont(size: 17)
                     .foregroundStyle(Theme.accent)
                 Text(localized(
                     "idle.trustNote",
                     defaultValue: "Nothing is removed without your confirmation, and everything goes to the Trash by default. Credentials, settings and plugins are never in the catalogue."
                 ))
-                .font(Theme.footnote)
+                .themeFont(.footnote)
                 .lineSpacing(2.5)
                 .foregroundStyle(Theme.textTertiary)
             }
@@ -173,7 +173,7 @@ struct IdleView: View {
                 SectionLabel(localized("idle.catalogueTitle", defaultValue: "What Reclaim looks at"))
                 Spacer()
                 Text(localized("accessibility.notMeasuredYet", defaultValue: "Not measured yet"))
-                    .font(Theme.caption)
+                    .themeFont(.caption)
                     .foregroundStyle(Theme.textQuaternary)
             }
             .padding(.horizontal, 18)
@@ -192,7 +192,7 @@ struct IdleView: View {
                     "idle.catalogueSummary",
                     defaultValue: "\(TargetRegistry.all.count) known locations across \(ToolCategory.allCases.count) tool categories"
                 ))
-                .font(Theme.body)
+                .themeFont(.body)
                 .foregroundStyle(Theme.textSecondary)
 
                 LazyVGrid(
@@ -238,13 +238,13 @@ struct IdleView: View {
     private var idleProjectsRow: some View {
         HStack(spacing: 12) {
             Image(systemName: "folder.badge.gearshape")
-                .font(.system(size: 12, weight: .medium))
+                .scaledFont(size: 12, weight: .medium)
                 .foregroundStyle(Color(hex: 0xB8B8BF))
                 .frame(width: 26, height: 26)
                 .background(Theme.controlFill, in: RoundedRectangle(cornerRadius: 7))
             VStack(alignment: .leading, spacing: 2) {
                 Text(localized("sidebar.projects", defaultValue: "Projects"))
-                    .font(.system(size: 12.5, weight: .medium))
+                    .scaledFont(size: 12.5, weight: .medium)
                     .foregroundStyle(Theme.textPrimary)
                 Text(model.devRoots.isEmpty
                     ? localized(
@@ -254,7 +254,7 @@ struct IdleView: View {
                     : model.devRoots
                         .map { ($0.path as NSString).abbreviatingWithTildeInPath }
                         .joined(separator: " · "))
-                    .font(Theme.caption)
+                    .themeFont(.caption)
                     .foregroundStyle(Theme.textTertiary)
                     .lineLimit(1)
             }
@@ -290,7 +290,7 @@ struct IdleView: View {
         HStack(spacing: 8) {
             CategoryTile(category: category, size: 22)
             Text(category.title)
-                .font(.system(size: 11.5, weight: .medium))
+                .scaledFont(size: 11.5, weight: .medium)
                 .foregroundStyle(Color(hex: 0xC8C8CF))
                 .lineLimit(1)
             Spacer(minLength: 0)
@@ -307,7 +307,7 @@ struct IdleView: View {
     private var moreChip: some View {
         HStack(spacing: 8) {
             Text(localized("idle.moreCategories", defaultValue: "\(hiddenChipCount) more"))
-                .font(.system(size: 11.5, weight: .medium))
+                .scaledFont(size: 11.5, weight: .medium)
                 .foregroundStyle(Theme.textTertiary)
             Spacer(minLength: 0)
         }
@@ -324,11 +324,11 @@ struct IdleView: View {
         VStack(spacing: 8) {
             HStack {
                 Text(model.volumeDisplayName)
-                    .font(Theme.footnote)
+                    .themeFont(.footnote)
                     .foregroundStyle(Color(hex: 0x98989F))
                 Spacer()
                 Text(diskLabel)
-                    .font(Theme.footnote)
+                    .themeFont(.footnote)
                     .monospacedDigit()
                     .foregroundStyle(Theme.textTertiary)
             }

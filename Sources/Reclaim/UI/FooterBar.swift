@@ -49,10 +49,10 @@ struct FooterBar: View {
     private func item(label: String, value: String, help: String) -> some View {
         HStack(spacing: 7) {
             Text(label)
-                .font(Theme.caption)
+                .themeFont(.caption)
                 .foregroundStyle(Theme.textTertiary)
             Text(value)
-                .font(.system(size: 11.5, weight: .medium))
+                .scaledFont(size: 11.5, weight: .medium)
                 .monospacedDigit()
                 .foregroundStyle(Theme.textSecondary)
                 .contentTransition(.numericText())

@@ -117,7 +117,7 @@ struct BrowserView: View {
             Spacer()
 
             Text(selectionSummary)
-                .font(.system(size: 12))
+                .scaledFont(size: 12)
                 .monospacedDigit()
                 .foregroundStyle(Theme.textLabel)
                 .contentTransition(.numericText())
@@ -184,13 +184,13 @@ struct BrowserView: View {
     private var emptyState: some View {
         VStack(spacing: 10) {
             Image(systemName: emptyIcon)
-                .font(.system(size: 28))
+                .scaledFont(size: 28)
                 .foregroundStyle(Theme.textQuaternary)
             Text(emptyTitle)
-                .font(.system(size: 14, weight: .medium))
+                .scaledFont(size: 14, weight: .medium)
                 .foregroundStyle(Theme.textSecondary)
             Text(emptyDetail)
-                .font(Theme.body)
+                .themeFont(.body)
                 .foregroundStyle(Theme.textTertiary)
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: 360)
@@ -246,7 +246,7 @@ private struct TargetRow: View {
                 VStack(alignment: .leading, spacing: 3) {
                     HStack(spacing: 7) {
                         Text(target.name)
-                            .font(.system(size: 13.5, weight: .medium))
+                            .scaledFont(size: 13.5, weight: .medium)
                             .foregroundStyle(Theme.textPrimary)
                             .lineLimit(1)
                         Badge(for: target)
@@ -258,7 +258,7 @@ private struct TargetRow: View {
                             .lineLimit(1)
                         if let note = partialNote {
                             Text(note)
-                                .font(.system(size: 10.5, weight: .medium))
+                                .scaledFont(size: 10.5, weight: .medium)
                                 .foregroundStyle(Theme.accentLabel)
                                 .lineLimit(1)
                         }
@@ -325,7 +325,7 @@ private struct TargetRow: View {
                     HStack(spacing: 4) {
                         if measurement.inaccessibleItems > 0 {
                             Image(systemName: "lock")
-                                .font(.system(size: 9))
+                                .scaledFont(size: 9)
                                 .foregroundStyle(Theme.caution)
                                 .help(localized(
                                     "browser.unreadableEntriesHelp",
@@ -333,7 +333,7 @@ private struct TargetRow: View {
                                 ))
                         }
                         Text(measurement.bytes.formattedBytesCompact)
-                            .font(.system(size: 13, weight: .medium))
+                            .scaledFont(size: 13, weight: .medium)
                             .monospacedDigit()
                             .foregroundStyle(Theme.textPrimary)
                             .contentTransition(.numericText())
@@ -363,14 +363,14 @@ private struct TargetRow: View {
                 localized("status.scanFailed", defaultValue: "Couldn't scan"),
                 systemImage: "exclamationmark.triangle"
             )
-            .font(Theme.caption)
+            .themeFont(.caption)
             .foregroundStyle(Theme.dangerWarn)
         }
     }
 
     private func statusText(_ text: String) -> some View {
         Text(text)
-            .font(.system(size: 12))
+            .scaledFont(size: 12)
             .foregroundStyle(Theme.textTertiary)
     }
 
@@ -415,20 +415,20 @@ private struct ProjectsLinkRow: View {
         Button(action: open) {
             HStack(spacing: 12) {
                 Image(systemName: "folder.badge.gearshape")
-                    .font(.system(size: 10.5, weight: .medium))
+                    .scaledFont(size: 10.5, weight: .medium)
                     .foregroundStyle(Color(hex: 0xB8B8BF))
                     .frame(width: 22, height: 22)
                     .background(Theme.controlFill, in: RoundedRectangle(cornerRadius: 6))
 
                 VStack(alignment: .leading, spacing: 3) {
                     Text(localized("sidebar.projects", defaultValue: "Projects"))
-                        .font(.system(size: 13.5, weight: .medium))
+                        .scaledFont(size: 13.5, weight: .medium)
                         .foregroundStyle(Theme.textPrimary)
                     Text(localized(
                         "browser.projectsRowSubtitle",
                         defaultValue: "Reviewed and cleaned on the Projects screen"
                     ))
-                    .font(Theme.caption)
+                    .themeFont(.caption)
                     .foregroundStyle(Theme.textTertiary)
                 }
 
@@ -438,12 +438,12 @@ private struct ProjectsLinkRow: View {
                     "toolbar.projectsSubtitle",
                     defaultValue: "\(count) projects · \(bytes.formattedBytesCompact)"
                 ))
-                .font(.system(size: 13, weight: .medium))
+                .scaledFont(size: 13, weight: .medium)
                 .monospacedDigit()
                 .foregroundStyle(Theme.textPrimary)
 
                 Image(systemName: "chevron.right")
-                    .font(.system(size: 10, weight: .semibold))
+                    .scaledFont(size: 10, weight: .semibold)
                     .foregroundStyle(Theme.textQuaternary)
             }
             .padding(.horizontal, 12)

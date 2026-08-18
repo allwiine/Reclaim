@@ -100,7 +100,7 @@ struct DoneView: View {
         return Image(systemName: summary.isDryRun
             ? "eye"
             : (nothingCleaned ? "exclamationmark.triangle" : "checkmark"))
-            .font(.system(size: 24, weight: .semibold))
+            .scaledFont(size: 24, weight: .semibold)
             .foregroundStyle(nothingCleaned ? Theme.cautionTitle : Theme.accentSoft)
             .frame(width: 58, height: 58)
             .background(tint.opacity(0.16), in: Circle())
@@ -117,7 +117,7 @@ struct DoneView: View {
         VStack(spacing: 8) {
             if nothingCleaned {
                 Text(localized("done.nothingCleanedTitle", defaultValue: "Nothing was cleaned"))
-                    .font(.system(size: 28, weight: .bold))
+                    .scaledFont(size: 28, weight: .bold)
                     .foregroundStyle(Theme.textPrimary)
             } else {
                 HStack(alignment: .firstTextBaseline, spacing: 7) {
@@ -135,12 +135,12 @@ struct DoneView: View {
                             "done.unitReclaimed",
                             defaultValue: "\(summary.reclaimedBytes.byteParts.unit) reclaimed"
                         ))
-                        .font(.system(size: 19, weight: .medium))
+                        .scaledFont(size: 19, weight: .medium)
                         .foregroundStyle(Theme.textSecondary)
                 }
             }
             Text(note)
-                .font(Theme.cardTitle)
+                .themeFont(.cardTitle)
                 .fontWeight(.regular)
                 .foregroundStyle(Theme.textSecondary)
                 .contentTransition(.opacity)
@@ -192,14 +192,14 @@ struct DoneView: View {
         VStack(spacing: 7) {
             HStack {
                 Text(model.volumeDisplayName)
-                    .font(Theme.caption)
+                    .themeFont(.caption)
                     .foregroundStyle(Theme.textLabel)
                 Spacer()
                 Text(localized(
                     "disk.freeOfTotal",
                     defaultValue: "\(space.availableBytes.wholeGB) free of \(space.totalBytes.wholeGB)"
                 ))
-                .font(Theme.caption)
+                .themeFont(.caption)
                 .monospacedDigit()
                 .foregroundStyle(Theme.textLabel)
             }
@@ -222,12 +222,12 @@ struct DoneView: View {
                         .fill(item.category.color)
                         .frame(width: 7, height: 7)
                     Text(item.name)
-                        .font(.system(size: 13))
+                        .scaledFont(size: 13)
                         .foregroundStyle(Theme.textPrimary)
                     Spacer(minLength: 10)
                     Text(item.bytesFreed.map(\.formattedBytesCompact)
                         ?? localized("confirm.sizeUnknown", defaultValue: "size unknown"))
-                        .font(.system(size: 12.5))
+                        .scaledFont(size: 12.5)
                         .monospacedDigit()
                         .foregroundStyle(Color(hex: 0x8E8E95))
                 }
@@ -252,12 +252,12 @@ struct DoneView: View {
                 ForEach(summary.cleanedArtifacts) { item in
                     HStack(spacing: 10) {
                         Text(item.name)
-                            .font(.system(size: 13))
+                            .scaledFont(size: 13)
                             .foregroundStyle(Theme.textPrimary)
                         Spacer(minLength: 10)
                         Text(item.bytesFreed.map(\.formattedBytesCompact)
                             ?? localized("confirm.sizeUnknown", defaultValue: "size unknown"))
-                            .font(.system(size: 12.5))
+                            .scaledFont(size: 12.5)
                             .monospacedDigit()
                             .foregroundStyle(Color(hex: 0x8E8E95))
                     }
@@ -281,11 +281,11 @@ struct DoneView: View {
                 localized("done.failuresTitle", defaultValue: "Some items could not be cleaned"),
                 systemImage: "exclamationmark.triangle"
             )
-            .font(.system(size: 12, weight: .semibold))
+            .scaledFont(size: 12, weight: .semibold)
             .foregroundStyle(Theme.cautionTitle)
             ForEach(summary.failures.prefix(4), id: \.self) { failure in
                 Text(failure)
-                    .font(Theme.caption)
+                    .themeFont(.caption)
                     .foregroundStyle(Color(hex: 0xB8B8BF))
                     .lineLimit(2)
             }
@@ -294,7 +294,7 @@ struct DoneView: View {
                     "done.failuresMore",
                     defaultValue: "…and \(summary.failures.count - 4) more."
                 ))
-                .font(Theme.caption)
+                .themeFont(.caption)
                 .foregroundStyle(Theme.textTertiary)
             }
             if model.hasFullDiskAccess == false {
@@ -302,7 +302,7 @@ struct DoneView: View {
                     "done.fullDiskAccessHint",
                     defaultValue: "If access was denied, grant Reclaim Full Disk Access in System Settings → Privacy & Security."
                 ))
-                .font(Theme.caption)
+                .themeFont(.caption)
                 .foregroundStyle(Theme.textTertiary)
             }
         }
@@ -350,7 +350,7 @@ struct DoneView: View {
                     ))
                     .foregroundStyle(Theme.textTertiary)
                 }
-                .font(Theme.caption)
+                .themeFont(.caption)
                 .fixedSize()
                 .offset(y: 44)
             }

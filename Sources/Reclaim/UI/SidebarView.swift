@@ -102,7 +102,7 @@ struct SidebarView: View {
                         .contentTransition(.numericText())
                         .animation(Theme.smooth, value: parts.value)
                     Text(parts.unit)
-                        .font(.system(size: 15, weight: .medium))
+                        .scaledFont(size: 15, weight: .medium)
                         .foregroundStyle(Theme.textSecondary)
                 }
                 .padding(.top, 5)
@@ -114,13 +114,13 @@ struct SidebarView: View {
                     StripedPlaceholder()
                         .frame(width: 62, height: 22)
                     Text(localized("format.unitGigabytes", defaultValue: "GB"))
-                        .font(.system(size: 15, weight: .medium))
+                        .scaledFont(size: 15, weight: .medium)
                         .foregroundStyle(Color(hex: 0x5C5C63))
                 }
                 .padding(.top, 6)
 
                 Text(localized("sidebar.runScanHint", defaultValue: "Run a scan to measure"))
-                    .font(Theme.footnote)
+                    .themeFont(.footnote)
                     .foregroundStyle(Theme.textQuaternary)
                     .padding(.top, 9)
             }
@@ -165,12 +165,12 @@ struct SidebarView: View {
             HStack(spacing: 10) {
                 CategoryTile(category: category)
                 Text(category.title)
-                    .font(Theme.rowTitle)
+                    .themeFont(.rowTitle)
                     .foregroundStyle(Theme.textPrimary)
                     .lineLimit(1)
                 Spacer(minLength: 8)
                 Text(hasMeasurements && bytes > 0 ? bytes.formattedBytesCompact : "—")
-                    .font(.system(size: 12))
+                    .scaledFont(size: 12)
                     .monospacedDigit()
                     .foregroundStyle(Color(hex: 0x8E8E95))
                     .contentTransition(.numericText())
@@ -199,17 +199,17 @@ struct SidebarView: View {
         } label: {
             HStack(spacing: 10) {
                 Image(systemName: "folder.badge.gearshape")
-                    .font(.system(size: 10.5, weight: .medium))
+                    .scaledFont(size: 10.5, weight: .medium)
                     .foregroundStyle(Color(hex: 0xB8B8BF))
                     .frame(width: 22, height: 22)
                     .background(Theme.controlFill, in: RoundedRectangle(cornerRadius: 6))
                 Text(localized("sidebar.projects", defaultValue: "Projects"))
-                    .font(Theme.rowTitle)
+                    .themeFont(.rowTitle)
                     .foregroundStyle(Theme.textPrimary)
                     .lineLimit(1)
                 Spacer(minLength: 8)
                 Text(hasMeasurements && bytes > 0 ? bytes.formattedBytesCompact : "—")
-                    .font(.system(size: 12))
+                    .scaledFont(size: 12)
                     .monospacedDigit()
                     .foregroundStyle(Color(hex: 0x8E8E95))
                     .contentTransition(.numericText())
@@ -243,7 +243,7 @@ private struct SidebarRow: View {
         Button(action: action) {
             HStack(spacing: 10) {
                 Image(systemName: systemImage)
-                    .font(.system(size: 10.5, weight: .medium))
+                    .scaledFont(size: 10.5, weight: .medium)
                     .foregroundStyle(Color(hex: 0xB8B8BF))
                     .frame(width: 22, height: 22)
                     .background(
@@ -251,7 +251,7 @@ private struct SidebarRow: View {
                         in: RoundedRectangle(cornerRadius: 6)
                     )
                 Text(title)
-                    .font(Theme.rowTitle)
+                    .themeFont(.rowTitle)
                     .foregroundStyle(Theme.textPrimary)
                 Spacer(minLength: 0)
             }

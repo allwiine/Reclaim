@@ -59,16 +59,16 @@ struct HistoryView: View {
     private var emptyState: some View {
         VStack(spacing: 10) {
             Image(systemName: "clock.arrow.circlepath")
-                .font(.system(size: 28))
+                .scaledFont(size: 28)
                 .foregroundStyle(Theme.textQuaternary)
             Text(localized("history.emptyTitle", defaultValue: "No cleans yet"))
-                .font(.system(size: 14, weight: .medium))
+                .scaledFont(size: 14, weight: .medium)
                 .foregroundStyle(Theme.textSecondary)
             Text(localized(
                 "history.emptyDetail",
                 defaultValue: "Every clean pass is recorded here: when it ran, what it covered, and how much space came back."
             ))
-            .font(Theme.body)
+            .themeFont(.body)
             .foregroundStyle(Theme.textTertiary)
             .multilineTextAlignment(.center)
             .frame(maxWidth: 380)
@@ -113,7 +113,7 @@ struct HistoryView: View {
                                 .foregroundStyle(Theme.textPrimary)
                                 .contentTransition(.numericText())
                             Text(model.reclaimedAllTimeBytes.byteParts.unit)
-                                .font(.system(size: 15))
+                                .scaledFont(size: 15)
                                 .foregroundStyle(Theme.textSecondary)
                         }
                     }
@@ -133,7 +133,7 @@ struct HistoryView: View {
                         "history.footnote",
                         defaultValue: "Each entry lists what was cleaned and what the follow-up scan measured as actually freed."
                     ))
-                    .font(Theme.footnote)
+                    .themeFont(.footnote)
                     .foregroundStyle(Theme.textQuaternary)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
@@ -183,7 +183,7 @@ struct HistoryView: View {
                 headerCell(localized("history.columnItems", defaultValue: "Items"), width: 80, trailing: true)
                 headerCell(localized("history.columnFreed", defaultValue: "Freed"), width: 90, trailing: true)
             }
-            .font(Theme.labelFont)
+            .themeFont(.label)
             .tracking(0.6)
             .textCase(.uppercase)
             .foregroundStyle(Theme.textTertiary)
@@ -225,12 +225,12 @@ private struct HistoryRow: View {
         Button(action: select) {
             HStack(spacing: 14) {
                 Text(entry.date.formatted(date: .abbreviated, time: .shortened))
-                    .font(Theme.body)
+                    .themeFont(.body)
                     .monospacedDigit()
                     .foregroundStyle(Color(hex: 0xC8C8CF))
                     .frame(width: 150, alignment: .leading)
                 Text(entry.targetNames.joined(separator: ", "))
-                    .font(Theme.body)
+                    .themeFont(.body)
                     .foregroundStyle(Theme.textSecondary)
                     .lineLimit(1)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -238,12 +238,12 @@ private struct HistoryRow: View {
                     // always carries the full list.
                     .help(entry.targetNames.joined(separator: ", "))
                 Text(entry.itemsRemoved.formatted())
-                    .font(Theme.body)
+                    .themeFont(.body)
                     .monospacedDigit()
                     .foregroundStyle(Theme.textSecondary)
                     .frame(width: 80, alignment: .trailing)
                 Text(entry.reclaimedBytes.formattedBytesCompact)
-                    .font(.system(size: 13, weight: .medium))
+                    .scaledFont(size: 13, weight: .medium)
                     .monospacedDigit()
                     .foregroundStyle(Theme.textPrimary)
                     .frame(width: 90, alignment: .trailing)
@@ -311,14 +311,14 @@ private struct HistoryDetailPanel: View {
             VStack(alignment: .leading, spacing: 5) {
                 SectionLabel(localized("history.detail.trigger", defaultValue: "Manual clean"))
                 Text(entry.date.formatted(date: .abbreviated, time: .shortened))
-                    .font(.system(size: 16, weight: .semibold))
+                    .scaledFont(size: 16, weight: .semibold)
                     .foregroundStyle(Theme.textPrimary)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
             Button(action: close) {
                 Image(systemName: "xmark")
-                    .font(.system(size: 10, weight: .semibold))
+                    .scaledFont(size: 10, weight: .semibold)
                     .foregroundStyle(Theme.textBody)
                     .frame(width: 22, height: 22)
                     .background(Color.white.opacity(0.07), in: RoundedRectangle(cornerRadius: 6))
@@ -337,7 +337,7 @@ private struct HistoryDetailPanel: View {
                 .monospacedDigit()
                 .foregroundStyle(Theme.textPrimary)
             Text(localized("history.detail.unitFreed", defaultValue: "\(parts.unit) freed"))
-                .font(.system(size: 14))
+                .scaledFont(size: 14)
                 .foregroundStyle(Theme.textSecondary)
         }
         .padding(.top, 16)
@@ -354,7 +354,7 @@ private struct HistoryDetailPanel: View {
             Text(permanent
                 ? localized("history.detail.deletedPermanently", defaultValue: "Deleted permanently")
                 : localized("history.detail.movedToTrash", defaultValue: "Moved to Trash"))
-                .font(.system(size: 10.5, weight: .semibold))
+                .scaledFont(size: 10.5, weight: .semibold)
                 .foregroundStyle(color)
                 .padding(.horizontal, 8)
                 .frame(height: 18)
@@ -364,14 +364,14 @@ private struct HistoryDetailPanel: View {
                         .strokeBorder(color.opacity(0.3), lineWidth: 0.5)
                 }
             Text(metaLine)
-                .font(Theme.caption)
+                .themeFont(.caption)
                 .monospacedDigit()
                 .foregroundStyle(Color(hex: 0x8E8E95))
         }
         .padding(.top, 10)
 
         Text(trashNote(disposal))
-            .font(Theme.caption)
+            .themeFont(.caption)
             .lineSpacing(2.5)
             .foregroundStyle(Theme.textLabel)
             .padding(.top, 9)
@@ -431,7 +431,7 @@ private struct HistoryDetailPanel: View {
                     "history.detail.freeAfterLabel",
                     defaultValue: "\(freeAfter.wholeGB) free after this clean"
                 ))
-                .font(Theme.caption)
+                .themeFont(.caption)
                 .monospacedDigit()
                 .foregroundStyle(Color(hex: 0x8E8E95))
             }
@@ -464,7 +464,7 @@ private struct HistoryDetailPanel: View {
                         VStack(alignment: .leading, spacing: 3) {
                             HStack(spacing: 7) {
                                 Text(item.name)
-                                    .font(.system(size: 13, weight: .medium))
+                                    .scaledFont(size: 13, weight: .medium)
                                     .foregroundStyle(Theme.textPrimary)
                                     .lineLimit(1)
                                 if let target {
@@ -481,7 +481,7 @@ private struct HistoryDetailPanel: View {
                         Spacer(minLength: 8)
                         Text(item.bytesFreed.map(\.formattedBytesCompact)
                             ?? localized("confirm.sizeUnknown", defaultValue: "size unknown"))
-                            .font(.system(size: 12.5, weight: .medium))
+                            .scaledFont(size: 12.5, weight: .medium)
                             .monospacedDigit()
                             .foregroundStyle(Theme.textPrimary)
                     }
@@ -507,7 +507,7 @@ private struct HistoryDetailPanel: View {
         VStack(alignment: .leading, spacing: 7) {
             ForEach(entry.targetNames, id: \.self) { name in
                 Text(name)
-                    .font(Theme.body)
+                    .themeFont(.body)
                     .foregroundStyle(Theme.textBody)
             }
         }
@@ -524,16 +524,16 @@ private struct HistoryDetailPanel: View {
             ForEach(items, id: \.targetID) { item in
                 HStack(alignment: .firstTextBaseline, spacing: 10) {
                     Text(item.name)
-                        .font(.system(size: 12))
+                        .scaledFont(size: 12)
                         .foregroundStyle(Theme.textBody)
                         .lineLimit(1)
                         .frame(maxWidth: .infinity, alignment: .leading)
                     Text(regrowthLabel(for: item))
-                        .font(Theme.footnote)
+                        .themeFont(.footnote)
                         .monospacedDigit()
                         .foregroundStyle(Color(hex: 0x8E8E95))
                     Text(regrowthShare(for: item))
-                        .font(Theme.footnote)
+                        .themeFont(.footnote)
                         .monospacedDigit()
                         .foregroundStyle(Theme.textQuaternary)
                         .frame(width: 44, alignment: .trailing)
@@ -545,7 +545,7 @@ private struct HistoryDetailPanel: View {
             "history.detail.regrowthFootnote",
             defaultValue: "Caches rebuild as you work. The percentage is today's size measured against what this clean removed."
         ))
-        .font(Theme.caption)
+        .themeFont(.caption)
         .lineSpacing(2.5)
         .foregroundStyle(Theme.textQuaternary)
         .padding(.top, 12)

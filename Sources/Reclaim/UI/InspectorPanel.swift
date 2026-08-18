@@ -31,7 +31,7 @@ struct InspectorPanel: View {
                 details(for: target)
             } else {
                 Text(localized("inspector.selectAnItem", defaultValue: "Select an item"))
-                    .font(Theme.body)
+                    .themeFont(.body)
                     .foregroundStyle(Theme.textQuaternary)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
@@ -47,14 +47,14 @@ struct InspectorPanel: View {
                 CategoryTile(category: target.category, size: 34)
 
                 Text(target.name)
-                    .font(.system(size: 17, weight: .bold))
+                    .scaledFont(size: 17, weight: .bold)
                     .foregroundStyle(Theme.textPrimary)
                     .padding(.top, 14)
 
                 HStack(spacing: 8) {
                     Badge(for: target)
                     Text(target.category.title)
-                        .font(.system(size: 12))
+                        .scaledFont(size: 12)
                         .foregroundStyle(Color(hex: 0x8E8E95))
                 }
                 .padding(.top, 8)
@@ -63,14 +63,14 @@ struct InspectorPanel: View {
                     .padding(.top, 16)
 
                 Text(target.summary)
-                    .font(Theme.body)
+                    .themeFont(.body)
                     .lineSpacing(3.5)
                     .foregroundStyle(Color(hex: 0xA8A8AF))
                     .padding(.top, 14)
 
                 if let note = target.note {
                     Label(note, systemImage: "info.circle")
-                        .font(Theme.caption)
+                        .themeFont(.caption)
                         .lineSpacing(2.5)
                         .foregroundStyle(
                             target.safety == .safe ? Theme.textTertiary : Theme.cautionTitle
@@ -86,7 +86,7 @@ struct InspectorPanel: View {
                         ),
                         systemImage: "hand.raised"
                     )
-                    .font(Theme.caption)
+                    .themeFont(.caption)
                     .lineSpacing(2.5)
                     .foregroundStyle(Theme.textTertiary)
                     .padding(.top, 10)
@@ -139,24 +139,24 @@ struct InspectorPanel: View {
                     .contentTransition(.numericText())
                     .animation(Theme.smooth, value: measurement.bytes)
                 Text(parts.unit)
-                    .font(.system(size: 13))
+                    .scaledFont(size: 13)
                     .foregroundStyle(Theme.textSecondary)
             }
         case .unmeasurable:
             Text(localized("inspector.sizeKnownAfterCleaning", defaultValue: "Size known after cleaning"))
-                .font(Theme.cardTitle)
+                .themeFont(.cardTitle)
                 .foregroundStyle(Theme.textSecondary)
         case .notInstalled:
             Text(localized("status.notInstalled", defaultValue: "Not installed"))
-                .font(Theme.cardTitle)
+                .themeFont(.cardTitle)
                 .foregroundStyle(Theme.textSecondary)
         case .failed(let message):
             Label(message, systemImage: "exclamationmark.triangle")
-                .font(Theme.body)
+                .themeFont(.body)
                 .foregroundStyle(Theme.dangerWarn)
         case .idle, .scanning:
             Text(verbatim: "—")
-                .font(Theme.cardTitle)
+                .themeFont(.cardTitle)
                 .foregroundStyle(Theme.textQuaternary)
         }
     }
@@ -185,7 +185,7 @@ struct InspectorPanel: View {
                 if !status.resolvedPaths.isEmpty {
                     Spacer(minLength: 4)
                     Image(systemName: "arrow.up.forward.square")
-                        .font(.system(size: 10))
+                        .scaledFont(size: 10)
                         .foregroundStyle(Theme.textQuaternary)
                 }
             }
@@ -209,10 +209,10 @@ struct InspectorPanel: View {
     private func delegatedCard(for target: CleanupTarget) -> some View {
         VStack(alignment: .leading, spacing: 5) {
             Text(localized("inspector.wontDeleteTitle", defaultValue: "Reclaim won’t delete this"))
-                .font(.system(size: 12, weight: .semibold))
+                .scaledFont(size: 12, weight: .semibold)
                 .foregroundStyle(Theme.cautionTitle)
             Text(target.manualInstructions ?? "")
-                .font(.system(size: 12))
+                .scaledFont(size: 12)
                 .lineSpacing(3)
                 .foregroundStyle(Color(hex: 0xB8B8BF))
 
@@ -235,7 +235,7 @@ struct InspectorPanel: View {
                         }
                     }
                     .buttonStyle(.plain)
-                    .font(.system(size: 11, weight: .medium))
+                    .scaledFont(size: 11, weight: .medium)
                     .foregroundStyle(Theme.accentLabel)
                     .contentTransition(.opacity)
                 }
@@ -262,7 +262,7 @@ struct InspectorPanel: View {
         } icon: {
             Image(systemName: "terminal")
         }
-        .font(Theme.caption)
+        .themeFont(.caption)
         .foregroundStyle(Theme.textSecondary)
     }
 
@@ -286,7 +286,7 @@ struct InspectorPanel: View {
                         )
                     }
                     .buttonStyle(.plain)
-                    .font(.system(size: 11, weight: .medium))
+                    .scaledFont(size: 11, weight: .medium)
                     .foregroundStyle(Theme.textSecondary)
                     .disabled(model.isScanning || model.isCleaning)
                 }
@@ -319,7 +319,7 @@ struct InspectorPanel: View {
                         withAnimation(Theme.quick) { showAllContents.toggle() }
                     }
                     .buttonStyle(.plain)
-                    .font(.system(size: 11.5, weight: .medium))
+                    .scaledFont(size: 11.5, weight: .medium)
                     .foregroundStyle(Theme.accentLabel)
                     .padding(.top, 10)
                 }
@@ -331,7 +331,7 @@ struct InspectorPanel: View {
                 HStack(spacing: 8) {
                     ProgressView().controlSize(.small)
                     Text(localized("inspector.measuringContents", defaultValue: "Measuring contents…"))
-                        .font(Theme.caption)
+                        .themeFont(.caption)
                         .foregroundStyle(Theme.textQuaternary)
                 }
                 .padding(.top, 12)
@@ -357,14 +357,14 @@ struct InspectorPanel: View {
                     .disabled(model.isScanning || model.isCleaning)
                 }
                 Text(entry.name)
-                    .font(.system(size: 12))
+                    .scaledFont(size: 12)
                     .foregroundStyle(
                         entry.itemCount > 1 ? Theme.textTertiary : Theme.textPrimary
                     )
                     .lineLimit(1)
                     .frame(maxWidth: .infinity, alignment: .leading)
                 Text(entry.bytes.formattedBytesCompact)
-                    .font(Theme.footnote)
+                    .themeFont(.footnote)
                     .monospacedDigit()
                     .foregroundStyle(Color(hex: 0x8E8E95))
             }
@@ -382,7 +382,7 @@ struct InspectorPanel: View {
     @ViewBuilder
     private func cherryPickFooter(for target: CleanupTarget) -> some View {
         Text(pickNote(for: target))
-            .font(Theme.caption)
+            .themeFont(.caption)
             .foregroundStyle(Theme.textQuaternary)
             .padding(.top, 9)
 
@@ -428,7 +428,7 @@ struct InspectorPanel: View {
     private func footer(_ status: TargetStatus) -> some View {
         if case .measured(let measurement, let resolved, _) = status {
             Text(footerLine(measurement, locations: resolved.count))
-                .font(Theme.caption)
+                .themeFont(.caption)
                 .lineSpacing(2.5)
                 .foregroundStyle(Theme.textQuaternary)
         }
