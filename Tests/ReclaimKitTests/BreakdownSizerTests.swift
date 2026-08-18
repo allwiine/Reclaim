@@ -53,7 +53,10 @@ struct BreakdownSizerTests {
 
             #expect(entries.count == 4)
             #expect(entries.last?.itemCount == 3, "6 items, limit 4 → 3 shown + 3 aggregated")
-            #expect(entries.last?.name == "+ 3 more items")
+            // Assert on the locale-independent count, not the English
+            // phrasing — the label is localized and this test must pass
+            // on a machine whose preferred language is Norwegian.
+            #expect(entries.last?.name.contains("3") == true, "aggregate label names the tail count")
             let aggregateBytes = entries.last?.bytes ?? 0
             #expect(aggregateBytes >= 3 * 10_000, "the aggregate carries the tail's combined size")
         }
