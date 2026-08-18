@@ -480,6 +480,5 @@ private struct SettingRow: View {
         .background(Theme.background)
         .environment(PreviewData.scanned())
         .preferredColorScheme(.dark)
-        .tint(Theme.accent)
 }
 #endif

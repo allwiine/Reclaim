@@ -13,31 +13,50 @@ import SwiftUI
 // MARK: - Button voices (native Liquid Glass, centralized here)
 
 extension View {
-    /// Primary call-to-action: accent-tinted prominent Liquid Glass.
-    /// (The app sets its accent tint at the root, so this reads green;
-    /// the red danger voice overrides the tint locally.)
-    func rcPrimary() -> some View { buttonStyle(.glassProminent) }
+    /// Primary call-to-action: accent-tinted prominent Liquid Glass with
+    /// dark (on-accent) label text. The tint is applied here, per button,
+    /// rather than app-wide, so the neutral secondary glass is never
+    /// green.
+    func rcPrimary() -> some View {
+        buttonStyle(.glassProminent)
+            .controlSize(.large)
+            .tint(Theme.accent)
+            .foregroundStyle(Theme.onAccent)
+    }
 
     /// Hero-sized primary (the idle "Scan this Mac" CTA).
     func rcPrimaryProminent() -> some View {
-        buttonStyle(.glassProminent).controlSize(.large)
+        buttonStyle(.glassProminent)
+            .controlSize(.extraLarge)
+            .tint(Theme.accent)
+            .foregroundStyle(Theme.onAccent)
     }
 
     /// Toolbar-sized primary (the compact "Reclaim" action).
     func rcPrimaryCompact() -> some View {
-        buttonStyle(.glassProminent).controlSize(.small)
+        buttonStyle(.glassProminent)
+            .controlSize(.regular)
+            .tint(Theme.accent)
+            .foregroundStyle(Theme.onAccent)
     }
 
-    /// Secondary: clear Liquid Glass.
-    func rcSecondary() -> some View { buttonStyle(.glass) }
+    /// Secondary: neutral clear Liquid Glass (never tinted).
+    func rcSecondary() -> some View {
+        buttonStyle(.glass).controlSize(.large)
+    }
 
     /// Toolbar-sized secondary.
     func rcSecondaryCompact() -> some View {
-        buttonStyle(.glass).controlSize(.small)
+        buttonStyle(.glass).controlSize(.regular)
     }
 
-    /// Permanent-deletion CTA: red-tinted prominent glass.
-    func rcDanger() -> some View { buttonStyle(.glassProminent).tint(.red) }
+    /// Permanent-deletion CTA: red-tinted prominent glass, white label.
+    func rcDanger() -> some View {
+        buttonStyle(.glassProminent)
+            .controlSize(.large)
+            .tint(.red)
+            .foregroundStyle(.white)
+    }
 }
 
 // MARK: - Strip chip
@@ -78,12 +97,11 @@ struct StripChipButtonStyle: ButtonStyle {
 
 #Preview("Buttons", traits: .sizeThatFitsLayout) {
     VStack(spacing: 16) {
-        Button("Scan this Mac") {}.buttonStyle(.glassProminent).controlSize(.large)
-        Button("Reclaim 82.6 GB") {}.buttonStyle(.glassProminent)
-        Button("Review everything") {}.buttonStyle(.glass)
-        Button("Delete Permanently") {}.buttonStyle(.glassProminent).tint(.red)
+        Button("Scan this Mac") {}.rcPrimaryProminent()
+        Button("Reclaim 82.6 GB") {}.rcPrimary()
+        Button("Review everything") {}.rcSecondary()
+        Button("Delete Permanently") {}.rcDanger()
     }
-    .tint(Theme.accent)
     .padding(40)
     .background(Theme.background)
     .preferredColorScheme(.dark)
