@@ -357,12 +357,15 @@ struct IdleView: View {
 private struct Entrance: ViewModifier {
     let shown: Bool
     let delay: Double
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     func body(content: Content) -> some View {
         content
-            .opacity(shown ? 1 : 0)
-            .offset(y: shown ? 0 : 14)
-            .animation(Theme.springy.delay(delay), value: shown)
+            // With Reduce Motion the content is simply present — no slide
+            // or spring — instead of animating up into place.
+            .opacity(reduceMotion ? 1 : (shown ? 1 : 0))
+            .offset(y: reduceMotion ? 0 : (shown ? 0 : 14))
+            .animation(reduceMotion ? nil : Theme.springy.delay(delay), value: shown)
     }
 }
 

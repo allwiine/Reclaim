@@ -19,6 +19,7 @@
 "accessibility.notMeasuredYet" = "Not measured yet";
 "accessibility.safetyBadge" = "Safety: %@";
 "accessibility.inProgress" = "In progress";
+"accessibility.progress" = "Progress";
 
 /* Badges & category glyphs */
 "badge.delegated.title" = "Handled by tool";
@@ -109,7 +110,7 @@
 "overview.reviewEverythingButton" = "Review everything";
 "overview.biggestLocations" = "Biggest single locations";
 "overview.needsAttention" = "Needs your attention";
-"overview.reclaimedAllTime" = "Reclaimed all time";
+"overview.reclaimedAllTime" = "Reclaimed (all time)";
 "overview.noCleansYet" = "no cleans recorded yet";
 "overview.lastClean" = "Last clean";
 "overview.nothingCleanedYet" = "nothing cleaned yet";
@@ -213,6 +214,7 @@
 "done.trashEmptied" = "Trash emptied";
 "done.tryAgain" = "Try again";
 "trash.unknownError" = "Finder did not empty the Trash.";
+"trash.timedOut" = "Finder did not respond in time, so the Trash was left as is.";
 
 /* History */
 "history.emptyTitle" = "No cleans yet";
@@ -304,7 +306,6 @@
 /* Projects (dev folders) */
 "sidebar.development" = "Development";
 "sidebar.projects" = "Projects";
-"toolbar.projectsSubtitle" = "%lld projects · %@";
 "projects.empty.title" = "Find forgotten projects";
 "projects.empty.body" = "Add the folders where your projects live. Reclaim finds git repositories and regenerable artifacts like node_modules and build folders, and shows what each project last did.";
 "projects.addFolder" = "Add a development folder…";

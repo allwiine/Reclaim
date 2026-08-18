@@ -47,8 +47,12 @@ enum Theme {
 
     static let textPrimary = Color(hex: 0xF2F2F5)
     static let textSecondary = Color(hex: 0x98989F)
-    static let textTertiary = Color(hex: 0x78787F)
-    static let textQuaternary = Color(hex: 0x6F6F76)
+    // Tertiary/quaternary lifted to clear WCAG AA (≥4.5:1) on the
+    // 0x1E1E21 content background at the 11–12.5 pt sizes they're used
+    // at; the earlier 0x78787F/0x6F6F76 sat at ~3.9:1/3.4:1. The
+    // hierarchy (secondary > tertiary > quaternary) is preserved.
+    static let textTertiary = Color(hex: 0x8E8E95)
+    static let textQuaternary = Color(hex: 0x88888F)
     /// Uppercase section labels.
     static let textLabel = Color(hex: 0x86868C)
     /// Body copy on dark hero surfaces.

@@ -29,6 +29,9 @@ struct MeterSegment: Identifiable, Equatable {
 struct SegmentedBar: View {
     let segments: [MeterSegment]
     var height: CGFloat = 7
+    /// VoiceOver summary of what the bar shows. When nil the bar is a
+    /// decorative echo of nearby text and is hidden from assistive tech.
+    var accessibilityDescription: String? = nil
 
     var body: some View {
         GeometryReader { proxy in
@@ -44,6 +47,9 @@ struct SegmentedBar: View {
         .frame(height: height)
         .background(Theme.barTrack)
         .clipShape(Capsule())
+        .accessibilityElement()
+        .accessibilityHidden(accessibilityDescription == nil)
+        .accessibilityLabel(accessibilityDescription ?? "")
     }
 }
 
@@ -54,7 +60,11 @@ struct SegmentedBar: View {
 struct SegmentedRing: View {
     let segments: [MeterSegment]
     var lineWidth: CGFloat = 17
+    /// VoiceOver summary; nil hides the ring as a decorative echo of a
+    /// nearby textual legend.
+    var accessibilityDescription: String? = nil
     @State private var revealed = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         ZStack {
@@ -72,7 +82,7 @@ struct SegmentedRing: View {
                     )
                     .rotationEffect(.degrees(-90))
                     .animation(
-                        Theme.springy.delay(Double(index) * 0.04),
+                        reduceMotion ? nil : Theme.springy.delay(Double(index) * 0.04),
                         value: revealed
                     )
                     .animation(Theme.smooth, value: segments)
@@ -80,6 +90,9 @@ struct SegmentedRing: View {
         }
         .padding(lineWidth / 2)
         .onAppear { revealed = true }
+        .accessibilityElement()
+        .accessibilityHidden(accessibilityDescription == nil)
+        .accessibilityLabel(accessibilityDescription ?? "")
     }
 
     private var positioned: [(segment: MeterSegment, start: Double, end: Double)] {
@@ -109,6 +122,8 @@ struct MiniBar: View {
         }
         .frame(height: height)
         .background(Theme.barTrack, in: Capsule())
+        // Decorative: the row already states the byte count in text.
+        .accessibilityHidden(true)
     }
 }
 
@@ -128,6 +143,14 @@ struct ProgressBar: View {
         }
         .frame(height: height)
         .background(Color.white.opacity(0.09), in: Capsule())
+        // A raw Capsule tells VoiceOver nothing; announce the fraction so
+        // scan/clean progress is audible.
+        .accessibilityElement()
+        .accessibilityLabel(localized("accessibility.progress", defaultValue: "Progress"))
+        .accessibilityValue(Text(
+            min(1, max(0, fraction)),
+            format: .percent.precision(.fractionLength(0))
+        ))
     }
 }
 
@@ -136,20 +159,35 @@ struct ProgressBar: View {
 /// visible (a `repeatForever` animation would keep invalidating).
 struct ArcSpinner: View {
     var size: CGFloat = 62
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        TimelineView(.animation) { context in
-            let period = 0.9
-            let phase = context.date.timeIntervalSinceReferenceDate
-                .truncatingRemainder(dividingBy: period) / period
-            Circle()
-                .stroke(Color.white.opacity(0.09), lineWidth: 3)
-                .overlay {
+        Group {
+            if reduceMotion {
+                // A static arc when the user asked for no motion.
+                Circle()
+                    .stroke(Color.white.opacity(0.09), lineWidth: 3)
+                    .overlay {
+                        Circle()
+                            .trim(from: 0, to: 0.28)
+                            .stroke(Theme.accent, style: StrokeStyle(lineWidth: 3, lineCap: .round))
+                            .rotationEffect(.degrees(-90))
+                    }
+            } else {
+                TimelineView(.animation) { context in
+                    let period = 0.9
+                    let phase = context.date.timeIntervalSinceReferenceDate
+                        .truncatingRemainder(dividingBy: period) / period
                     Circle()
-                        .trim(from: 0, to: 0.28)
-                        .stroke(Theme.accent, style: StrokeStyle(lineWidth: 3, lineCap: .round))
-                        .rotationEffect(.degrees(phase * 360))
+                        .stroke(Color.white.opacity(0.09), lineWidth: 3)
+                        .overlay {
+                            Circle()
+                                .trim(from: 0, to: 0.28)
+                                .stroke(Theme.accent, style: StrokeStyle(lineWidth: 3, lineCap: .round))
+                                .rotationEffect(.degrees(phase * 360))
+                        }
                 }
+            }
         }
         .frame(width: size, height: size)
         .accessibilityLabel(localized("accessibility.inProgress", defaultValue: "In progress"))

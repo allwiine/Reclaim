@@ -16,6 +16,7 @@ struct DoneView: View {
     let summary: CleanSummary
     let dismiss: () -> Void
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var appeared = false
     @State private var shownBytes: Int64 = 0
     @State private var trashState: TrashButtonState = .ready
@@ -106,10 +107,10 @@ struct DoneView: View {
             .overlay {
                 Circle().strokeBorder(tint.opacity(0.4), lineWidth: 1)
             }
-            .scaleEffect(appeared ? 1 : 0.4)
+            .scaleEffect(reduceMotion ? 1 : (appeared ? 1 : 0.4))
             .opacity(appeared ? 1 : 0)
-            .animation(.spring(response: 0.5, dampingFraction: 0.6), value: appeared)
-            .symbolEffect(.bounce, options: .nonRepeating, value: appeared)
+            .animation(reduceMotion ? nil : .spring(response: 0.5, dampingFraction: 0.6), value: appeared)
+            .symbolEffect(.bounce, options: .nonRepeating, value: reduceMotion ? false : appeared)
     }
 
     private var headline: some View {

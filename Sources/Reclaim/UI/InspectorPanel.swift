@@ -19,8 +19,10 @@ struct InspectorPanel: View {
     var onCleanSingle: (CleanupTarget) -> Void = { _ in }
 
     @State private var copied = false
-    /// Expands the contents list past the top five. Resets per target
-    /// (the details view carries `.id(target.id)`).
+    /// Expands the contents list past the top five. These live on the
+    /// panel, whose identity is stable across target changes, so the
+    /// `.id(target.id)` on the inner ScrollView does not reset them —
+    /// the `.task(id:)` in `details(for:)` does.
     @State private var showAllContents = false
 
     var body: some View {
@@ -115,6 +117,9 @@ struct InspectorPanel: View {
         }
         .id(target.id)
         .task(id: target.id) {
+            // Reset per-target view state that lives on the (stable) panel.
+            showAllContents = false
+            copied = false
             model.loadBreakdown(for: target)
         }
     }
