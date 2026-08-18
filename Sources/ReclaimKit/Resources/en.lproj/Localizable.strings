@@ -132,7 +132,7 @@
 "target.copilot-cli-data.summary" = "Logs and resumable session state kept by the GitHub Copilot CLI. Cleaning removes the ability to resume past sessions.";
 "target.copilot-cli-data.note" = "Copilot's config in ~/.copilot is never touched by Reclaim.";
 "target.gemini-cli-scratch.name" = "Gemini CLI scratch data";
-"target.gemini-cli-scratch.summary" = "Per-project temp files, logs and checkpoints written by Google's Gemini CLI.";
+"target.gemini-cli-scratch.summary" = "Per-project temp files, logs and checkpoints written by Google's Gemini CLI. Cleaning removes the ability to resume or rewind past sessions.";
 "target.gemini-cli-scratch.note" = "Settings and auth in ~/.gemini are never touched by Reclaim.";
 "target.cursor-caches.name" = "Cursor caches";
 "target.cursor-caches.summary" = "Extension host, rendering and code caches for the Cursor editor.";
@@ -221,8 +221,8 @@
 "target.pipx-cache.name" = "pipx cache & logs";
 "target.pipx-cache.summary" = "Temporary environments and logs kept by pipx. Installed tools are not touched.";
 "target.pub-cache.name" = "pub cache";
-"target.pub-cache.summary" = "Dart and Flutter packages downloaded by pub. Restored by `flutter pub get` per project.";
-"target.pub-cache.note" = "Very old Dart SDKs (before 2.15) stored pub.dev publishing credentials in this folder.";
+"target.pub-cache.summary" = "Downloaded Dart and Flutter packages (hosted and git). Re-downloaded by `flutter pub get` per project.";
+"target.pub-cache.note" = "Globally activated packages (`dart pub global`) and any pub.dev credentials elsewhere in ~/.pub-cache are left untouched.";
 "target.dart-analysis-cache.name" = "Dart analysis cache";
 "target.dart-analysis-cache.summary" = "Code indexes built by the Dart analysis server. Rebuilt on next analysis.";
 "target.composer-cache.name" = "Composer cache";
@@ -398,3 +398,4 @@
 "exclusion.reason.userSettings" = "user settings";
 "exclusion.reason.ideSettings" = "IDE settings & plugins";
 "exclusion.reason.editorState" = "editor state";
+"exclusion.reason.userContent" = "instructions & custom commands";

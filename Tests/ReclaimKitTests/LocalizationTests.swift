@@ -98,9 +98,17 @@ struct KitLocalizationTests {
                     "\(locale): missing title for \(category.rawValue)"
                 )
             }
-            for level in ["safe", "caution", "destructive"] {
-                #expect(try defines("safety.\(level).title", in: locale))
-                #expect(try defines("safety.\(level).explanation", in: locale))
+            // Derive the key slugs from the enum itself so a new
+            // SafetyLevel case can't be added without extending this
+            // exhaustive switch (and thus its localization coverage).
+            for level in SafetyLevel.allCases {
+                let slug: String = switch level {
+                case .safe: "safe"
+                case .caution: "caution"
+                case .destructive: "destructive"
+                }
+                #expect(try defines("safety.\(slug).title", in: locale))
+                #expect(try defines("safety.\(slug).explanation", in: locale))
             }
             let serviceKeys = [
                 "engine.commandExitStatus",

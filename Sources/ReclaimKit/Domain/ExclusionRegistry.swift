@@ -96,6 +96,7 @@ private enum Reason {
     static let userSettings = localized("exclusion.reason.userSettings", defaultValue: "user settings")
     static let ideSettings = localized("exclusion.reason.ideSettings", defaultValue: "IDE settings & plugins")
     static let editorState = localized("exclusion.reason.editorState", defaultValue: "editor state")
+    static let userContent = localized("exclusion.reason.userContent", defaultValue: "instructions & custom commands")
 }
 
 /// The single source of truth for structural exclusions.
@@ -110,14 +111,20 @@ public enum ExclusionRegistry {
         .flatMap(\.paths)
         .map { ($0 as NSString).expandingTildeInPath }
 
+    /// The same paths lower-cased once, so the case-insensitive match in
+    /// ``isProtected(_:)`` doesn't re-fold them on every call.
+    private static let lowercasedProtectedPaths: [String] =
+        expandedProtectedPaths.map { $0.lowercased() }
+
     /// True when `url` is a protected path, lies inside one, or is an
     /// ancestor of one (disposing an ancestor would take the protected
-    /// path with it).
+    /// path with it). The comparison is case-insensitive: the default
+    /// APFS volume is, so `~/.SSH` must match `~/.ssh`.
     public static func isProtected(_ url: URL) -> Bool {
-        let candidate = url.standardizedFileURL.path
+        let candidate = url.standardizedFileURL.path.lowercased()
         // The filesystem root is an ancestor of every exclusion.
         if candidate == "/" { return true }
-        return expandedProtectedPaths.contains { protectedPath in
+        return lowercasedProtectedPaths.contains { protectedPath in
             candidate == protectedPath
                 || candidate.hasPrefix(protectedPath + "/")
                 || protectedPath.hasPrefix(candidate + "/")
@@ -175,6 +182,18 @@ public enum ExclusionRegistry {
             group: .claudeCode,
             reason: Reason.plugins
         ),
+        StructuralExclusion(
+            id: "claude-user-content",
+            paths: [
+                "~/.claude/CLAUDE.md",
+                "~/.claude/agents",
+                "~/.claude/commands",
+                "~/.claude/skills",
+                "~/.claude/keybindings.json",
+            ],
+            group: .claudeCode,
+            reason: Reason.userContent
+        ),
 
         // MARK: - AI assistants
         StructuralExclusion(
@@ -184,10 +203,22 @@ public enum ExclusionRegistry {
             reason: Reason.authToken
         ),
         StructuralExclusion(
+            id: "codex-config",
+            paths: ["~/.codex/config.toml", "~/.codex/AGENTS.md", "~/.codex/prompts"],
+            group: .aiTools,
+            reason: Reason.settings
+        ),
+        StructuralExclusion(
             id: "gemini-auth",
             paths: ["~/.gemini/oauth_creds.json"],
             group: .aiTools,
             reason: Reason.oauthCredentials
+        ),
+        StructuralExclusion(
+            id: "gemini-config",
+            paths: ["~/.gemini/settings.json", "~/.gemini/GEMINI.md"],
+            group: .aiTools,
+            reason: Reason.settings
         ),
         StructuralExclusion(
             id: "copilot-auth",
@@ -215,9 +246,15 @@ public enum ExclusionRegistry {
         ),
         StructuralExclusion(
             id: "continue-config",
-            paths: ["~/.continue/config.json", "~/.continue/config.yaml"],
+            paths: ["~/.continue/config.json", "~/.continue/config.yaml", "~/.continue/config.ts"],
             group: .aiTools,
             reason: Reason.configMayHoldKeys
+        ),
+        StructuralExclusion(
+            id: "continue-sessions",
+            paths: ["~/.continue/sessions"],
+            group: .aiTools,
+            reason: Reason.chatHistory
         ),
         StructuralExclusion(
             id: "lmstudio-chats",
@@ -243,6 +280,7 @@ public enum ExclusionRegistry {
             id: "gcloud-credentials",
             paths: [
                 "~/.config/gcloud/credentials.db",
+                "~/.config/gcloud/access_tokens.db",
                 "~/.config/gcloud/application_default_credentials.json",
                 "~/.config/gcloud/legacy_credentials",
             ],
@@ -283,9 +321,15 @@ public enum ExclusionRegistry {
         // MARK: - Toolchains & registries
         StructuralExclusion(
             id: "cargo-token",
-            paths: ["~/.cargo/credentials.toml"],
+            paths: ["~/.cargo/credentials.toml", "~/.cargo/credentials"],
             group: .toolchains,
             reason: Reason.registryToken
+        ),
+        StructuralExclusion(
+            id: "pub-cache-credentials",
+            paths: ["~/.pub-cache/credentials.json"],
+            group: .toolchains,
+            reason: Reason.credentials
         ),
         StructuralExclusion(
             id: "gradle-properties",
@@ -295,7 +339,7 @@ public enum ExclusionRegistry {
         ),
         StructuralExclusion(
             id: "maven-settings",
-            paths: ["~/.m2/settings.xml"],
+            paths: ["~/.m2/settings.xml", "~/.m2/settings-security.xml"],
             group: .toolchains,
             reason: Reason.repositoryCredentials
         ),
@@ -380,6 +424,7 @@ public enum ExclusionRegistry {
             paths: [
                 "~/Library/Application Support/Code/User/settings.json",
                 "~/Library/Application Support/Code/User/keybindings.json",
+                "~/Library/Application Support/Code/User/snippets",
             ],
             group: .editorSettings,
             reason: Reason.userSettings
@@ -389,6 +434,7 @@ public enum ExclusionRegistry {
             paths: [
                 "~/Library/Application Support/Cursor/User/settings.json",
                 "~/Library/Application Support/Cursor/User/keybindings.json",
+                "~/Library/Application Support/Cursor/User/snippets",
             ],
             group: .editorSettings,
             reason: Reason.userSettings
@@ -398,6 +444,7 @@ public enum ExclusionRegistry {
             paths: [
                 "~/Library/Application Support/Windsurf/User/settings.json",
                 "~/Library/Application Support/Windsurf/User/keybindings.json",
+                "~/Library/Application Support/Windsurf/User/snippets",
             ],
             group: .editorSettings,
             reason: Reason.userSettings
@@ -407,6 +454,7 @@ public enum ExclusionRegistry {
             paths: [
                 "~/Library/Application Support/Antigravity/User/settings.json",
                 "~/Library/Application Support/Antigravity/User/keybindings.json",
+                "~/Library/Application Support/Antigravity/User/snippets",
             ],
             group: .editorSettings,
             reason: Reason.userSettings

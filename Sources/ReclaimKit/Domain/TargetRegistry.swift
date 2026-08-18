@@ -731,6 +731,7 @@ public enum TargetRegistry {
             pathPatterns: [
                 "~/.copilot/logs",
                 "~/.copilot/history-session-state",
+                "~/.copilot/session-state",
             ],
             strategy: .removeContents,
             note: localized(
@@ -746,10 +747,13 @@ public enum TargetRegistry {
             ),
             summary: localized(
                 "target.gemini-cli-scratch.summary",
-                defaultValue: "Per-project temp files, logs and checkpoints written by Google's Gemini CLI."
+                defaultValue: "Per-project temp files, logs and checkpoints written by Google's Gemini CLI. Cleaning removes the ability to resume or rewind past sessions."
             ),
             category: .aiTools,
-            safety: .safe,
+            // Caution, not Safe: the checkpoints here back the CLI's
+            // /restore, so losing them loses resumable session state —
+            // the same class as the other AI-CLI session targets.
+            safety: .caution,
             pathPatterns: ["~/.gemini/tmp"],
             strategy: .removeContents,
             note: localized(
@@ -817,7 +821,8 @@ public enum TargetRegistry {
                 "~/Library/Application Support/Antigravity/Code Cache",
                 "~/Library/Application Support/Antigravity/GPUCache",
             ],
-            strategy: .removeContents
+            strategy: .removeContents,
+            relatedAppBundleIDs: ["com.google.antigravity"]
         ),
         CleanupTarget(
             id: "cline-tasks",
@@ -1384,15 +1389,20 @@ public enum TargetRegistry {
             name: localized("target.pub-cache.name", defaultValue: "pub cache"),
             summary: localized(
                 "target.pub-cache.summary",
-                defaultValue: "Dart and Flutter packages downloaded by pub. Restored by `flutter pub get` per project."
+                defaultValue: "Downloaded Dart and Flutter packages (hosted and git). Re-downloaded by `flutter pub get` per project."
             ),
             category: .packageManagers,
-            safety: .safe,
-            pathPatterns: ["~/.pub-cache"],
+            safety: .caution,
+            // Only the re-downloadable package caches — deliberately not
+            // the whole of `~/.pub-cache`, which also holds globally
+            // activated tools (`global_packages`, `bin`) that
+            // `flutter pub get` does not restore, and old pub.dev
+            // publishing credentials.
+            pathPatterns: ["~/.pub-cache/hosted", "~/.pub-cache/git"],
             strategy: .removeContents,
             note: localized(
                 "target.pub-cache.note",
-                defaultValue: "Very old Dart SDKs (before 2.15) stored pub.dev publishing credentials in this folder."
+                defaultValue: "Globally activated packages (`dart pub global`) and any pub.dev credentials elsewhere in ~/.pub-cache are left untouched."
             )
         ),
         CleanupTarget(

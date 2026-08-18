@@ -42,7 +42,7 @@
 "target.xcode-device-support.name" = "Device support-filer";
 "target.xcode-device-support.summary" = "Debugsymboler kopiert fra hver iPhone, iPad, Watch og Apple TV du noen gang har koblet til. Kopieres automatisk på nytt når en enhet kobles til igjen.";
 "target.xcode-archives.name" = "Arkiver";
-"target.xcode-archives.summary" = "Apparkiver med dSYM-er, brukt til å distribuere bygg og symbolicate krasjrapporter.";
+"target.xcode-archives.summary" = "Apparkiver med dSYM-er, brukt til å distribuere bygg og gjøre krasjrapporter lesbare.";
 "target.xcode-archives.note" = "Behold arkiver for versjoner som er ute på App Store: du trenger dSYM-ene deres for å lese krasjrapporter.";
 "target.xcode-simulator-caches.name" = "Simulatorcacher";
 "target.xcode-simulator-caches.summary" = "CoreSimulators cachemappe, inkludert dyld-cacher for simulator-runtimes.";
@@ -135,7 +135,7 @@
 "target.copilot-cli-data.summary" = "Logger og gjenopptakbar økttilstand fra GitHub Copilot CLI. Rydding fjerner muligheten til å gjenoppta tidligere økter.";
 "target.copilot-cli-data.note" = "Copilots konfigurasjon i ~/.copilot røres aldri av Reclaim.";
 "target.gemini-cli-scratch.name" = "Gemini CLI-scratch-data";
-"target.gemini-cli-scratch.summary" = "Midlertidige filer, logger og sjekkpunkter per prosjekt fra Googles Gemini CLI.";
+"target.gemini-cli-scratch.summary" = "Midlertidige filer, logger og sjekkpunkter per prosjekt fra Googles Gemini CLI. Rydding fjerner muligheten til å gjenoppta eller spole tilbake tidligere økter.";
 "target.gemini-cli-scratch.note" = "Innstillinger og autentisering i ~/.gemini røres aldri av Reclaim.";
 "target.cursor-caches.name" = "Cursor-cacher";
 "target.cursor-caches.summary" = "Extension host-, gjengivelses- og kodecacher for Cursor-editoren.";
@@ -224,8 +224,8 @@
 "target.pipx-cache.name" = "pipx-cache og -logger";
 "target.pipx-cache.summary" = "Midlertidige miljøer og logger fra pipx. Installerte verktøy røres ikke.";
 "target.pub-cache.name" = "pub-cache";
-"target.pub-cache.summary" = "Dart- og Flutter-pakker lastet ned av pub. Gjenopprettes av `flutter pub get` per prosjekt.";
-"target.pub-cache.note" = "Svært gamle Dart-SDK-er (før 2.15) lagret publiseringslegitimasjon for pub.dev i denne mappen.";
+"target.pub-cache.summary" = "Nedlastede Dart- og Flutter-pakker (hosted og git). Lastes ned på nytt av `flutter pub get` per prosjekt.";
+"target.pub-cache.note" = "Globalt aktiverte pakker (`dart pub global`) og eventuell pub.dev-påloggingsinformasjon ellers i ~/.pub-cache røres ikke.";
 "target.dart-analysis-cache.name" = "Dart-analysecache";
 "target.dart-analysis-cache.summary" = "Kodeindekser bygget av Darts analyseserver. Bygges på nytt ved neste analyse.";
 "target.composer-cache.name" = "Composer-cache";
@@ -357,7 +357,7 @@
 "artifact.swiftpm-build.name" = "Swift-bygg (.build)";
 "artifact.gradle-build.name" = "Gradle-bygg";
 "artifact.python-venv.name" = "Python-virtualenv";
-"artifact.python-cache.name" = "Python-mellomlager";
+"artifact.python-cache.name" = "Python-cacher";
 "artifact.cocoapods.name" = "CocoaPods (Pods)";
 "artifact.carthage.name" = "Carthage-bygg";
 
@@ -401,3 +401,4 @@
 "exclusion.reason.userSettings" = "brukerinnstillinger";
 "exclusion.reason.ideSettings" = "IDE-innstillinger og programtillegg";
 "exclusion.reason.editorState" = "editortilstand";
+"exclusion.reason.userContent" = "instruksjoner og egendefinerte kommandoer";
