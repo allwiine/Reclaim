@@ -15,4 +15,5 @@ public enum Log {
     public static let app = Logger(subsystem: subsystem, category: "app")
     public static let scanner = Logger(subsystem: subsystem, category: "scanner")
     public static let cleaner = Logger(subsystem: subsystem, category: "cleaner")
+    public static let history = Logger(subsystem: subsystem, category: "history")
 }
