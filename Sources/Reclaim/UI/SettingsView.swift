@@ -22,6 +22,11 @@ struct SettingsView: View {
     @State private var launchAtLogin = false
     @State private var launchAtLoginFailed = false
     @State private var notificationsDenied = false
+    // Mirrors Sparkle's `automaticallyChecksForUpdates`, which is not
+    // observable: binding a Toggle straight to it leaves the switch knob
+    // frozen because writing it invalidates no SwiftUI state. Seeded from
+    // Sparkle in `.task`, written through on toggle.
+    @State private var autoUpdateChecks = true
 
     var body: some View {
         @Bindable var model = model
@@ -40,8 +45,11 @@ struct SettingsView: View {
                             defaultValue: "Reclaim checks for new versions in the background and offers them when they are ready."
                         ),
                         isOn: Binding(
-                            get: { UpdaterModel.shared.updater.automaticallyChecksForUpdates },
-                            set: { UpdaterModel.shared.updater.automaticallyChecksForUpdates = $0 }
+                            get: { autoUpdateChecks },
+                            set: { newValue in
+                                autoUpdateChecks = newValue
+                                UpdaterModel.shared.updater.automaticallyChecksForUpdates = newValue
+                            }
                         )
                     )
                 }
@@ -167,6 +175,9 @@ struct SettingsView: View {
             if LoginItemService.isAvailable {
                 launchAtLogin = LoginItemService.isEnabled
             }
+            #if canImport(Sparkle)
+            autoUpdateChecks = UpdaterModel.shared.updater.automaticallyChecksForUpdates
+            #endif
             await refreshNotificationStatus()
         }
         .onChange(of: model.notifyLargeReclaimable) { _, enabled in

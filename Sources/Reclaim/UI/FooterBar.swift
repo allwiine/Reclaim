@@ -19,7 +19,7 @@ struct FooterBar: View {
     var body: some View {
         HStack(spacing: 0) {
             item(
-                label: localized("overview.reclaimedAllTime", defaultValue: "Reclaimed all time"),
+                label: localized("overview.reclaimedAllTime", defaultValue: "Reclaimed (all time)"),
                 value: model.reclaimedAllTimeBytes > 0
                     ? model.reclaimedAllTimeBytes.formattedBytesCompact : "—",
                 help: model.history.isEmpty

@@ -18,21 +18,31 @@ import os
 import ReclaimKit
 
 enum TrashService {
-    enum Outcome: Equatable {
+    enum Outcome: Equatable, Sendable {
         case emptied
         /// The user declined the Automation permission, or Finder
         /// refused; the Trash still has the items.
         case failed(message: String)
     }
 
+    /// How long to wait for Finder before giving up. Emptying a large
+    /// Trash is legitimately slow, but a locked-file prompt or an
+    /// unanswered Automation-consent dialog would otherwise never return.
+    private static let timeout: TimeInterval = 120
+
     /// Empty the Trash via Finder. Safe to call from the main actor.
     static func emptyTrash() async -> Outcome {
-        await run()
+        // Run the blocking Apple-event round trip on a GCD thread, not a
+        // Swift-concurrency cooperative thread, so a slow Finder can't
+        // starve the pool while the spinner spins.
+        await withCheckedContinuation { continuation in
+            DispatchQueue.global(qos: .userInitiated).async {
+                continuation.resume(returning: runBlocking())
+            }
+        }
     }
 
-    /// Off-main worker (a `nonisolated` async function hops to the
-    /// global executor under this package's settings).
-    private nonisolated static func run() async -> Outcome {
+    private static func runBlocking() -> Outcome {
         let process = Process()
         process.executableURL = URL(filePath: "/usr/bin/osascript")
         process.arguments = ["-e", "tell application \"Finder\" to empty trash"]
@@ -41,23 +51,44 @@ enum TrashService {
         process.standardOutput = FileHandle.nullDevice
         process.standardError = stderrPipe
 
+        // Edge-triggered completion; no polling.
+        let exited = DispatchSemaphore(value: 0)
+        process.terminationHandler = { _ in exited.signal() }
+
         do {
             try process.run()
-            let stderrData = stderrPipe.fileHandleForReading.readDataToEndOfFile()
-            process.waitUntilExit()
-
-            if process.terminationStatus == 0 {
-                return .emptied
-            }
-            let message = String(data: stderrData, encoding: .utf8)?
-                .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-            Log.app.error("Empty Trash failed: \(message, privacy: .public)")
-            return .failed(message: message.isEmpty
-                ? localized("trash.unknownError", defaultValue: "Finder did not empty the Trash.")
-                : message)
         } catch {
             Log.app.error("Empty Trash failed: \(error.localizedDescription, privacy: .public)")
             return .failed(message: error.localizedDescription)
         }
+
+        let timedOut = exited.wait(timeout: .now() + timeout) == .timedOut
+        if timedOut {
+            process.terminate()
+            if exited.wait(timeout: .now() + 5) == .timedOut {
+                kill(process.processIdentifier, SIGKILL)
+                exited.wait()
+            }
+        }
+        // osascript's stderr is tiny and the process is gone by now, so a
+        // read-to-EOF completes at once and can't deadlock.
+        let stderrData = stderrPipe.fileHandleForReading.readDataToEndOfFile()
+
+        if timedOut {
+            Log.app.error("Empty Trash timed out after \(timeout, privacy: .public)s")
+            return .failed(message: localized(
+                "trash.timedOut",
+                defaultValue: "Finder did not respond in time, so the Trash was left as is."
+            ))
+        }
+        if process.terminationStatus == 0 {
+            return .emptied
+        }
+        let message = String(data: stderrData, encoding: .utf8)?
+            .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        Log.app.error("Empty Trash failed: \(message, privacy: .public)")
+        return .failed(message: message.isEmpty
+            ? localized("trash.unknownError", defaultValue: "Finder did not empty the Trash.")
+            : message)
     }
 }

@@ -49,6 +49,22 @@ struct RegistryTests {
         }
     }
 
+    @Test("Manual targets are never rated Safe")
+    func manualTargetsAreNeverSafe() {
+        // The overview's category ring assumes safe + review + projects
+        // sum to the total, which holds only while no `.manual` target is
+        // rated `.safe` (a safe manual target would fall in neither the
+        // safe-and-cleanable bucket nor the review bucket).
+        for target in TargetRegistry.all {
+            if case .manual = target.strategy {
+                #expect(
+                    target.safety != .safe,
+                    "\(target.id) is manual and rated Safe — it would break the overview ring sum"
+                )
+            }
+        }
+    }
+
     @Test("No target pattern collides with a structural exclusion")
     func exclusionsAreRespected() {
         for target in TargetRegistry.all {
@@ -73,39 +89,9 @@ struct RegistryTests {
         }
     }
 
-    @Test("The .NET category has targets")
-    func dotNetCategoryPopulated() {
-        #expect(!TargetRegistry.targets(in: .dotNet).isEmpty)
-    }
-
-    @Test("The containers category has targets")
-    func containersCategoryPopulated() {
-        #expect(!TargetRegistry.targets(in: .containers).isEmpty)
-    }
-
-    @Test("The JVM category has targets")
-    func jvmCategoryPopulated() {
-        #expect(!TargetRegistry.targets(in: .jvm).isEmpty)
-    }
-
-    @Test("The web tools category has targets")
-    func webToolsCategoryPopulated() {
-        #expect(!TargetRegistry.targets(in: .webTools).isEmpty)
-    }
-
-    @Test("The cloud & DevOps category has targets")
-    func cloudDevOpsCategoryPopulated() {
-        #expect(!TargetRegistry.targets(in: .cloudDevOps).isEmpty)
-    }
-
-    @Test("The game engines category has targets")
-    func gameEnginesCategoryPopulated() {
-        #expect(!TargetRegistry.targets(in: .gameEngines).isEmpty)
-    }
-
-    @Test("The embedded category has targets")
-    func embeddedCategoryPopulated() {
-        #expect(!TargetRegistry.targets(in: .embedded).isEmpty)
+    @Test("Every category has at least one target", arguments: ToolCategory.allCases)
+    func categoryPopulated(category: ToolCategory) {
+        #expect(!TargetRegistry.targets(in: category).isEmpty, "\(category) has no targets")
     }
 
     @Test("IDE cache targets declare their owning app for running-app warnings")
@@ -120,6 +106,9 @@ struct RegistryTests {
             "unity-caches": "com.unity3d.UnityEditor5.x",
             "godot-caches": "org.godotengine.godot",
             "zed-caches": "dev.zed.Zed",
+            "cursor-caches": "com.todesktop.230313mzl4w4u92",
+            "windsurf-caches": "com.exafunction.windsurf",
+            "antigravity-caches": "com.google.antigravity",
         ]
         for (id, bundleID) in expectations {
             let target = TargetRegistry.all.first { $0.id == id }

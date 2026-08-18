@@ -49,7 +49,7 @@ from Conventional Commit messages; versions follow
 * **registry:** expand Python, Flutter and PHP coverage ([fc1f134](https://github.com/allwiine/Reclaim/commit/fc1f1342cb499da873420e076404335f3f2d2a6c))
 * **registry:** warn about legacy pub.dev credentials in pub cache ([0c117fc](https://github.com/allwiine/Reclaim/commit/0c117fc58be36451975798e2782f4002a77ff78a))
 
-## [1.0.0] - 2026-08-07
+## [1.0.0](https://github.com/allwiine/Reclaim/releases/tag/v1.0.0) - 2026-08-07
 
 First public release: scanning and cleaning for Xcode, Android Studio, AI
 coding tools, package managers and more — Trash-first, scan-snapshot-only

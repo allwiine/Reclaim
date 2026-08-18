@@ -5,14 +5,6 @@
 [![Platform: macOS 15+](https://img.shields.io/badge/platform-macOS%2015%2B-lightgrey.svg)](#requirements)
 [![Website](https://img.shields.io/badge/website-reclaim--app.dev-8A2BE2.svg)](https://reclaim-app.dev/)
 
-## Install
-
-Download the latest `Reclaim-<version>.dmg` from
-[reclaim-app.dev](https://reclaim-app.dev/) or straight from
-[Releases](https://github.com/allwiine/Reclaim/releases/latest), open it and
-drag Reclaim to Applications. The app is notarized and updates itself via
-Sparkle.
-
 A native macOS app for finding and cleaning wasted developer storage, covering the space quietly retained by a wide range of developer tools: IDEs and editors, AI assistants, package managers, build systems, game engines, embedded toolchains, containers and cloud CLIs.
 
 Reclaim scans a curated catalogue of known cache and scratch locations, shows what each one is, how risky it is to remove, and cleans your selection. Cleaning goes to the Trash by default, so mistakes are recoverable.
@@ -22,6 +14,14 @@ Optionally, add your development folders (from the welcome screen, the Projects 
 Built with **Swift 6.2**, **SwiftUI**, the **Observation** framework, strict concurrency, and **Swift Testing**.
 
 ![The Reclaim main window after a scan](docs/screenshot.png)
+
+## Install
+
+Download the latest `Reclaim-<version>.dmg` from
+[reclaim-app.dev](https://reclaim-app.dev/) or straight from
+[Releases](https://github.com/allwiine/Reclaim/releases/latest), open it and
+drag Reclaim to Applications. The app is notarized and updates itself via
+Sparkle.
 
 ## What it covers
 
@@ -101,21 +101,29 @@ Most locations are readable out of the box. If a scan row shows *Couldn't scan*,
 
 ## Adding a new tool
 
-One struct in [`TargetRegistry`](Sources/ReclaimKit/Domain/TargetRegistry.swift), with no other changes needed:
+One `CleanupTarget` struct in [`TargetRegistry`](Sources/ReclaimKit/Domain/TargetRegistry.swift), plus its `target.<id>.name`/`.summary` strings (and `.note`/`.instructions` when present) in both `Sources/ReclaimKit/Resources/{en,nb}.lproj/Localizable.strings` — no other code changes:
 
 ```swift
 CleanupTarget(
-    id: "deno-cache",
-    name: "Deno cache",
-    summary: "Remote modules cached by Deno. Re-downloaded on demand.",
+    id: "example-tool-cache",
+    name: localized(
+        "target.example-tool-cache.name",
+        defaultValue: "Example Tool cache"
+    ),
+    summary: localized(
+        "target.example-tool-cache.summary",
+        defaultValue: "Caches kept by Example Tool. Regenerated on demand."
+    ),
     category: .packageManagers,
     safety: .safe,
-    pathPatterns: ["~/Library/Caches/deno"],
+    pathPatterns: ["~/Library/Caches/example-tool"],
     strategy: .removeContents
 )
 ```
 
-Patterns support `~` and `*` globs (`~/Library/Caches/Google/AndroidStudio*`); paths that don't exist on a machine are simply dropped. Registry conventions are enforced by `RegistryTests`, so `swift test` tells you immediately if a new entry breaks the rules.
+A hypothetical example — the `target.example-tool-cache.name`/`.summary` keys must also be added to both locale catalogues.
+
+Patterns support `~` and `*` globs (`~/Library/Caches/Google/AndroidStudio*`); paths that don't exist on a machine are simply dropped. Registry conventions are enforced by `RegistryTests`, and the required localization coverage by the localization tests, so `swift test` tells you immediately if a new entry breaks the rules.
 
 ## Project layout
 
@@ -126,16 +134,20 @@ Sources/
   ReclaimKit/               UI-free core library (fully unit-tested)
     Domain/                 CleanupTarget, registry, artifact catalogue,
                             safety levels, status
-    Services/               PathResolver, DiskSizer, TargetScanner,
-                            BulkDirectoryReader, ProjectDiscovery,
+    Services/               PathResolver, DiskSizer, BreakdownSizer,
+                            VolumeSpace, TargetScanner, BulkDirectoryReader,
+                            ProjectDiscovery, GitActivityReader,
                             CleanupEngine, FullDiskAccessProbe
     Support/                os.log categories
-  ReclaimAppCore/           UI-free app state: AppModel, CleanSummary
-  Reclaim/                  The SwiftUI app (views only)
+  ReclaimAppCore/           UI-free app state: AppModel, CleanSummary,
+                            CleanHistory
+  Reclaim/                  The SwiftUI app: views + app glue (Sparkle
+                            updates, login item, Trash, notifications)
 Tests/ReclaimKitTests/      Core library suite
 Tests/ReclaimAppCoreTests/  Orchestration suite (stubbed executors)
+Tests/LocalizationLintTests/  Source lint for the localization rules
 docs/ARCHITECTURE.md        Design and concurrency documentation
-.github/workflows/ci.yml    Build & test on every push / PR
+.github/workflows/ci.yml    Build & test on every PR and push to main
 ```
 
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full design rationale.
@@ -143,7 +155,8 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full design rationale.
 ## Contributing
 
 Contributions are welcome, new cleanup targets especially (one struct plus
-two localized strings). Start with [CONTRIBUTING.md](CONTRIBUTING.md), or
+its name and summary strings in both language catalogues). Start with
+[CONTRIBUTING.md](CONTRIBUTING.md), or
 [propose a target](https://github.com/allwiine/Reclaim/issues/new?template=new_target.yml)
 without writing any code. This project follows the
 [Contributor Covenant](CODE_OF_CONDUCT.md).

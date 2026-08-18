@@ -22,6 +22,7 @@
 "accessibility.notMeasuredYet" = "Ikke målt ennå";
 "accessibility.safetyBadge" = "Sikkerhet: %@";
 "accessibility.inProgress" = "Pågår";
+"accessibility.progress" = "Fremdrift";
 
 /* Merker og kategorisymboler */
 "badge.delegated.title" = "Håndteres av verktøyet";
@@ -216,6 +217,7 @@
 "done.trashEmptied" = "Papirkurven er tømt";
 "done.tryAgain" = "Prøv igjen";
 "trash.unknownError" = "Finder tømte ikke papirkurven.";
+"trash.timedOut" = "Finder svarte ikke i tide, så papirkurven ble stående som den var.";
 
 /* Historikk */
 "history.emptyTitle" = "Ingen ryddinger ennå";
@@ -302,12 +304,11 @@
 
 /* Varsler */
 "notification.title" = "Reclaim fant %@";
-"notification.body" = "Utviklercacher holder på plass. Se gjennom og frigjør den når det passer.";
+"notification.body" = "Utviklercacher legger beslag på diskplass. Se gjennom og frigjør den når det passer.";
 
 /* Projects (dev folders) */
 "sidebar.development" = "Utvikling";
 "sidebar.projects" = "Prosjekter";
-"toolbar.projectsSubtitle" = "%lld prosjekter · %@";
 "projects.empty.title" = "Finn glemte prosjekter";
 "projects.empty.body" = "Legg til mappene der prosjektene dine ligger. Reclaim finner git-repositorier og gjenskapbare artefakter som node_modules og byggmapper, og viser når hvert prosjekt sist var i bruk.";
 "projects.addFolder" = "Legg til en utviklingsmappe …";

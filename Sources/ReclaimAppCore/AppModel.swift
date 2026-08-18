@@ -67,6 +67,10 @@ public final class AppModel {
     public private(set) var isScanning = false
     public private(set) var isCleaning = false
     public private(set) var lastScan: Date?
+    /// When the last *completed* (non-cancelled) scan finished. Anchors
+    /// the weekly background schedule and, being observable, keeps the
+    /// footer's "next background scan" line live.
+    public private(set) var lastCompletedScanDate: Date?
 
     /// True while the pre-clean confirmation is on screen (set by the
     /// view layer). The background scan defers while it is up so it can
@@ -186,6 +190,18 @@ public final class AppModel {
     @ObservationIgnored
     private let historyStore: CleanHistoryStore
 
+    /// Symlink-resolved (real) form of each target's roots, captured at
+    /// scan time. Cleaning refuses any cleanup path whose ancestry no
+    /// longer resolves to one of these — the defence against a cache
+    /// directory being swapped for a symlink between scan and clean,
+    /// which would otherwise redirect deletion outside the target.
+    @ObservationIgnored
+    private var scanRealRoots: [CleanupTarget.ID: Set<String>] = [:]
+    /// The same pin for dev-folder roots: an artifact is only disposed
+    /// of while its parent still resolves inside a scanned dev root.
+    @ObservationIgnored
+    private var scanRealDevRoots: Set<String> = []
+
     // MARK: - Persisted settings
 
     private let defaults: UserDefaults
@@ -300,7 +316,7 @@ public final class AppModel {
         defaults: UserDefaults = .standard,
         scanExecutor: @escaping ScanExecutor = { TargetScanner().scan($0) },
         cleanExecutor: @escaping CleanExecutor = {
-            CleanupEngine().clean($0, resolvedPaths: $1, disposal: $2)
+            CleanupEngine().clean($0, cleanupPaths: $1, disposal: $2)
         },
         breakdownExecutor: @escaping BreakdownExecutor = {
             // Every entry, not a top-5-plus-aggregate: cherry-picking
@@ -338,6 +354,7 @@ public final class AppModel {
         )
         self.devRoots = (defaults.stringArray(forKey: DefaultsKey.devRoots) ?? [])
             .map { URL(filePath: $0) }
+        self.lastCompletedScanDate = defaults.object(forKey: DefaultsKey.lastScanDate) as? Date
         refreshVolumeSpace()
     }
 
@@ -478,9 +495,7 @@ public final class AppModel {
     /// no scan has happened yet.
     public var nextBackgroundScanDate: Date? {
         guard weeklyScanEnabled else { return nil }
-        guard let last = defaults.object(forKey: DefaultsKey.lastScanDate) as? Date else {
-            return nil
-        }
+        guard let last = lastCompletedScanDate else { return nil }
         return last.addingTimeInterval(Self.backgroundScanInterval)
     }
 
@@ -623,7 +638,12 @@ public final class AppModel {
         let claudeRoot = FileManager.default.homeDirectoryForCurrentUser
             .resolvingSymlinksInPath()
             .appending(path: ".claude")
-        guard root.path != claudeRoot.path, !root.path.hasPrefix(claudeRoot.path + "/") else {
+        // Compare case-insensitively: the default APFS volume is
+        // case-insensitive, so a typed `~/.CLAUDE` denotes the same
+        // directory as `~/.claude` and must be refused just the same.
+        let rootPath = root.path.lowercased()
+        let claudePath = claudeRoot.path.lowercased()
+        guard rootPath != claudePath, !rootPath.hasPrefix(claudePath + "/") else {
             return
         }
         guard !devRoots.contains(where: {
@@ -865,6 +885,17 @@ public final class AppModel {
         partialSelections.removeAll()
     }
 
+    /// Reset the selection to exactly the safe, cleanable targets —
+    /// dropping any previously ticked Caution/Destructive targets and
+    /// dev-folder artifacts — so the overview's "Reclaim safe space"
+    /// confirms only what it names.
+    public func selectOnlySafe() {
+        selection.removeAll()
+        partialSelections.removeAll()
+        artifactSelection.removeAll()
+        selectAllSafe()
+    }
+
     // MARK: - Cherry-picking
 
     public func isPartiallySelected(_ target: CleanupTarget) -> Bool {
@@ -957,6 +988,8 @@ public final class AppModel {
         invalidateBreakdowns()
         projectScans = []
         artifactSelection.removeAll()
+        scanRealRoots.removeAll()
+        scanRealDevRoots.removeAll()
         scanProgress = ScanProgress(
             completed: 0, total: targets.count + devRoots.count,
             currentTargetName: "", currentPath: ""
@@ -967,6 +1000,14 @@ public final class AppModel {
 
         let probe = fullDiskAccessProbe
         scanTask = Task { [targets] in
+            // Keep the process off App Nap for the duration: a scan with
+            // the window closed (menu-bar-only) would otherwise be
+            // throttled, and the weekly background scan is exactly that
+            // case.
+            let activity = ProcessInfo.processInfo.beginActivity(
+                options: [.userInitiated], reason: "Scanning for reclaimable storage"
+            )
+            defer { ProcessInfo.processInfo.endActivity(activity) }
             self.hasFullDiskAccess = await Self.offMain { probe() }
             await self.runScan(of: targets)
             // Any rows still marked scanning were cancelled mid-flight.
@@ -976,7 +1017,13 @@ public final class AppModel {
             await self.runProjectScan()
             self.lastScan = .now
             self.lastScanWasComplete = !Task.isCancelled
-            self.defaults.set(Date.now, forKey: DefaultsKey.lastScanDate)
+            // Only a completed scan anchors the weekly schedule — a scan
+            // the user stopped after two seconds must not push the next
+            // automatic scan a full week out.
+            if !Task.isCancelled {
+                self.lastCompletedScanDate = .now
+                self.defaults.set(Date.now, forKey: DefaultsKey.lastScanDate)
+            }
             self.isScanning = false
             self.isCancellingScan = false
             self.scanProgress = nil
@@ -1013,12 +1060,29 @@ public final class AppModel {
         cleanTask?.cancel()
     }
 
+    /// Prepare for app termination: stop any in-flight clean pass and
+    /// wait for it to unwind so the summary is shown and the history is
+    /// persisted before the process exits. The in-flight target always
+    /// finishes (cancellation is checked between jobs), so nothing is
+    /// left half-cleaned, and every completed removal is recorded. Safe
+    /// to call when nothing is running — it returns at once.
+    public func prepareForTermination() async {
+        if cleanTask != nil {
+            isCancellingClean = true
+            cleanTask?.cancel()
+            _ = await cleanTask?.value
+        }
+        // recordHistory (run at the end of the pass) schedules the
+        // persist; await it so the on-disk history is up to date.
+        _ = await historyPersistTask?.value
+    }
+
     /// Fan out scans through a width-limited task group. Runs on the
     /// main actor; the blocking work happens inside the child tasks,
     /// which execute nonisolated on the global executor.
     private func runScan(of targets: [CleanupTarget]) async {
         let scan = scanExecutor
-        await withTaskGroup(of: (CleanupTarget.ID, TargetStatus).self) { group in
+        await withTaskGroup(of: (CleanupTarget.ID, TargetStatus, Set<String>).self) { group in
             var pending = targets.makeIterator()
             var completed = 0
             // Started but not yet finished, oldest first. The head is
@@ -1045,7 +1109,18 @@ public final class AppModel {
                 guard let target = pending.next() else { return false }
                 inFlight.append(target)
                 group.addTask {
-                    (target.id, scan(target))
+                    let status = scan(target)
+                    // Resolve the roots' real paths in the worker (off
+                    // the main actor) so cleaning can later refuse a
+                    // cleanup path whose ancestry was swapped for a
+                    // symlink after the scan.
+                    let real: Set<String>
+                    if case .measured(_, let roots, _) = status {
+                        real = Set(roots.map { $0.resolvingSymlinksInPath().path })
+                    } else {
+                        real = []
+                    }
+                    return (target.id, status, real)
                 }
                 return true
             }
@@ -1054,8 +1129,13 @@ public final class AppModel {
                 startNext()
             }
             publishProgress()
-            while let (id, resolvedStatus) = await group.next() {
+            while let (id, resolvedStatus, realRoots) = await group.next() {
                 statuses[id] = resolvedStatus
+                if realRoots.isEmpty {
+                    scanRealRoots[id] = nil
+                } else {
+                    scanRealRoots[id] = realRoots
+                }
                 completed += 1
                 inFlight.removeAll { $0.id == id }
                 startNext()
@@ -1072,7 +1152,7 @@ public final class AppModel {
         let scan = projectScanExecutor
         let baseCompleted = targets.count
 
-        await withTaskGroup(of: DevRootScan.self) { group in
+        await withTaskGroup(of: (DevRootScan, String).self) { group in
             var pending = roots.makeIterator()
             var completed = 0
             var inFlight: [URL] = []
@@ -1095,7 +1175,10 @@ public final class AppModel {
             func startNext() -> Bool {
                 guard let root = pending.next() else { return false }
                 inFlight.append(root)
-                group.addTask { scan(root) }
+                // Resolve the root's real path in the worker so artifact
+                // cleaning can refuse anything whose parent no longer
+                // resolves inside a scanned dev root.
+                group.addTask { (scan(root), root.resolvingSymlinksInPath().path) }
                 return true
             }
 
@@ -1103,12 +1186,13 @@ public final class AppModel {
                 startNext()
             }
             publishProgress()
-            while let result = await group.next() {
+            while let (result, realRoot) = await group.next() {
                 // A root removed mid-scan must not resurrect: with no
                 // configured root left to remove it, its rows would
                 // linger until the next scan.
                 if devRoots.contains(where: { $0.path == result.root.path }) {
                     projectScans.append(result)
+                    scanRealDevRoots.insert(realRoot)
                 }
                 completed += 1
                 inFlight.removeAll { $0.path == result.root.path }
@@ -1249,6 +1333,12 @@ public final class AppModel {
         let volume = volumeProbe
 
         cleanTask = Task {
+            // A clean pass must not be throttled or napped part-way — hold
+            // an activity assertion for its whole duration.
+            let activity = ProcessInfo.processInfo.beginActivity(
+                options: [.userInitiated], reason: "Cleaning reclaimable storage"
+            )
+            defer { ProcessInfo.processInfo.endActivity(activity) }
             let passStart = Date.now
             var summary = CleanSummary(disposal: chosenDisposal)
 
@@ -1269,8 +1359,35 @@ public final class AppModel {
                 )
                 self.statuses[job.target.id] = .scanning
 
-                let outcome = await Self.offMain {
-                    clean(job.target, job.paths, chosenDisposal)
+                // Refuse any cleanup path whose ancestry no longer
+                // resolves to its scan-time root — a cache directory
+                // swapped for a symlink after the scan would otherwise
+                // redirect deletion outside the target.
+                let allowedRoots = self.scanRealRoots[job.target.id] ?? []
+                let pathsAreChildren: Bool
+                if case .removeContents = job.target.strategy {
+                    pathsAreChildren = true
+                } else {
+                    pathsAreChildren = false
+                }
+                let (safePaths, refusedPaths) = await Self.offMain {
+                    Self.partitionSafe(
+                        job.paths,
+                        allowedRealRoots: allowedRoots,
+                        pathsAreChildren: pathsAreChildren
+                    )
+                }
+                var outcome = await Self.offMain {
+                    clean(job.target, safePaths, chosenDisposal)
+                }
+                for refused in refusedPaths {
+                    outcome.failures.append(CleanFailure(
+                        path: refused.path,
+                        message: localized(
+                            "clean.pathChanged",
+                            defaultValue: "Its location changed since the scan, so it was left untouched."
+                        )
+                    ))
                 }
                 summary.itemsRemoved += outcome.removedItems
                 if outcome.removedItems > 0 {
@@ -1288,12 +1405,15 @@ public final class AppModel {
                 let refreshed = await Self.offMain { scan(job.target) }
                 self.statuses[job.target.id] = refreshed
                 self.invalidateBreakdown(of: job.target.id)
-                // Freed space is only claimed when the rescan could
-                // measure it — command targets and failed rescans
-                // report "unknown", never a guess.
+                // Freed space is only credited when this pass actually
+                // removed something *and* the rescan could measure it.
+                // A target the tool pruned itself between scan and clean
+                // (or one whose disposals all failed) must not be
+                // reported as space Reclaim reclaimed — command targets
+                // and failed rescans report "unknown", never a guess.
                 let freed = refreshed.bytes.map { max(0, job.bytesBefore - $0) }
-                summary.reclaimedBytes += freed ?? 0
                 if outcome.removedItems > 0 {
+                    summary.reclaimedBytes += freed ?? 0
                     summary.cleaned.append(CleanSummary.CleanedTarget(
                         id: job.target.id,
                         name: job.target.name,
@@ -1326,8 +1446,26 @@ public final class AppModel {
                 )
 
                 let url = job.artifact.url
-                let outcome = await Self.offMain {
-                    removeArtifacts([url], chosenDisposal)
+                // Same scan-time pin as registry targets: only dispose
+                // of the artifact while its parent still resolves inside
+                // a scanned dev root.
+                let devRootsSnapshot = self.scanRealDevRoots
+                let pinHolds = await Self.offMain {
+                    Self.artifactPinHolds(url, allowedRealDevRoots: devRootsSnapshot)
+                }
+                let outcome: CleanOutcome
+                if pinHolds {
+                    outcome = await Self.offMain {
+                        removeArtifacts([url], chosenDisposal)
+                    }
+                } else {
+                    outcome = CleanOutcome(failures: [CleanFailure(
+                        path: url.path,
+                        message: localized(
+                            "clean.pathChanged",
+                            defaultValue: "Its location changed since the scan, so it was left untouched."
+                        )
+                    )])
                 }
                 summary.itemsRemoved += outcome.removedItems
                 summary.failures.append(contentsOf: outcome.failures.map {
@@ -1337,14 +1475,17 @@ public final class AppModel {
                     )
                 })
 
-                // Freed space is only claimed when the removal is
-                // verifiable: the artifact is gone from disk.
-                let gone = await Self.offMain {
-                    !FileManager.default.fileExists(atPath: url.path)
-                }
-                let freed: Int64? = gone ? job.artifact.measurement.bytes : nil
-                summary.reclaimedBytes += freed ?? 0
+                // Freed space is only credited when this pass actually
+                // removed the artifact *and* it is verifiably gone from
+                // disk. An artifact deleted out from under us between
+                // scan and clean (a build tool, another cleaner) fails
+                // the removal — its bytes are not space Reclaim freed.
                 if outcome.removedItems > 0 {
+                    let gone = await Self.offMain {
+                        !FileManager.default.fileExists(atPath: url.path)
+                    }
+                    let freed: Int64? = gone ? job.artifact.measurement.bytes : nil
+                    summary.reclaimedBytes += freed ?? 0
                     summary.cleanedTargets += 1
                     summary.cleanedArtifacts.append(CleanSummary.CleanedArtifact(
                         id: job.artifact.id, name: name, bytesFreed: freed
@@ -1457,6 +1598,43 @@ public final class AppModel {
         _ work: @Sendable @escaping () -> T
     ) async -> T {
         work()
+    }
+
+    /// Split scan-time cleanup paths into those still safe to dispose
+    /// and those whose ancestry changed since the scan.
+    ///
+    /// `allowedRealRoots` is the symlink-resolved form of the target's
+    /// roots at scan time. For `.removeContents` each path is a child of
+    /// a root, so its *parent* must still resolve to one of those roots;
+    /// for `.removePaths` each path *is* a root. An empty set means the
+    /// scan captured no pin (e.g. a command target), so the paths pass
+    /// straight through to the engine's own exclusion guard.
+    private nonisolated static func partitionSafe(
+        _ paths: [URL], allowedRealRoots: Set<String>, pathsAreChildren: Bool
+    ) -> (safe: [URL], refused: [URL]) {
+        guard !allowedRealRoots.isEmpty else { return (paths, []) }
+        var safe: [URL] = []
+        var refused: [URL] = []
+        for path in paths {
+            let container = pathsAreChildren ? path.deletingLastPathComponent() : path
+            if allowedRealRoots.contains(container.resolvingSymlinksInPath().path) {
+                safe.append(path)
+            } else {
+                refused.append(path)
+            }
+        }
+        return (safe, refused)
+    }
+
+    /// True while the artifact's parent still resolves inside a scanned
+    /// dev root — the same scan-time pin as ``partitionSafe(_:allowedRealRoots:pathsAreChildren:)``,
+    /// for dev-folder artifacts, which have no registry root.
+    private nonisolated static func artifactPinHolds(
+        _ url: URL, allowedRealDevRoots: Set<String>
+    ) -> Bool {
+        guard !allowedRealDevRoots.isEmpty else { return true }
+        let parent = url.deletingLastPathComponent().resolvingSymlinksInPath().path
+        return allowedRealDevRoots.contains { parent == $0 || parent.hasPrefix($0 + "/") }
     }
 
     // MARK: - Preview support

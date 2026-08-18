@@ -27,17 +27,24 @@ jobs:
   release-please:
     name: Maintain release PR
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     outputs:
       release_created: ${{ steps.rp.outputs.release_created }}
       tag_name: ${{ steps.rp.outputs.tag_name }}
     steps:
       - id: app-token
-        uses: actions/create-github-app-token@v3
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         with:
+          # DEPRECATION (create-github-app-token v3): `app-id` is deprecated
+          # in favor of `client-id`. Migrating is NOT a rename — `client-id`
+          # takes the GitHub App's client id (Iv1…/Iv23…), a different value
+          # from the numeric app id. To migrate, add a RELEASE_BOT_CLIENT_ID
+          # repo variable holding the app's client id and switch this input
+          # to `client-id: ${{ vars.RELEASE_BOT_CLIENT_ID }}`.
           app-id: ${{ vars.RELEASE_BOT_APP_ID }}
           private-key: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
       - id: rp
-        uses: googleapis/release-please-action@v5
+        uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
         with:
           token: ${{ steps.app-token.outputs.token }}
           config-file: release-please-config.json
@@ -51,7 +58,7 @@ jobs:
       # Deliberately pushed with GITHUB_TOKEN, not the app token: GITHUB_TOKEN
       # events never start workflows, so this push cannot double-trigger
       # release.yml alongside the workflow_call chain below.
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         if: steps.rp.outputs.release_created == 'true'
       - name: Materialize the draft release's tag
         if: steps.rp.outputs.release_created == 'true'
@@ -84,6 +91,8 @@ jobs:
     name: Build, notarize & publish
     needs: release-please
     if: needs.release-please.outputs.release_created == 'true'
+    # No timeout-minutes here: a job that calls a reusable workflow cannot
+    # set one; the 90-minute bound lives on release.yml's release job.
     permissions:
       contents: write
     concurrency:

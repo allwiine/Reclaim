@@ -39,10 +39,18 @@ public struct DiskSizer: Sendable {
     /// ``DiskMeasurement/inaccessibleItems`` so the caller can flag the
     /// measurement as a lower bound.
     ///
+    /// - Parameter failOnUnreadableRoot: When `true` (registry roots), a
+    ///   root that exists but cannot be enumerated throws
+    ///   ``UnreadableRootError`` — measuring it as zero would be a lie.
+    ///   When `false` (a `.removeContents` target's individual children,
+    ///   promoted to roots here), an unreadable one is counted in
+    ///   ``DiskMeasurement/inaccessibleItems`` instead, so one locked
+    ///   child does not make the whole cache look uncleanable.
     /// - Throws: `CancellationError` if the surrounding task is
-    ///   cancelled; ``UnreadableRootError`` if a root path exists but
-    ///   cannot be enumerated at all.
-    public func measure(_ urls: [URL]) throws -> DiskMeasurement {
+    ///   cancelled; ``UnreadableRootError`` as described above.
+    public func measure(
+        _ urls: [URL], failOnUnreadableRoot: Bool = true
+    ) throws -> DiskMeasurement {
         var total = DiskMeasurement.zero
         // Spans all roots so a file hard-linked into two of a target's
         // paths is still only counted once. (Deduplication is per-target
@@ -50,7 +58,15 @@ public struct DiskSizer: Sendable {
         // run concurrently, so a cross-target set would buy nothing.)
         var seenHardLinks = Set<NSObject>()
         for url in urls {
-            total.add(try measureOne(url, seenHardLinks: &seenHardLinks))
+            // A `.removeContents` target passes every top-level child as
+            // its own root here, so the between-roots check is what makes
+            // Stop responsive on a cache with tens of thousands of them —
+            // the per-directory stride below only covers one walk.
+            try Task.checkCancellation()
+            total.add(try measureOne(
+                url, seenHardLinks: &seenHardLinks,
+                failOnUnreadableRoot: failOnUnreadableRoot
+            ))
         }
         return total
     }
@@ -66,7 +82,8 @@ public struct DiskSizer: Sendable {
     ]
 
     private func measureOne(
-        _ url: URL, seenHardLinks: inout Set<NSObject>
+        _ url: URL, seenHardLinks: inout Set<NSObject>,
+        failOnUnreadableRoot: Bool
     ) throws -> DiskMeasurement {
         let fileManager = FileManager.default
 
@@ -83,10 +100,15 @@ public struct DiskSizer: Sendable {
             return .zero
         }
 
-        // Single file (e.g. Docker.raw): read its size directly.
+        // Single file (e.g. Docker.raw): read its size directly. A stat
+        // failure here is an unreadable item, not a zero-byte one — count
+        // it so the measurement is honestly flagged a lower bound rather
+        // than silently under-reported.
         guard isDirectory.boolValue else {
-            let values = try? url.resourceValues(forKeys: Self.sizeKeys)
-            let bytes = Int64(values?.totalFileAllocatedSize ?? values?.fileAllocatedSize ?? 0)
+            guard let values = try? url.resourceValues(forKeys: Self.sizeKeys) else {
+                return DiskMeasurement(bytes: 0, fileCount: 1, inaccessibleItems: 1)
+            }
+            let bytes = Int64(values.totalFileAllocatedSize ?? values.fileAllocatedSize ?? 0)
             return DiskMeasurement(bytes: bytes, fileCount: 1)
         }
 
@@ -123,10 +145,15 @@ public struct DiskSizer: Sendable {
             if visited % Self.cancellationCheckStride == 0 {
                 try Task.checkCancellation()
             }
-            guard
-                let values = try? item.resourceValues(forKeys: Self.sizeKeys),
-                values.isRegularFile == true
-            else { continue }
+            // Distinguish "couldn't read this entry" (a lower-bound
+            // inaccessible item) from "read it, and it isn't a regular
+            // file" (a directory/symlink we legitimately skip). The old
+            // combined guard silently dropped the former.
+            guard let values = try? item.resourceValues(forKeys: Self.sizeKeys) else {
+                inaccessible += 1
+                continue
+            }
+            guard values.isRegularFile == true else { continue }
             fileCount += 1
 
             // A hard-linked file occupies its allocation once, however
@@ -142,7 +169,14 @@ public struct DiskSizer: Sendable {
         }
 
         if rootUnreadable {
-            throw UnreadableRootError(path: url.path)
+            // A genuine registry root that can't be read is a failure;
+            // a promoted `.removeContents` child is merely one more
+            // inaccessible item (a lower-bound flag), not a target-wide
+            // failure.
+            if failOnUnreadableRoot {
+                throw UnreadableRootError(path: url.path)
+            }
+            return DiskMeasurement(bytes: 0, fileCount: 0, inaccessibleItems: 1)
         }
         return DiskMeasurement(bytes: bytes, fileCount: fileCount, inaccessibleItems: inaccessible)
     }

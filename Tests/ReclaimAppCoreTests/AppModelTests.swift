@@ -290,6 +290,124 @@ struct AppModelTests {
         #expect(summary?.failures.count == 1)
     }
 
+    @Test("Freed space is not credited when every removal failed")
+    func reclaimedNotCreditedWithoutRemoval() async {
+        let store = TemporaryDefaults()
+        let shrinker = target("shrinker")
+        let scanCount = Mutex(0)
+        let model = AppModel(
+            targets: [shrinker],
+            defaults: store.defaults,
+            scanExecutor: { _ in
+                // First call is the initial scan (100). The post-clean
+                // rescan measures less, as if the tool pruned its own
+                // cache between scan and clean.
+                let n = scanCount.withLock { $0 += 1; return $0 }
+                return measured(n == 1 ? 100 : 10)
+            },
+            cleanExecutor: { _, _, _ in
+                CleanOutcome(
+                    removedItems: 0,
+                    failures: [CleanFailure(path: "/locked", message: "locked")]
+                )
+            },
+            historyStore: temporaryHistoryStore()
+        )
+
+        model.scanAll()
+        await model.scanTask?.value
+        model.setSelected(shrinker, true)
+        model.cleanSelected()
+        await model.cleanTask?.value
+
+        let summary = model.lastCleanSummary
+        // The rescan saw a 90-byte drop, but no disposal succeeded — so
+        // Reclaim must not claim it reclaimed anything.
+        #expect(summary?.reclaimedBytes == 0)
+        #expect(summary?.cleanedTargets == 0)
+        #expect(summary?.failedTargets == 1)
+    }
+
+    @Test("A target with removals and a locked file counts as cleaned, not failed")
+    func mixedOutcomeCountsAsCleaned() async {
+        let store = TemporaryDefaults()
+        let partial = target("partial")
+        let model = AppModel(
+            targets: [partial],
+            defaults: store.defaults,
+            scanExecutor: { _ in measured(100) },
+            cleanExecutor: { _, _, _ in
+                CleanOutcome(
+                    removedItems: 2,
+                    failures: [CleanFailure(path: "/locked", message: "locked")]
+                )
+            },
+            historyStore: temporaryHistoryStore()
+        )
+
+        model.scanAll()
+        await model.scanTask?.value
+        model.setSelected(partial, true)
+        model.cleanSelected()
+        await model.cleanTask?.value
+
+        let summary = model.lastCleanSummary
+        #expect(summary?.itemsRemoved == 2)
+        #expect(summary?.cleanedTargets == 1, "≥1 removal means the target is cleaned")
+        #expect(summary?.failedTargets == 0, "a partial success is not a failed target")
+        #expect(summary?.failures.count == 1, "the locked file still surfaces")
+    }
+
+    @Test("Cleaning refuses a cleanup path whose root was swapped for a symlink after the scan")
+    func symlinkSwapAfterScanIsRefused() async throws {
+        let tmp = FileManager.default.temporaryDirectory
+            .appending(path: "reclaim-pin-\(UUID().uuidString)")
+        let realCache = tmp.appending(path: "cache")
+        let child = realCache.appending(path: "child")
+        let evil = tmp.appending(path: "evil")
+        try FileManager.default.createDirectory(at: child, withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(at: evil, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tmp) }
+
+        let store = TemporaryDefaults()
+        let swappable = target("swappable")
+        let received = Mutex<[URL]>([])
+        let model = AppModel(
+            targets: [swappable],
+            defaults: store.defaults,
+            scanExecutor: { _ in
+                .measured(
+                    DiskMeasurement(bytes: 100, fileCount: 1),
+                    resolvedPaths: [realCache],
+                    cleanupPaths: [child]
+                )
+            },
+            cleanExecutor: { _, paths, _ in
+                received.withLock { $0 = paths }
+                return CleanOutcome(removedItems: paths.count)
+            },
+            historyStore: temporaryHistoryStore()
+        )
+
+        model.scanAll()
+        await model.scanTask?.value
+
+        // Swap the real cache root for a symlink pointing elsewhere,
+        // exactly as an attacker would between scan and confirmation.
+        try FileManager.default.removeItem(at: realCache)
+        try FileManager.default.createSymbolicLink(at: realCache, withDestinationURL: evil)
+
+        model.setSelected(swappable, true)
+        model.cleanSelected()
+        await model.cleanTask?.value
+
+        // The child's parent no longer resolves to the scan-time root, so
+        // the path is refused: the executor is handed nothing and the
+        // summary records a failure.
+        #expect(received.withLock { $0 }.isEmpty, "the swapped path must not reach the executor")
+        #expect(model.lastCleanSummary?.failures.isEmpty == false)
+    }
+
     @Test("Stopping a clean pass finishes the current target and skips the rest")
     func stoppableCleanPass() async {
         let store = TemporaryDefaults()

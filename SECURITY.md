@@ -12,8 +12,9 @@ private vulnerability reporting instead:
 **[Report a vulnerability](https://github.com/allwiine/Reclaim/security/advisories/new)**
 (Security tab → "Report a vulnerability")
 
-You'll get a response within a week (this is a solo-maintained project;
-usually much faster). Please include reproduction steps and the app version.
+You'll get a response within a week, usually much faster (this is a
+solo-maintained project). Please include reproduction steps and the app
+version.
 
 ## Scope notes
 

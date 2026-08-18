@@ -240,7 +240,7 @@
 	<key>confirm.titleDryRun</key>
 	<dict>
 		<key>NSStringLocalizedFormatKey</key>
-		<string>Tørrkjøring: frigjøre %1$@ fra %2$#@locations@?</string>
+		<string>Dry run: frigjøre %1$@ fra %2$#@locations@?</string>
 		<key>locations</key>
 		<dict>
 			<key>NSStringFormatSpecTypeKey</key>
@@ -342,6 +342,22 @@
 			<string>%lld oppføring</string>
 			<key>other</key>
 			<string>%lld oppføringer</string>
+		</dict>
+	</dict>
+	<key>toolbar.projectsSubtitle</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%1$#@projects@ · %2$@</string>
+		<key>projects</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>one</key>
+			<string>%lld prosjekt</string>
+			<key>other</key>
+			<string>%lld prosjekter</string>
 		</dict>
 	</dict>
 </dict>

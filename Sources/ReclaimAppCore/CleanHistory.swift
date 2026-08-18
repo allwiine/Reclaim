@@ -8,6 +8,7 @@
 //
 
 import Foundation
+import os
 import ReclaimKit
 
 /// One target cleaned in a pass, for the history detail pane.
@@ -86,7 +87,8 @@ public struct CleanHistoryEntry: Sendable, Equatable, Codable, Identifiable {
 }
 
 /// Loads and saves the history file. Synchronous by design — the file
-/// is tiny — but calls happen off the main actor via `AppModel`.
+/// is tiny. `AppModel` loads it once at init (on the main actor) and
+/// saves off the main actor after each pass.
 public struct CleanHistoryStore: Sendable {
     public let fileURL: URL
 
@@ -101,23 +103,62 @@ public struct CleanHistoryStore: Sendable {
         self.fileURL = fileURL
     }
 
-    /// Stored entries, oldest first. A missing or corrupt file reads
-    /// as empty history — never an error surfaced to the UI.
+    /// Stored entries, newest first at rest; `AppModel` keeps them so.
+    /// A missing or unreadable file reads as empty history — never an
+    /// error surfaced to the UI. Decoding is per-entry lossy: one
+    /// malformed record is dropped rather than discarding the whole
+    /// history (which the next save would then overwrite for good).
     public func load() -> [CleanHistoryEntry] {
         guard let data = try? Data(contentsOf: fileURL) else { return [] }
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
-        return (try? decoder.decode([CleanHistoryEntry].self, from: data)) ?? []
+        guard let lenient = try? decoder.decode([Lenient<CleanHistoryEntry>].self, from: data) else {
+            Log.history.error("Clean history is not a decodable array; ignoring it")
+            return []
+        }
+        let entries = lenient.compactMap(\.value)
+        if entries.count != lenient.count {
+            Log.history.error(
+                "Dropped \(lenient.count - entries.count, privacy: .public) unreadable history entries"
+            )
+        }
+        return entries
     }
 
     public func save(_ entries: [CleanHistoryEntry]) {
         let encoder = JSONEncoder()
         encoder.dateEncodingStrategy = .iso8601
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
-        guard let data = try? encoder.encode(entries) else { return }
-        try? FileManager.default.createDirectory(
-            at: fileURL.deletingLastPathComponent(), withIntermediateDirectories: true
-        )
-        try? data.write(to: fileURL, options: .atomic)
+        let data: Data
+        do {
+            data = try encoder.encode(entries)
+        } catch {
+            Log.history.error(
+                "Failed to encode clean history: \(error.localizedDescription, privacy: .public)"
+            )
+            return
+        }
+        do {
+            try FileManager.default.createDirectory(
+                at: fileURL.deletingLastPathComponent(), withIntermediateDirectories: true
+            )
+            try data.write(to: fileURL, options: .atomic)
+        } catch {
+            // Persistence is best-effort — a full disk or a revoked
+            // permission must not crash a clean pass — but a silent stop
+            // hides real data loss, so record why.
+            Log.history.error(
+                "Failed to write clean history: \(error.localizedDescription, privacy: .public)"
+            )
+        }
+    }
+}
+
+/// Decodes to `nil` instead of throwing when the wrapped value can't be
+/// decoded, so one bad element never fails the whole array.
+private struct Lenient<Wrapped: Decodable>: Decodable {
+    let value: Wrapped?
+    init(from decoder: any Decoder) throws {
+        value = try? Wrapped(from: decoder)
     }
 }

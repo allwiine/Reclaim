@@ -18,6 +18,7 @@ struct AppCoreLocalizationTests {
     /// Every key AppModel looks up in this module's catalogues.
     static let stringKeys = [
         "clean.failureLine",
+        "clean.pathChanged",
         "projects.artifactLabel",
     ]
 

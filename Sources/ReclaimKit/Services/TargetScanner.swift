@@ -40,16 +40,25 @@ public struct TargetScanner: Sendable {
             let cleanupPaths = try Self.cleanupPaths(for: target.strategy, roots: roots)
             // For removeContents the deletion set (the children) is what
             // gets measured, so the size shown is exactly what cleaning
-            // this snapshot would remove.
-            let measured: [URL] =
-                if case .removeContents = target.strategy { cleanupPaths } else { roots }
-            let measurement = try sizer.measure(measured)
+            // this snapshot would remove. Those children are promoted to
+            // measurement roots, so a single locked one must count as
+            // "unreadable", not fail the whole target — the cache root's
+            // own unreadability is already caught when listing it above.
+            let isRemoveContents: Bool
+            if case .removeContents = target.strategy { isRemoveContents = true }
+            else { isRemoveContents = false }
+            let measured: [URL] = isRemoveContents ? cleanupPaths : roots
+            let measurement = try sizer.measure(
+                measured, failOnUnreadableRoot: !isRemoveContents
+            )
             Log.scanner.debug("Scanned \(target.id, privacy: .public): \(measurement.bytes) bytes in \(measurement.fileCount) files")
             return .measured(measurement, resolvedPaths: roots, cleanupPaths: cleanupPaths)
         } catch is CancellationError {
             return .idle
         } catch {
-            Log.scanner.error("Scan failed for \(target.id, privacy: .public): \(error.localizedDescription, privacy: .public)")
+            // The id is a fixed catalogue string (public), but the error
+            // description can carry a filesystem path, so keep it private.
+            Log.scanner.error("Scan failed for \(target.id, privacy: .public): \(error.localizedDescription, privacy: .private)")
             return .failed(message: error.localizedDescription)
         }
     }

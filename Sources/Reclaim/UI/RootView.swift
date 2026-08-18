@@ -62,6 +62,10 @@ struct RootView: View {
                 .frame(maxWidth: .infinity)
         }
         .background(Theme.backgroundDeep)
+        // With the confirmation up, the dimmed background is inert to the
+        // pointer but would still take keyboard focus and VoiceOver
+        // navigation — hide it so the dialog is genuinely modal.
+        .accessibilityHidden(confirmScope != nil)
         .overlay {
             if let scope = confirmScope {
                 ConfirmSheet(
@@ -77,6 +81,7 @@ struct RootView: View {
                         model.cleanSelected(scope: cleanScope)
                     }
                 )
+                .accessibilityAddTraits(.isModal)
                 .transition(.opacity)
                 .zIndex(1)
                 // While the sheet is up the background scan defers, so
@@ -249,7 +254,9 @@ struct RootView: View {
                     destination = .allFindings
                 },
                 reclaimSafe: {
-                    model.selectAllSafe()
+                    // Confirm exactly the safe items the button names —
+                    // not whatever the user had ticked earlier.
+                    model.selectOnlySafe()
                     confirmScope = .selection
                 },
                 openProjects: {

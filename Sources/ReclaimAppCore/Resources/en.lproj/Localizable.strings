@@ -4,4 +4,5 @@
 */
 
 "clean.failureLine" = "%1$@ — %2$@";
+"clean.pathChanged" = "Its location changed since the scan, so it was left untouched.";
 "projects.artifactLabel" = "%1$@ in %2$@";

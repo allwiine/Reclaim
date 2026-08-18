@@ -180,6 +180,15 @@ enum BulkDirectoryReader {
     /// Internal (not `private`) so tests can pin this engine against the
     /// getattrlistbulk path directly — a test seam only.
     static func fallbackListing(atPath path: String) -> BulkDirectoryListing? {
+        // Mirror the bulk path's O_NOFOLLOW refusal explicitly: never
+        // descend through a symlinked root. (URL enumeration also refuses
+        // it today, but stating the invariant here keeps it from resting
+        // on inherited Foundation behavior.)
+        var rootStatus = stat()
+        if lstat(path, &rootStatus) == 0,
+           (rootStatus.st_mode & S_IFMT) == S_IFLNK {
+            return nil
+        }
         let url = URL(filePath: path)
         let keys: Set<URLResourceKey> = [
             .isDirectoryKey, .isSymbolicLinkKey, .isRegularFileKey,

@@ -123,20 +123,30 @@ struct LocalizationLintTests {
 
     @Test("The view layer never uses literal-key SwiftUI inits")
     func noLiteralUIStrings() throws {
-        let componentInit = /(?:^|[^A-Za-z0-9_])(?:Text|Button|Toggle|TextField|Label|SectionLabel|MenuBarExtra)\(\s*"/
-        let modifierInit = /\.(?:help|accessibilityLabel|navigationTitle|confirmationDialog)\(\s*"[^"]/
+        // `\s*` spans newlines in Swift Regex, so scanning the whole
+        // (comment/preview-stripped) source — rather than line by line —
+        // also catches component/modifier calls whose literal sits on the
+        // following line.
+        let componentInit = /(?:^|[^A-Za-z0-9_])(?:Text|Button|Toggle|TextField|Label|SectionLabel|MenuBarExtra|Section|Picker|Menu|Link|Stepper|NavigationLink|ProgressView|LabeledContent|ContentUnavailableView|GroupBox)\(\s*"/
+        let modifierInit = /\.(?:help|accessibilityLabel|accessibilityHint|accessibilityValue|navigationTitle|navigationSubtitle|confirmationDialog|alert|searchable|badge)\(\s*"[^"]/
+        // `Text(verbatim:)` is legitimate for punctuation ("—", ": "),
+        // but a literal carrying two or more letters is an untranslated
+        // phrase escaping both catalogues.
+        let verbatimText = /\bText\(\s*verbatim:\s*"[^"]*[A-Za-z]{2}/
         for file in try swiftFiles(inModule: "Reclaim") {
             let source = try lintableSource(of: file)
-            for (line, text) in source.components(separatedBy: .newlines).enumerated() {
-                #expect(
-                    text.firstMatch(of: componentInit) == nil,
-                    "\(file.lastPathComponent):\(line + 1) passes a literal to a SwiftUI component: \(text.trimmingCharacters(in: .whitespaces))"
-                )
-                #expect(
-                    text.firstMatch(of: modifierInit) == nil,
-                    "\(file.lastPathComponent):\(line + 1) passes a literal to a SwiftUI modifier: \(text.trimmingCharacters(in: .whitespaces))"
-                )
-            }
+            record(matchesOf: componentInit, in: source, file: file, kind: "a literal to a SwiftUI component")
+            record(matchesOf: modifierInit, in: source, file: file, kind: "a literal to a SwiftUI modifier")
+            record(matchesOf: verbatimText, in: source, file: file, kind: "an English literal via Text(verbatim:)")
+        }
+    }
+
+    private func record(
+        matchesOf pattern: some RegexComponent, in source: String, file: URL, kind: String
+    ) {
+        for match in source.matches(of: pattern) {
+            let line = source[..<match.range.lowerBound].filter { $0 == "\n" }.count + 1
+            Issue.record("\(file.lastPathComponent):\(line) passes \(kind)")
         }
     }
 }

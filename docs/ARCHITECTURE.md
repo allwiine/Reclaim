@@ -10,7 +10,7 @@ Reclaim is deliberately small and layered. The core insight is that a storage cl
 ┌──────────────────────────────────────────────────────────┐
 │ Reclaim (executable target — SwiftUI views only)         │
 │                                                          │
-│  ReclaimApp ── RootView ── Sidebar / Overview / Category │
+│  ReclaimApp ── RootView ── Sidebar / Overview / Browser  │
 └────────────────────┼─────────────────────────────────────┘
                      │ observes
 ┌────────────────────▼─────────────────────────────────────┐
@@ -18,25 +18,27 @@ Reclaim is deliberately small and layered. The core insight is that a storage cl
 │                                                          │
 │  AppModel (@MainActor @Observable, owns all state,       │
 │            injectable Scan/CleanExecutor seams)          │
-│  CleanSummary                                            │
+│  CleanSummary · CleanHistory                             │
 └────────────────────┼─────────────────────────────────────┘
                      │ calls into (off the main actor)
 ┌────────────────────▼─────────────────────────────────────┐
 │ ReclaimKit (library target — no UI imports)              │
 │                                                          │
 │  Domain    CleanupTarget · TargetRegistry · SafetyLevel  │
-│            CleanupStrategy · TargetStatus                │
+│            CleanupStrategy · TargetStatus · ToolCategory │
 │            ExclusionRegistry · ArtifactCatalog           │
 │            DiscoveredProject                             │
 │  Services  PathResolver → DiskSizer → TargetScanner      │
+│            BreakdownSizer · VolumeSpace                  │
 │            CleanupEngine (FileRemoving protocol)         │
 │            FullDiskAccessProbe                           │
 │            BulkDirectoryReader → ProjectDiscovery        │
+│            GitActivityReader                             │
 │  Support   Log (os.Logger)                               │
 └──────────────────────────────────────────────────────────┘
 ```
 
-**Dependency rule:** `Reclaim` imports `ReclaimAppCore` imports `ReclaimKit`; never the reverse. `ReclaimKit` imports only Foundation and os; `ReclaimAppCore` adds Observation. Both compile without AppKit/SwiftUI, which is what makes the entire non-view codebase fast to unit-test.
+**Dependency rule:** `Reclaim` imports `ReclaimAppCore` imports `ReclaimKit`; never the reverse. `ReclaimKit` imports Foundation, os, plus `Synchronization` (`Mutex` in `CleanupEngine`) and `Darwin` in exactly one file (`BulkDirectoryReader`); `ReclaimAppCore` adds Observation. Both compile without AppKit/SwiftUI, which is what makes the entire non-view codebase fast to unit-test.
 
 ## Data flow
 
@@ -69,18 +71,25 @@ The package compiles in Swift 6 language mode (strict data-race safety). Isolati
 
 ## Testing strategy
 
-Swift Testing (`swift test`), two suites:
+Swift Testing (`swift test`), three test targets:
 
 `Tests/ReclaimKitTests`:
 
-- **RegistryTests** — the catalogue's contract: unique ids, pattern shape, pathless ⇒ command, related-app declarations, and the guarantee that Claude Code auth/settings/plugins can never be registered. This is what makes "just add a struct" safe.
-- **PathResolverTests / DiskSizerTests / TargetScannerTests / FullDiskAccessProbeTests** — behavior against real temporary directories via a `withTemporaryDirectory` fixture, including chmod-based permission fixtures.
-- **CleanupEngineTests** — engine logic against a `Mutex`-protected mock `FileRemoving`, so no test can ever touch the real Trash. The protocol seam exists precisely for this. Command execution runs real (harmless) processes, including a stderr-flood regression test.
+- **RegistryTests / ExclusionRegistryTests** — the catalogue's contract: unique ids, pattern shape, pathless ⇒ command, related-app declarations, and the guarantee that structurally excluded paths (Claude Code auth/settings/plugins among them) can never be registered. This is what makes "just add a struct" safe.
+- **PathResolverTests / DiskSizerTests / BreakdownSizerTests / VolumeSpaceTests / TargetScannerTests / FullDiskAccessProbeTests** — behavior against real temporary directories via a `withTemporaryDirectory` fixture, including chmod-based permission fixtures.
+- **BulkDirectoryReaderTests / ProjectDiscoveryTests / GitActivityReaderTests / ArtifactCatalogTests** — dev-folder discovery: the bulk directory walk, project detection, git activity reading, and the artifact catalogue's conventions.
+- **CleanupEngineTests / CleanupEngineRemoveTests** — engine logic against a `Mutex`-protected mock `FileRemoving`, so no test can ever touch the real Trash. The protocol seam exists precisely for this. Command execution runs real (harmless) processes, including a stderr-flood regression test.
+- **LocalizationTests** — parity and coverage of the Kit's `{en,nb}.lproj` catalogues.
 
 `Tests/ReclaimAppCoreTests`:
 
-- **AppModelTests** — scan lifecycle (including cancellation → partial), selection rules, cleanup-path plumbing, summary math, disposal snapshotting — all against stubbed `ScanExecutor`/`CleanExecutor` closures.
-- **CleanSummaryTests** — alert wording, including inflection and the stopped/nothing-cleaned cases.
+- **AppModelTests / AppModelProjectTests** — scan lifecycle (including cancellation → partial), selection rules, cleanup-path plumbing, summary math, disposal snapshotting, dev-folder project orchestration — all against stubbed `ScanExecutor`/`CleanExecutor` closures.
+- **CleanHistoryTests** — the persisted clean-history store.
+- **LocalizationTests** — parity and coverage of the app-core catalogues.
+
+`Tests/LocalizationLintTests`:
+
+- **LocalizationLintTests** — a source-tree lint: every `localized(…)` reference exists in both of its module's catalogues, en/nb key sets are identical, and the view layer never uses literal-key SwiftUI inits (`Text("some.key")`).
 
 UI is kept logic-free (views derive everything from `AppModel`), so model-level tests give high coverage without UI tests; add XCUITest via the XcodeGen project if flows grow.
 
@@ -88,12 +97,12 @@ UI is kept logic-free (views derive everything from `AppModel`), so model-level 
 
 | To add… | Touch… |
 | --- | --- |
-| A new cleanable tool | One `CleanupTarget` in `TargetRegistry` |
+| A new cleanable tool | One `CleanupTarget` in `TargetRegistry` + its `target.<id>.name`/`.summary` keys in both Kit catalogues |
 | A protected sibling path (credentials, settings) | One `StructuralExclusion` in `ExclusionRegistry` + reason keys in both Kit catalogues |
 | A running-app warning for it | `relatedAppBundleIDs` on the target |
 | A command tool whose presence needs proving | `availabilityProbePattern` on its `CommandSpec` |
-| A new category | One case in `ToolCategory` (title + SF Symbol) |
-| A new cleanup mechanism | One case in `CleanupStrategy` + one `switch` arm in `CleanupEngine` |
+| A new category | One case in `ToolCategory` (title + SF Symbol) + its `category.<id>.title` keys in both Kit catalogues |
+| A new cleanup mechanism | One case in `CleanupStrategy` + one `switch` arm in `CleanupEngine`, plus the `TargetScanner.cleanupPaths(for:)` and `CleanupStrategy.isCleanable` switches |
 | A different disposal (e.g. secure erase) | One case in `Disposal` + `CleanupEngine.dispose` |
 | A new project artifact kind | One `ArtifactKind` in `ArtifactCatalog` + its name keys in both Kit catalogues |
 | Scheduled scans, menu-bar mode, per-item drill-down | New UI over the same `AppModel`/`ReclaimKit` APIs |
@@ -104,6 +113,6 @@ UI is kept logic-free (views derive everything from `AppModel`), so model-level 
 - **Clean the scan-time snapshot, not re-resolved or re-listed paths.** Globs could match new items between scan and clean, and a directory listed at clean time could contain children created after the scan. The scanner therefore snapshots the exact deletion set (children for `.removeContents`), measures that snapshot, and the engine disposes only those URLs — the user must only ever lose what they saw.
 - **`removeContents` over `removePaths` for caches.** Many tools assume their cache root exists; emptying it is the polite operation.
 - **Allocated size, not logical size.** Sparse files and APFS clones make logical size a lie; allocated size is what deletion actually frees.
-- **`import Darwin` is allowed in exactly one file** (`BulkDirectoryReader.swift`) because `getattrlistbulk` has no Foundation equivalent; everything else in ReclaimKit stays Foundation + os.
+- **`import Darwin` is allowed in exactly one file** (`BulkDirectoryReader.swift`) because `getattrlistbulk` has no Foundation equivalent; everything else in ReclaimKit stays Foundation + os, plus `Synchronization` for `CleanupEngine`'s `Mutex`.
 - **No sandbox.** The product's job is reading arbitrary cache locations under `$HOME`; sandboxing would reduce it to a folder-picker ritual. Consequence: no App Store, hardened runtime + notarization for direct distribution.
 - **SPM-first project.** `open Package.swift` runs the app with zero setup; XcodeGen (`project.yml`) is the additive path to a distributable bundle. No `.xcodeproj` churn in code review.

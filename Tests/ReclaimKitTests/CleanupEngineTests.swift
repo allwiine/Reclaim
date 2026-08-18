@@ -77,7 +77,7 @@ struct CleanupEngineTests {
         // precisely those — never list the directory again at clean time.
         let outcome = engine.clean(
             makeTarget(strategy: .removeContents),
-            resolvedPaths: [childA, childB],
+            cleanupPaths: [childA, childB],
             disposal: .trash
         )
 
@@ -95,7 +95,7 @@ struct CleanupEngineTests {
 
         let outcome = engine.clean(
             makeTarget(strategy: .removePaths),
-            resolvedPaths: [cacheRoot],
+            cleanupPaths: [cacheRoot],
             disposal: .trash
         )
 
@@ -110,7 +110,7 @@ struct CleanupEngineTests {
 
         _ = engine.clean(
             makeTarget(strategy: .removeContents),
-            resolvedPaths: [childA],
+            cleanupPaths: [childA],
             disposal: .delete
         )
 
@@ -125,7 +125,7 @@ struct CleanupEngineTests {
 
         let outcome = engine.clean(
             makeTarget(strategy: .removeContents),
-            resolvedPaths: [childA, childB],
+            cleanupPaths: [childA, childB],
             disposal: .trash
         )
 
@@ -142,7 +142,7 @@ struct CleanupEngineTests {
 
         let outcome = engine.clean(
             makeTarget(strategy: .manual(instructions: "Use the tool itself.")),
-            resolvedPaths: [cacheRoot],
+            cleanupPaths: [cacheRoot],
             disposal: .trash
         )
 
@@ -162,7 +162,7 @@ struct CleanupEngineTests {
 
         let cleanOutcome = engine.clean(
             makeTarget(strategy: .removeContents),
-            resolvedPaths: [protected, ordinary],
+            cleanupPaths: [protected, ordinary],
             disposal: .trash
         )
 
@@ -178,6 +178,39 @@ struct CleanupEngineTests {
         #expect(removeOutcome.removedItems == 0)
         #expect(remover.deleted.isEmpty)
         #expect(removeOutcome.failures.count == 1)
+    }
+
+    @Test("A path resolving through a symlink into an existing protected dir is refused")
+    func symlinkRedirectIntoProtectedIsRefused() throws {
+        try withTemporaryDirectory { root in
+            let remover = MockRemover()
+            let engine = CleanupEngine(remover: remover)
+            // Point the symlink at a real, protected directory that
+            // exists everywhere: ~/Library/Keychains is created before
+            // the link so `resolvingSymlinksInPath` actually resolves it
+            // (it leaves dangling links unresolved, which is why the
+            // scan-time pin in AppModel — not this backstop — is the
+            // primary defence; see AppModelTests).
+            let protectedDir = FileManager.default.homeDirectoryForCurrentUser
+                .appending(path: "Library/Keychains")
+            try? FileManager.default.createDirectory(
+                at: protectedDir, withIntermediateDirectories: true
+            )
+            guard FileManager.default.fileExists(atPath: protectedDir.path) else { return }
+
+            let link = root.appending(path: "cache")
+            try FileManager.default.createSymbolicLink(at: link, withDestinationURL: protectedDir)
+            let redirected = link.appending(path: "login.keychain-db")
+
+            let outcome = engine.clean(
+                makeTarget(strategy: .removeContents),
+                cleanupPaths: [redirected],
+                disposal: .trash
+            )
+            #expect(outcome.removedItems == 0)
+            #expect(remover.trashed.isEmpty)
+            #expect(outcome.failures.count == 1)
+        }
     }
 
 }
@@ -203,7 +236,7 @@ struct CommandExecutionTests {
 
         let outcome = engine.clean(
             makeTarget(strategy: .command(spec)),
-            resolvedPaths: [],
+            cleanupPaths: [],
             disposal: .trash
         )
 
@@ -223,7 +256,7 @@ struct CommandExecutionTests {
 
         let outcome = engine.clean(
             makeTarget(strategy: .command(spec)),
-            resolvedPaths: [],
+            cleanupPaths: [],
             disposal: .trash
         )
 
@@ -245,7 +278,7 @@ struct CommandExecutionTests {
 
         let outcome = engine.clean(
             makeTarget(strategy: .command(spec)),
-            resolvedPaths: [],
+            cleanupPaths: [],
             disposal: .trash
         )
 
@@ -265,7 +298,7 @@ struct CommandExecutionTests {
         let start = Date.now
         let outcome = engine.clean(
             makeTarget(strategy: .command(spec)),
-            resolvedPaths: [],
+            cleanupPaths: [],
             disposal: .trash
         )
 

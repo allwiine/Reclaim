@@ -12,8 +12,39 @@ import ReclaimAppCore
 import ReclaimKit
 import SwiftUI
 
+/// Bridges the single ``AppModel`` to the app delegate, which SwiftUI
+/// instantiates on its own. Weak so it never keeps the model alive past
+/// the `@State` that owns it.
+@MainActor
+enum ReclaimTermination {
+    static weak var model: AppModel?
+}
+
+/// Guards against quitting mid-clean. Left to itself, `NSApp.terminate`
+/// (⌘Q, the menu bar's Quit, the Dock) would abandon an in-flight pass:
+/// a permanent delete could be interrupted half-way and every removal
+/// already made would go unrecorded. Instead we defer termination,
+/// unwind the pass (the in-flight target finishes, nothing is left
+/// half-cleaned), persist the history, then let the app exit.
+final class ReclaimAppDelegate: NSObject, NSApplicationDelegate {
+    func applicationShouldTerminate(
+        _ sender: NSApplication
+    ) -> NSApplication.TerminateReply {
+        guard let model = ReclaimTermination.model, model.isCleaning else {
+            return .terminateNow
+        }
+        Log.app.info("Deferring termination to finish the clean pass")
+        Task {
+            await model.prepareForTermination()
+            NSApp.reply(toApplicationShouldTerminate: true)
+        }
+        return .terminateLater
+    }
+}
+
 @main
 struct ReclaimApp: App {
+    @NSApplicationDelegateAdaptor(ReclaimAppDelegate.self) private var appDelegate
     @State private var model: AppModel
 
     init() {
@@ -23,6 +54,9 @@ struct ReclaimApp: App {
         Log.app.info("Reclaim launched")
         let model = AppModel()
         _model = State(initialValue: model)
+        // Hand the delegate the one model so it can drain a clean pass
+        // before the process exits.
+        ReclaimTermination.model = model
         // The weekly-scan loop belongs to the app, not a window: it must
         // keep running when the main window is closed and only the menu
         // bar extra remains.

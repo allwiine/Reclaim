@@ -89,14 +89,14 @@ public struct CleanupEngine: Sendable {
     ///
     /// - Parameters:
     ///   - target: The registry entry being cleaned.
-    ///   - resolvedPaths: The exact scan-time cleanup paths
+    ///   - cleanupPaths: The exact scan-time cleanup paths
     ///     (``TargetStatus/cleanupPaths``). The engine never lists
     ///     directories itself, so nothing created after the scan —
     ///     which the user never saw or approved — can be deleted.
     ///   - disposal: Trash (default, recoverable) or permanent delete.
     public func clean(
         _ target: CleanupTarget,
-        resolvedPaths: [URL],
+        cleanupPaths: [URL],
         disposal: Disposal
     ) -> CleanOutcome {
         var outcome = CleanOutcome()
@@ -105,7 +105,7 @@ public struct CleanupEngine: Sendable {
         case .removeContents, .removePaths:
             // Identical here by design: the strategies differ only in
             // how the scanner derives the paths (children vs roots).
-            for path in resolvedPaths {
+            for path in cleanupPaths {
                 dispose(path, disposal: disposal, outcome: &outcome)
             }
 
@@ -148,7 +148,17 @@ public struct CleanupEngine: Sendable {
         // that reaches a structural exclusion, but the promise in
         // Settings ("never touched") is enforced here too, so no
         // future code path can dispose one by accident.
-        if ExclusionRegistry.isProtected(url) {
+        //
+        // The check runs on both the literal path and its
+        // symlink-resolved form. `trashItem`/`removeItem` follow
+        // *intermediate* symlink components during path resolution, so
+        // a cache directory swapped for a symlink into a protected
+        // location after the scan would otherwise redirect the
+        // deletion. The orchestration layer additionally pins every
+        // cleanup path to its scan-time real root; this is the last
+        // line of defence for anything the layer above missed.
+        if ExclusionRegistry.isProtected(url)
+            || ExclusionRegistry.isProtected(url.resolvingSymlinksInPath()) {
             outcome.failures.append(CleanFailure(
                 path: url.path,
                 message: localized(
@@ -180,74 +190,92 @@ public struct CleanupEngine: Sendable {
         process.standardOutput = FileHandle.nullDevice
         process.standardError = stderrPipe
 
+        // Completion is edge-triggered, not polled: the termination
+        // handler signals as soon as the *direct* child exits.
+        let exited = DispatchSemaphore(value: 0)
+        process.terminationHandler = { _ in exited.signal() }
+
         do {
             try process.run()
-
-            // Watchdog: terminates (then kills) the child at the
-            // deadline. Killing it also closes its stderr, so the
-            // blocking drain below always reaches EOF.
-            let timedOut = Mutex(false)
-            let deadline = Date.now.addingTimeInterval(commandTimeout)
-            Thread.detachNewThread {
-                while process.isRunning, Date.now < deadline {
-                    Thread.sleep(forTimeInterval: 0.05)
-                }
-                guard process.isRunning else { return }
-                timedOut.withLock { $0 = true }
-                process.terminate()
-                let killDeadline = Date.now.addingTimeInterval(5)
-                while process.isRunning, Date.now < killDeadline {
-                    Thread.sleep(forTimeInterval: 0.05)
-                }
-                if process.isRunning {
-                    kill(process.processIdentifier, SIGKILL)
-                }
-            }
-
-            // Drain stderr to EOF *before* waiting: a child that writes
-            // more than the pipe buffer (~64 KB) would otherwise block on
-            // write while we block in waitUntilExit — a deadlock.
-            let stderrData = stderrPipe.fileHandleForReading.readDataToEndOfFile()
-            process.waitUntilExit()
-
-            if timedOut.withLock({ $0 }) {
-                let limit = Duration.seconds(commandTimeout)
-                    .formatted(.units(allowed: [.minutes, .seconds], width: .wide))
-                outcome.failures.append(CleanFailure(
-                    path: spec.displayCommand,
-                    message: localized(
-                        "engine.commandTimedOut",
-                        defaultValue: "Stopped after \(limit) — the command never finished."
-                    )
-                ))
-            } else if process.terminationStatus == 0 {
-                outcome.removedItems += 1
-            } else {
-                let stderrText = String(data: stderrData, encoding: .utf8)?
-                    .trimmingCharacters(in: .whitespacesAndNewlines)
-                // Tool output is quoted verbatim (it may be in any
-                // language), but framed by a localized label so mixed-
-                // language failure lines read as intentional quoting.
-                let message = stderrText.flatMap { $0.isEmpty ? nil : $0 }
-                    .map {
-                        localized(
-                            "engine.toolReported",
-                            defaultValue: "The tool reported: “\($0)”"
-                        )
-                    }
-                    ?? localized(
-                        "engine.commandExitStatus",
-                        defaultValue: "Exited with status \(process.terminationStatus)."
-                    )
-                outcome.failures.append(CleanFailure(
-                    path: spec.displayCommand,
-                    message: message
-                ))
-            }
         } catch {
             outcome.failures.append(
                 CleanFailure(path: spec.displayCommand, message: error.localizedDescription)
             )
+            return
+        }
+
+        // Close the parent's copy of the write end so the drain reaches
+        // EOF once the child (and any process that inherited it) closes
+        // it. The child kept its own dup at spawn.
+        try? stderrPipe.fileHandleForWriting.close()
+
+        // Drain stderr on a detached thread so a child that writes more
+        // than the pipe buffer (~64 KB) never blocks on write. It is
+        // deliberately *not* joined: a child that leaks the write end to
+        // a surviving grandchild would keep this at EOF forever, and the
+        // clean pass must not hang on that — we wait for the child, not
+        // for the pipe. `readerFinished` lets us collect the full output
+        // in the normal case without an unbounded wait in the leaked one.
+        let collected = Mutex(Data())
+        let readerFinished = DispatchSemaphore(value: 0)
+        let readEnd = stderrPipe.fileHandleForReading
+        Thread.detachNewThread {
+            let data = readEnd.readDataToEndOfFile()
+            collected.withLock { $0.append(data) }
+            readerFinished.signal()
+        }
+
+        // Wait for the child with a hard deadline. A hung tool must not
+        // pin the pass forever — the UI's Stop only takes effect between
+        // targets, so the in-flight one is bounded here.
+        var timedOut = false
+        if exited.wait(timeout: .now() + commandTimeout) == .timedOut {
+            timedOut = true
+            process.terminate()
+            if exited.wait(timeout: .now() + 5) == .timedOut {
+                kill(process.processIdentifier, SIGKILL)
+                exited.wait()
+            }
+        }
+        // The child is gone; in the normal case its stderr is at EOF, so
+        // the reader flushes immediately. Bound the wait so a leaked
+        // grandchild pipe costs at most a moment of best-effort output.
+        _ = readerFinished.wait(timeout: .now() + 2)
+        let stderrData = collected.withLock { $0 }
+
+        if timedOut {
+            let limit = Duration.seconds(commandTimeout)
+                .formatted(.units(allowed: [.minutes, .seconds], width: .wide))
+            outcome.failures.append(CleanFailure(
+                path: spec.displayCommand,
+                message: localized(
+                    "engine.commandTimedOut",
+                    defaultValue: "Stopped after \(limit) — the command never finished."
+                )
+            ))
+        } else if process.terminationStatus == 0 {
+            outcome.removedItems += 1
+        } else {
+            let stderrText = String(data: stderrData, encoding: .utf8)?
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            // Tool output is quoted verbatim (it may be in any
+            // language), but framed by a localized label so mixed-
+            // language failure lines read as intentional quoting.
+            let message = stderrText.flatMap { $0.isEmpty ? nil : $0 }
+                .map {
+                    localized(
+                        "engine.toolReported",
+                        defaultValue: "The tool reported: “\($0)”"
+                    )
+                }
+                ?? localized(
+                    "engine.commandExitStatus",
+                    defaultValue: "Exited with status \(process.terminationStatus)."
+                )
+            outcome.failures.append(CleanFailure(
+                path: spec.displayCommand,
+                message: message
+            ))
         }
     }
 }

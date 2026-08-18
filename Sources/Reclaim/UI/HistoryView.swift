@@ -105,7 +105,7 @@ struct HistoryView: View {
             VStack(alignment: .leading, spacing: 0) {
                 HStack(alignment: .bottom, spacing: 24) {
                     VStack(alignment: .leading, spacing: 6) {
-                        SectionLabel(localized("overview.reclaimedAllTime", defaultValue: "Reclaimed all time"))
+                        SectionLabel(localized("overview.reclaimedAllTime", defaultValue: "Reclaimed (all time)"))
                         HStack(alignment: .firstTextBaseline, spacing: 6) {
                             Text(model.reclaimedAllTimeBytes.byteParts.value)
                                 .font(Theme.heroNumber(34))
