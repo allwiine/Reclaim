@@ -177,17 +177,17 @@ struct OverviewView: View {
                             localized("overview.reclaimSafeButton", defaultValue: "Reclaim safe space"),
                             action: reclaimSafe
                         )
-                        .buttonStyle(.rcPrimary)
+                        .rcPrimary()
                     } else {
                         Button(localized("action.scanAgain", defaultValue: "Scan again")) {
                             model.scanAll()
                         }
-                        .buttonStyle(.rcPrimary)
+                        .rcPrimary()
                     }
                     Button(localized("overview.reviewEverythingButton", defaultValue: "Review everything")) {
                         reviewEverything()
                     }
-                    .buttonStyle(.rcSecondary)
+                    .rcSecondary()
                 }
                 .padding(.top, 18)
             }
@@ -723,7 +723,7 @@ struct FullDiskAccessBanner: View {
             Button(localized("fda.openSettingsButton", defaultValue: "Open Privacy Settings…")) {
                 NSWorkspace.shared.open(PrivacyLinks.fullDiskAccess)
             }
-            .buttonStyle(.rcSecondary)
+            .rcSecondary()
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 10)

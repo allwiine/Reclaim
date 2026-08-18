@@ -140,7 +140,7 @@ struct HistoryView: View {
                     Button(localized("history.clearButton", defaultValue: "Clear History…")) {
                         isConfirmingClear = true
                     }
-                    .buttonStyle(.rcSecondary)
+                    .rcSecondary()
                 }
                 .padding(.top, 14)
                 .entrance(appeared, delay: 0.12)

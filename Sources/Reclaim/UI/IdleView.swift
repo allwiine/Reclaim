@@ -73,7 +73,7 @@ struct IdleView: View {
                 Button(localized("idle.scanButton", defaultValue: "Scan this Mac")) {
                     model.scanAll()
                 }
-                .buttonStyle(.rcPrimaryProminent)
+                .rcPrimaryProminent()
                 .keyboardShortcut(.defaultAction)
 
                 Text(localized(
@@ -265,7 +265,7 @@ struct IdleView: View {
                         model.addDevRoot(url)
                     }
                 }
-                .buttonStyle(.rcSecondary)
+                .rcSecondary()
             } else {
                 StripedPlaceholder()
                     .frame(width: 34, height: 4)

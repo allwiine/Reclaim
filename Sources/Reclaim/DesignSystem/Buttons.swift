@@ -2,118 +2,42 @@
 //  Buttons.swift
 //  Reclaim
 //
-//  The app's three button voices: accent-filled primary, quiet
-//  secondary, and the destructive confirmation. All share the same
-//  hover/press motion so controls feel like one family.
+//  The primary/secondary/danger buttons use macOS 26's native Liquid
+//  Glass styles directly at the call sites (`.glassProminent` tinted by
+//  the app's accent, `.glass`, and `.glassProminent` with a red tint).
+//  The one bespoke voice left is the small header-strip chip.
 //
 
 import SwiftUI
 
-/// Emerald call-to-action. `prominent` is the hero size; the compact
-/// variant fits toolbars and cards.
-struct PrimaryButtonStyle: ButtonStyle {
-    var prominent = false
-    @Environment(\.isEnabled) private var isEnabled
-    @State private var isHovered = false
+// MARK: - Button voices (native Liquid Glass, centralized here)
 
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .font(.system(size: prominent ? 14.5 : 13, weight: .semibold))
-            .foregroundStyle(Theme.onAccent)
-            .padding(.horizontal, prominent ? 22 : 15)
-            .frame(height: prominent ? 38 : 31)
-            .background(
-                Theme.accentGradient,
-                in: RoundedRectangle(cornerRadius: prominent ? 10 : Theme.radiusControl)
-            )
-            .overlay {
-                RoundedRectangle(cornerRadius: prominent ? 10 : Theme.radiusControl)
-                    .strokeBorder(.white.opacity(0.35), lineWidth: 0.5)
-                    .blendMode(.plusLighter)
-                    .mask(alignment: .top) {
-                        LinearGradient(
-                            colors: [.white, .clear],
-                            startPoint: .top, endPoint: .center
-                        )
-                    }
-            }
-            .shadow(
-                color: Theme.accent.opacity(isEnabled ? (prominent ? 0.45 : 0.3) : 0),
-                radius: prominent ? 12 : 6, y: prominent ? 8 : 3
-            )
-            .brightness(isHovered && isEnabled ? 0.05 : 0)
-            .saturation(isEnabled ? 1 : 0.2)
-            .opacity(isEnabled ? 1 : 0.45)
-            .scaleEffect(configuration.isPressed ? 0.97 : 1)
-            .animation(Theme.quick, value: configuration.isPressed)
-            .animation(Theme.quick, value: isHovered)
-            .onHover { isHovered = $0 }
+extension View {
+    /// Primary call-to-action: accent-tinted prominent Liquid Glass.
+    /// (The app sets its accent tint at the root, so this reads green;
+    /// the red danger voice overrides the tint locally.)
+    func rcPrimary() -> some View { buttonStyle(.glassProminent) }
+
+    /// Hero-sized primary (the idle "Scan this Mac" CTA).
+    func rcPrimaryProminent() -> some View {
+        buttonStyle(.glassProminent).controlSize(.large)
     }
-}
 
-/// Quiet, translucent counterpart to the primary button. `compact`
-/// matches the 26 pt toolbar controls.
-struct SecondaryButtonStyle: ButtonStyle {
-    var compact = false
-    @Environment(\.isEnabled) private var isEnabled
-    @State private var isHovered = false
-
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .font(.system(size: compact ? 12.5 : 13, weight: .medium))
-            .foregroundStyle(Theme.textPrimary)
-            .padding(.horizontal, compact ? 11 : 15)
-            .frame(height: compact ? 26 : 31)
-            .controlGlass(
-                cornerRadius: compact ? Theme.radiusChip : Theme.radiusControl,
-                fallback: Color.white.opacity(isHovered && isEnabled ? 0.13 : 0.08)
-            )
-            .overlay {
-                RoundedRectangle(cornerRadius: compact ? Theme.radiusChip : Theme.radiusControl)
-                    .strokeBorder(Theme.controlFill, lineWidth: 0.5)
-            }
-            .opacity(isEnabled ? 1 : 0.45)
-            .scaleEffect(configuration.isPressed ? 0.97 : 1)
-            .animation(Theme.quick, value: configuration.isPressed)
-            .animation(Theme.quick, value: isHovered)
-            .onHover { isHovered = $0 }
+    /// Toolbar-sized primary (the compact "Reclaim" action).
+    func rcPrimaryCompact() -> some View {
+        buttonStyle(.glassProminent).controlSize(.small)
     }
-}
 
-/// Red gradient for permanent-deletion confirmations.
-struct DangerButtonStyle: ButtonStyle {
-    @State private var isHovered = false
+    /// Secondary: clear Liquid Glass.
+    func rcSecondary() -> some View { buttonStyle(.glass) }
 
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .font(.system(size: 13, weight: .semibold))
-            .foregroundStyle(.white)
-            .padding(.horizontal, 15)
-            .frame(height: 30)
-            .background(
-                Theme.dangerGradient,
-                in: RoundedRectangle(cornerRadius: Theme.radiusControl)
-            )
-            .brightness(isHovered ? 0.06 : 0)
-            .scaleEffect(configuration.isPressed ? 0.97 : 1)
-            .animation(Theme.quick, value: configuration.isPressed)
-            .animation(Theme.quick, value: isHovered)
-            .onHover { isHovered = $0 }
+    /// Toolbar-sized secondary.
+    func rcSecondaryCompact() -> some View {
+        buttonStyle(.glass).controlSize(.small)
     }
-}
 
-extension ButtonStyle where Self == PrimaryButtonStyle {
-    static var rcPrimary: PrimaryButtonStyle { PrimaryButtonStyle() }
-    static var rcPrimaryProminent: PrimaryButtonStyle { PrimaryButtonStyle(prominent: true) }
-}
-
-extension ButtonStyle where Self == SecondaryButtonStyle {
-    static var rcSecondary: SecondaryButtonStyle { SecondaryButtonStyle() }
-    static var rcSecondaryCompact: SecondaryButtonStyle { SecondaryButtonStyle(compact: true) }
-}
-
-extension ButtonStyle where Self == DangerButtonStyle {
-    static var rcDanger: DangerButtonStyle { DangerButtonStyle() }
+    /// Permanent-deletion CTA: red-tinted prominent glass.
+    func rcDanger() -> some View { buttonStyle(.glassProminent).tint(.red) }
 }
 
 // MARK: - Strip chip
@@ -154,11 +78,12 @@ struct StripChipButtonStyle: ButtonStyle {
 
 #Preview("Buttons", traits: .sizeThatFitsLayout) {
     VStack(spacing: 16) {
-        Button("Scan this Mac") {}.buttonStyle(.rcPrimaryProminent)
-        Button("Reclaim 82.6 GB") {}.buttonStyle(.rcPrimary)
-        Button("Review everything") {}.buttonStyle(.rcSecondary)
-        Button("Delete Permanently") {}.buttonStyle(.rcDanger)
+        Button("Scan this Mac") {}.buttonStyle(.glassProminent).controlSize(.large)
+        Button("Reclaim 82.6 GB") {}.buttonStyle(.glassProminent)
+        Button("Review everything") {}.buttonStyle(.glass)
+        Button("Delete Permanently") {}.buttonStyle(.glassProminent).tint(.red)
     }
+    .tint(Theme.accent)
     .padding(40)
     .background(Theme.background)
     .preferredColorScheme(.dark)

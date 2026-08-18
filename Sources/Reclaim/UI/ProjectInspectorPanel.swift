@@ -265,7 +265,7 @@ struct ProjectInspectorPanel: View {
             Text(cleanLabel(for: project))
                 .frame(maxWidth: .infinity)
         }
-        .buttonStyle(.rcPrimary)
+        .rcPrimary()
         .disabled(
             model.selectedArtifacts(of: project).isEmpty
                 || model.isScanning || model.isCleaning

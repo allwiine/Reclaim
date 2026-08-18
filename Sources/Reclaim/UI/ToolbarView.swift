@@ -43,9 +43,7 @@ struct ToolbarView: View {
                 Button(reclaimLabel) {
                     onReclaim()
                 }
-                .buttonStyle(CompactPrimaryButtonStyle(
-                    enabled: model.selectedBytes > 0 || model.hasCleanableSelection
-                ))
+                .rcPrimaryCompact()
                 .disabled(!model.hasCleanableSelection)
                 .help(localized("toolbar.reclaimHelp", defaultValue: "Clean the selected items"))
             } else if phase == .history || phase == .settings {
@@ -80,7 +78,7 @@ struct ToolbarView: View {
                         : localized("action.scanAgain", defaultValue: "Scan again"))
             }
         }
-        .buttonStyle(.rcSecondaryCompact)
+        .rcSecondaryCompact()
         .disabled(model.isScanning || model.isCleaning)
         .help(localized("toolbar.scanAgainHelp", defaultValue: "Scan again"))
         // ⌘R lives on the File-menu "Scan This Mac" command —
@@ -222,34 +220,6 @@ struct ToolbarView: View {
     }
 }
 
-/// Toolbar-sized primary button: 26 pt, greyed when nothing is selected.
-private struct CompactPrimaryButtonStyle: ButtonStyle {
-    let enabled: Bool
-    @State private var isHovered = false
-
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .scaledFont(size: 12.5, weight: .semibold)
-            .foregroundStyle(enabled ? Theme.onAccent : Theme.textQuaternary)
-            .padding(.horizontal, 13)
-            .frame(height: 26)
-            .background {
-                if enabled {
-                    RoundedRectangle(cornerRadius: Theme.radiusChip)
-                        .fill(Theme.accentGradient)
-                } else {
-                    RoundedRectangle(cornerRadius: Theme.radiusChip)
-                        .fill(Color.white.opacity(0.06))
-                }
-            }
-            .shadow(color: enabled ? Theme.accent.opacity(0.35) : .clear, radius: 5, y: 2)
-            .brightness(isHovered && enabled ? 0.06 : 0)
-            .scaleEffect(configuration.isPressed && enabled ? 0.97 : 1)
-            .animation(Theme.quick, value: configuration.isPressed)
-            .animation(Theme.quick, value: isHovered)
-            .onHover { isHovered = $0 }
-    }
-}
 
 // MARK: - Previews
 

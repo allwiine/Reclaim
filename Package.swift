@@ -42,7 +42,7 @@ let package = Package(
     name: "Reclaim",
     defaultLocalization: "en",
     platforms: [
-        .macOS(.v15),
+        .macOS(.v26),
     ],
     products: [
         .executable(name: "Reclaim", targets: ["Reclaim"]),

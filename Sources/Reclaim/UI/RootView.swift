@@ -105,6 +105,8 @@ struct RootView: View {
             if isScanning { confirmScope = nil }
         }
         .preferredColorScheme(.dark)
+        // The app's accent drives the tint of the prominent glass CTAs.
+        .tint(Theme.accent)
         .frame(minWidth: 1100, minHeight: 660)
         #if DEBUG
         // Smoke-test hooks: `--order-front` forces the window on screen

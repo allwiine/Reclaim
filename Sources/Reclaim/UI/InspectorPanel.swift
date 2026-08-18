@@ -392,7 +392,7 @@ struct InspectorPanel: View {
             Text(cleanJustThisLabel(for: target))
                 .frame(maxWidth: .infinity)
         }
-        .buttonStyle(.rcPrimary)
+        .rcPrimary()
         .disabled(!model.isSelected(target) || model.isScanning || model.isCleaning)
         .padding(.top, 12)
     }

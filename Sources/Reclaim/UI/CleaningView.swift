@@ -55,7 +55,7 @@ struct CleaningView: View {
             ) {
                 model.cancelClean()
             }
-            .buttonStyle(.rcSecondary)
+            .rcSecondary()
             .disabled(model.isCancellingClean)
             .padding(.top, 30)
             .help(localized(

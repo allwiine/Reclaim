@@ -69,7 +69,7 @@ struct ScanningView: View {
             ) {
                 model.cancelScan()
             }
-            .buttonStyle(.rcSecondary)
+            .rcSecondary()
             .disabled(model.isCancellingScan)
             .padding(.top, 30)
             .help(localized(
