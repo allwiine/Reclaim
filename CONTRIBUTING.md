@@ -1,8 +1,9 @@
 # Contributing to Reclaim
 
 Thanks for helping make Reclaim better! Contributions of every size are
-welcome — new cleanup targets are the sweet spot (one struct + two strings),
-and bug reports with good reproduction steps are gold.
+welcome — new cleanup targets are the sweet spot (one struct plus its name
+and summary strings in both language catalogues), and bug reports with good
+reproduction steps are gold.
 
 ## Development setup
 
@@ -27,9 +28,10 @@ Reclaim is three targets with a strict dependency rule — see
 
 - `Reclaim` (SwiftUI views) → `ReclaimAppCore` (UI-free app state) →
   `ReclaimKit` (core library). Never the reverse.
-- `ReclaimKit` imports only Foundation and os; `ReclaimAppCore` adds
-  Observation. Neither may import AppKit or SwiftUI — that keeps them
-  unit-testable.
+- `ReclaimKit` imports Foundation, os, plus `Synchronization` (`Mutex` in
+  `CleanupEngine`) and `Darwin` in exactly one file (`BulkDirectoryReader`);
+  `ReclaimAppCore` adds Observation. Neither may import AppKit or SwiftUI —
+  that keeps them unit-testable.
 - Views are logic-free: everything derives from `AppModel` state plus the
   target registry. Don't add duplicated state to views.
 - Swift 6 strict concurrency with explicit isolation. UI state is
@@ -81,6 +83,9 @@ These are product guarantees. PRs that weaken them will not be merged:
 4. Cleaning is best-effort per item — one locked file must not abort a pass.
 5. Cleaning disposes only the scan-time snapshot — nothing created after the
    scan can ever be deleted.
+6. Structural exclusions (`ExclusionRegistry`) are never touched — no target
+   pattern may collide with them, and the cleanup engine refuses them at
+   runtime.
 
 ## Tests
 
