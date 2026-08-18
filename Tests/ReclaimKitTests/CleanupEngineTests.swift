@@ -77,7 +77,7 @@ struct CleanupEngineTests {
         // precisely those — never list the directory again at clean time.
         let outcome = engine.clean(
             makeTarget(strategy: .removeContents),
-            resolvedPaths: [childA, childB],
+            cleanupPaths: [childA, childB],
             disposal: .trash
         )
 
@@ -95,7 +95,7 @@ struct CleanupEngineTests {
 
         let outcome = engine.clean(
             makeTarget(strategy: .removePaths),
-            resolvedPaths: [cacheRoot],
+            cleanupPaths: [cacheRoot],
             disposal: .trash
         )
 
@@ -110,7 +110,7 @@ struct CleanupEngineTests {
 
         _ = engine.clean(
             makeTarget(strategy: .removeContents),
-            resolvedPaths: [childA],
+            cleanupPaths: [childA],
             disposal: .delete
         )
 
@@ -125,7 +125,7 @@ struct CleanupEngineTests {
 
         let outcome = engine.clean(
             makeTarget(strategy: .removeContents),
-            resolvedPaths: [childA, childB],
+            cleanupPaths: [childA, childB],
             disposal: .trash
         )
 
@@ -142,7 +142,7 @@ struct CleanupEngineTests {
 
         let outcome = engine.clean(
             makeTarget(strategy: .manual(instructions: "Use the tool itself.")),
-            resolvedPaths: [cacheRoot],
+            cleanupPaths: [cacheRoot],
             disposal: .trash
         )
 
@@ -162,7 +162,7 @@ struct CleanupEngineTests {
 
         let cleanOutcome = engine.clean(
             makeTarget(strategy: .removeContents),
-            resolvedPaths: [protected, ordinary],
+            cleanupPaths: [protected, ordinary],
             disposal: .trash
         )
 
@@ -178,6 +178,33 @@ struct CleanupEngineTests {
         #expect(removeOutcome.removedItems == 0)
         #expect(remover.deleted.isEmpty)
         #expect(removeOutcome.failures.count == 1)
+    }
+
+    @Test("A path resolving through a symlink into a protected location is refused")
+    func symlinkRedirectIntoProtectedIsRefused() throws {
+        try withTemporaryDirectory { root in
+            let remover = MockRemover()
+            let engine = CleanupEngine(remover: remover)
+            let home = FileManager.default.homeDirectoryForCurrentUser
+            // Simulate a cache root swapped for a symlink into ~/.ssh
+            // between scan and clean. The symlink's own path is not
+            // protected, so only the engine's symlink-resolved guard
+            // stops the redirection.
+            let link = root.appending(path: "cache")
+            try FileManager.default.createSymbolicLink(
+                at: link, withDestinationURL: home.appending(path: ".ssh")
+            )
+            let redirected = link.appending(path: "id_ed25519")
+
+            let outcome = engine.clean(
+                makeTarget(strategy: .removeContents),
+                cleanupPaths: [redirected],
+                disposal: .trash
+            )
+            #expect(outcome.removedItems == 0)
+            #expect(remover.trashed.isEmpty)
+            #expect(outcome.failures.count == 1)
+        }
     }
 
 }
@@ -203,7 +230,7 @@ struct CommandExecutionTests {
 
         let outcome = engine.clean(
             makeTarget(strategy: .command(spec)),
-            resolvedPaths: [],
+            cleanupPaths: [],
             disposal: .trash
         )
 
@@ -223,7 +250,7 @@ struct CommandExecutionTests {
 
         let outcome = engine.clean(
             makeTarget(strategy: .command(spec)),
-            resolvedPaths: [],
+            cleanupPaths: [],
             disposal: .trash
         )
 
@@ -245,7 +272,7 @@ struct CommandExecutionTests {
 
         let outcome = engine.clean(
             makeTarget(strategy: .command(spec)),
-            resolvedPaths: [],
+            cleanupPaths: [],
             disposal: .trash
         )
 
@@ -265,7 +292,7 @@ struct CommandExecutionTests {
         let start = Date.now
         let outcome = engine.clean(
             makeTarget(strategy: .command(spec)),
-            resolvedPaths: [],
+            cleanupPaths: [],
             disposal: .trash
         )
 

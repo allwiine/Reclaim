@@ -4,4 +4,5 @@
 */
 
 "clean.failureLine" = "%1$@: %2$@";
+"clean.pathChanged" = "Plasseringen ble endret etter skanningen, så den ble stående urørt.";
 "projects.artifactLabel" = "%1$@ i %2$@";

@@ -290,6 +290,74 @@ struct AppModelTests {
         #expect(summary?.failures.count == 1)
     }
 
+    @Test("Freed space is not credited when every removal failed")
+    func reclaimedNotCreditedWithoutRemoval() async {
+        let store = TemporaryDefaults()
+        let shrinker = target("shrinker")
+        let scanCount = Mutex(0)
+        let model = AppModel(
+            targets: [shrinker],
+            defaults: store.defaults,
+            scanExecutor: { _ in
+                // First call is the initial scan (100). The post-clean
+                // rescan measures less, as if the tool pruned its own
+                // cache between scan and clean.
+                let n = scanCount.withLock { $0 += 1; return $0 }
+                return measured(n == 1 ? 100 : 10)
+            },
+            cleanExecutor: { _, _, _ in
+                CleanOutcome(
+                    removedItems: 0,
+                    failures: [CleanFailure(path: "/locked", message: "locked")]
+                )
+            },
+            historyStore: temporaryHistoryStore()
+        )
+
+        model.scanAll()
+        await model.scanTask?.value
+        model.setSelected(shrinker, true)
+        model.cleanSelected()
+        await model.cleanTask?.value
+
+        let summary = model.lastCleanSummary
+        // The rescan saw a 90-byte drop, but no disposal succeeded — so
+        // Reclaim must not claim it reclaimed anything.
+        #expect(summary?.reclaimedBytes == 0)
+        #expect(summary?.cleanedTargets == 0)
+        #expect(summary?.failedTargets == 1)
+    }
+
+    @Test("A target with removals and a locked file counts as cleaned, not failed")
+    func mixedOutcomeCountsAsCleaned() async {
+        let store = TemporaryDefaults()
+        let partial = target("partial")
+        let model = AppModel(
+            targets: [partial],
+            defaults: store.defaults,
+            scanExecutor: { _ in measured(100) },
+            cleanExecutor: { _, _, _ in
+                CleanOutcome(
+                    removedItems: 2,
+                    failures: [CleanFailure(path: "/locked", message: "locked")]
+                )
+            },
+            historyStore: temporaryHistoryStore()
+        )
+
+        model.scanAll()
+        await model.scanTask?.value
+        model.setSelected(partial, true)
+        model.cleanSelected()
+        await model.cleanTask?.value
+
+        let summary = model.lastCleanSummary
+        #expect(summary?.itemsRemoved == 2)
+        #expect(summary?.cleanedTargets == 1, "≥1 removal means the target is cleaned")
+        #expect(summary?.failedTargets == 0, "a partial success is not a failed target")
+        #expect(summary?.failures.count == 1, "the locked file still surfaces")
+    }
+
     @Test("Stopping a clean pass finishes the current target and skips the rest")
     func stoppableCleanPass() async {
         let store = TemporaryDefaults()
