@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/allwiine/Reclaim/actions/workflows/ci.yml/badge.svg)](https://github.com/allwiine/Reclaim/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Platform: macOS 15+](https://img.shields.io/badge/platform-macOS%2015%2B-lightgrey.svg)](#requirements)
+[![Platform: macOS 26+](https://img.shields.io/badge/platform-macOS%2026%2B-lightgrey.svg)](#requirements)
 [![Website](https://img.shields.io/badge/website-reclaim--app.dev-8A2BE2.svg)](https://reclaim-app.dev/)
 
 A native macOS app for finding and cleaning wasted developer storage, covering the space quietly retained by a wide range of developer tools: IDEs and editors, AI assistants, package managers, build systems, game engines, embedded toolchains, containers and cloud CLIs.
@@ -51,7 +51,7 @@ Items Reclaim should *not* delete itself (Docker's and OrbStack's VM disks, Coli
 
 ## Requirements
 
-- macOS 15 or later (macOS Tahoe 26 fully supported)
+- macOS 26 (Tahoe) or later
 - Xcode 26 / Swift 6.2 toolchain to build
 
 ## Running

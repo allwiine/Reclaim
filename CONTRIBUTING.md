@@ -7,7 +7,7 @@ reproduction steps are gold.
 
 ## Development setup
 
-Requirements: macOS 15+, Xcode 26 (Swift 6.2 toolchain).
+Requirements: macOS 26 (Tahoe), Xcode 26 (Swift 6.2 toolchain).
 
 ```bash
 git clone https://github.com/allwiine/Reclaim.git

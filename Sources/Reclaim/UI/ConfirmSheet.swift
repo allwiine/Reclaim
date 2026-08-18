@@ -111,15 +111,15 @@ struct ConfirmSheet: View {
                 trashToggle(toTrash: toTrash)
                 Spacer()
                 Button(localized("action.cancel", defaultValue: "Cancel"), action: onCancel)
-                    .buttonStyle(.rcSecondary)
+                    .rcSecondary()
                     .keyboardShortcut(.cancelAction)
                 if toTrash {
                     Button(localized("confirm.moveToTrash", defaultValue: "Move to Trash"), action: onConfirm)
-                        .buttonStyle(.rcPrimary)
+                        .rcPrimary()
                         .keyboardShortcut(.defaultAction)
                 } else {
                     Button(localized("confirm.deletePermanently", defaultValue: "Delete Permanently"), action: onConfirm)
-                        .buttonStyle(.rcDanger)
+                        .rcDanger()
                 }
             }
             .padding(.horizontal, 24)

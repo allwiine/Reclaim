@@ -318,7 +318,7 @@ struct DoneView: View {
     private var buttons: some View {
         HStack(spacing: 10) {
             Button(localized("done.backToOverview", defaultValue: "Back to overview"), action: dismiss)
-                .buttonStyle(.rcSecondary)
+                .rcSecondary()
                 .keyboardShortcut(.cancelAction)
 
             if summary.disposal == .trash, !summary.isDryRun, summary.itemsRemoved > 0 {
@@ -332,7 +332,7 @@ struct DoneView: View {
                         Text(trashButtonTitle)
                     }
                 }
-                .buttonStyle(.rcPrimary)
+                .rcPrimary()
                 .disabled(isEmptyingTrash || trashState == .emptied)
             }
         }

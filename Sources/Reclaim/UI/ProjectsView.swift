@@ -78,7 +78,7 @@ struct ProjectsView: View {
                     model.addDevRoot(url)
                 }
             }
-            .buttonStyle(.rcPrimary)
+            .rcPrimary()
             .padding(.top, 6)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -172,7 +172,7 @@ struct ProjectsView: View {
                     model.addDevRoot(url)
                 }
             }
-            .buttonStyle(.rcSecondary)
+            .rcSecondary()
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 9)

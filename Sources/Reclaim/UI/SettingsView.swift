@@ -271,7 +271,7 @@ struct SettingsView: View {
                 Button(localized("settings.removeDevFolder", defaultValue: "Remove")) {
                     model.removeDevRoot(root)
                 }
-                .buttonStyle(.rcSecondary)
+                .rcSecondary()
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 10)
@@ -293,7 +293,7 @@ struct SettingsView: View {
                     model.addDevRoot(url)
                 }
             }
-            .buttonStyle(.rcSecondary)
+            .rcSecondary()
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 13)
@@ -316,7 +316,7 @@ struct SettingsView: View {
             Button(localized("settings.openNotificationSettings", defaultValue: "Open Notification Settings…")) {
                 NSWorkspace.shared.open(PrivacyLinks.notifications)
             }
-            .buttonStyle(.rcSecondary)
+            .rcSecondary()
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 10)
@@ -354,7 +354,7 @@ struct SettingsView: View {
                 Button(localized("fda.openSettingsButton", defaultValue: "Open Privacy Settings…")) {
                     NSWorkspace.shared.open(PrivacyLinks.fullDiskAccess)
                 }
-                .buttonStyle(.rcSecondary)
+                .rcSecondary()
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 13)
