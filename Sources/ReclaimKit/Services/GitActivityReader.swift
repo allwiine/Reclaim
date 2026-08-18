@@ -27,8 +27,17 @@ enum GitActivityReader {
         do { try handle.seek(toOffset: start) } catch { return nil }
         guard let data = try? handle.readToEnd() else { return nil }
         let text = String(decoding: data, as: UTF8.self)
-        guard let line = text.split(separator: "\n").last(where: { !$0.isEmpty })
-        else { return nil }
+        var lines = text.split(separator: "\n").filter { !$0.isEmpty }
+        // If we started mid-file, the first surviving line may be the
+        // tail of a longer line whose beginning was cut off. A ~2 KB
+        // commit message on the *last* entry could leave only a fragment
+        // of its epoch, which would parse to a wrong (ancient) date — so
+        // drop that first partial line. When the whole window is a single
+        // oversized line, this correctly yields nil rather than a lie.
+        if start > 0, !lines.isEmpty {
+            lines.removeFirst()
+        }
+        guard let line = lines.last else { return nil }
 
         // The name field may contain spaces, so take the epoch from the
         // END of the pre-tab header: ... <epoch> <tz>.

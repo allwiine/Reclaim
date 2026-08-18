@@ -256,8 +256,13 @@ public struct ProjectDiscovery: Sendable {
                 continue
             }
             if entry.isRegularFile {
-                // Hard-linked files occupy their allocation once.
-                if entry.linkCount > 1, !state.seenFileIDs.insert(entry.fileID).inserted {
+                // Hard-linked files occupy their allocation once — but
+                // only dedupe when the volume actually gave us a file id.
+                // A `fileID == 0` (volume that doesn't report ATTR_CMN_FILEID)
+                // would otherwise collapse every such file into one after
+                // the first, badly under-counting.
+                if entry.linkCount > 1, entry.fileID != 0,
+                   !state.seenFileIDs.insert(entry.fileID).inserted {
                     continue
                 }
                 state.measurement.fileCount += 1
