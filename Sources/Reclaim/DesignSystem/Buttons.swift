@@ -2,61 +2,84 @@
 //  Buttons.swift
 //  Reclaim
 //
-//  The primary/secondary/danger buttons use macOS 26's native Liquid
-//  Glass styles directly at the call sites (`.glassProminent` tinted by
-//  the app's accent, `.glass`, and `.glassProminent` with a red tint).
-//  The one bespoke voice left is the small header-strip chip.
+//  The app's button voices, centralized. They use macOS 26 Liquid Glass
+//  as the material (via `glassEffect`) but through a small custom style
+//  so the app controls what the native `.glassProminent` will not: a
+//  dark on-accent label on the green CTA, matched heights between the
+//  primary and secondary in each tier, and a readable disabled state.
+//  The header-strip chip is the one remaining bespoke voice.
 //
 
 import SwiftUI
 
-// MARK: - Button voices (native Liquid Glass, centralized here)
+// MARK: - Button voices
+
+/// A Liquid Glass button with app-controlled tint, label colour and
+/// height. `kind` selects the colour role; `height`/`fontSize` set the
+/// tier so a primary and its secondary line up.
+struct GlassButton: ButtonStyle {
+    enum Kind { case primary, danger, neutral }
+    let kind: Kind
+    var height: CGFloat = 34
+    var fontSize: CGFloat = 13
+    @Environment(\.isEnabled) private var isEnabled
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaledFont(size: fontSize, weight: .semibold)
+            .foregroundStyle(labelColor)
+            .padding(.horizontal, height * 0.62)
+            .frame(height: height)
+            .glassEffect(glass, in: .capsule)
+            .scaleEffect(configuration.isPressed ? 0.97 : 1)
+            .animation(Theme.quick, value: configuration.isPressed)
+    }
+
+    /// Disabled buttons drop their tint to a plain glass pill so the
+    /// muted label stays legible.
+    private var glass: Glass {
+        guard isEnabled else { return .regular }
+        switch kind {
+        case .primary: return .regular.tint(Theme.accent).interactive()
+        case .danger: return .regular.tint(Theme.dangerWarn).interactive()
+        case .neutral: return .regular.interactive()
+        }
+    }
+
+    private var labelColor: Color {
+        guard isEnabled else { return Theme.textQuaternary }
+        switch kind {
+        case .primary: return Theme.onAccent
+        case .danger: return .white
+        case .neutral: return Theme.textPrimary
+        }
+    }
+}
 
 extension View {
-    /// Primary call-to-action: accent-tinted prominent Liquid Glass with
-    /// dark (on-accent) label text. The tint is applied here, per button,
-    /// rather than app-wide, so the neutral secondary glass is never
-    /// green.
-    func rcPrimary() -> some View {
-        buttonStyle(.glassProminent)
-            .controlSize(.large)
-            .tint(Theme.accent)
-            .foregroundStyle(Theme.onAccent)
-    }
+    /// Primary call-to-action: green glass, dark label.
+    func rcPrimary() -> some View { buttonStyle(GlassButton(kind: .primary)) }
 
     /// Hero-sized primary (the idle "Scan this Mac" CTA).
     func rcPrimaryProminent() -> some View {
-        buttonStyle(.glassProminent)
-            .controlSize(.extraLarge)
-            .tint(Theme.accent)
-            .foregroundStyle(Theme.onAccent)
+        buttonStyle(GlassButton(kind: .primary, height: 44, fontSize: 15))
     }
 
     /// Toolbar-sized primary (the compact "Reclaim" action).
     func rcPrimaryCompact() -> some View {
-        buttonStyle(.glassProminent)
-            .controlSize(.regular)
-            .tint(Theme.accent)
-            .foregroundStyle(Theme.onAccent)
+        buttonStyle(GlassButton(kind: .primary, height: 28, fontSize: 12.5))
     }
 
-    /// Secondary: neutral clear Liquid Glass (never tinted).
-    func rcSecondary() -> some View {
-        buttonStyle(.glass).controlSize(.large)
-    }
+    /// Secondary: neutral clear glass — same height as `rcPrimary`.
+    func rcSecondary() -> some View { buttonStyle(GlassButton(kind: .neutral)) }
 
-    /// Toolbar-sized secondary.
+    /// Toolbar-sized secondary — same height as `rcPrimaryCompact`.
     func rcSecondaryCompact() -> some View {
-        buttonStyle(.glass).controlSize(.regular)
+        buttonStyle(GlassButton(kind: .neutral, height: 28, fontSize: 12.5))
     }
 
-    /// Permanent-deletion CTA: red-tinted prominent glass, white label.
-    func rcDanger() -> some View {
-        buttonStyle(.glassProminent)
-            .controlSize(.large)
-            .tint(.red)
-            .foregroundStyle(.white)
-    }
+    /// Permanent-deletion CTA: red glass, white label.
+    func rcDanger() -> some View { buttonStyle(GlassButton(kind: .danger)) }
 }
 
 // MARK: - Strip chip
