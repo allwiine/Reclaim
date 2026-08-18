@@ -64,9 +64,9 @@ struct SecondaryButtonStyle: ButtonStyle {
             .foregroundStyle(Theme.textPrimary)
             .padding(.horizontal, compact ? 11 : 15)
             .frame(height: compact ? 26 : 31)
-            .background(
-                Color.white.opacity(isHovered && isEnabled ? 0.13 : 0.08),
-                in: RoundedRectangle(cornerRadius: compact ? Theme.radiusChip : Theme.radiusControl)
+            .controlGlass(
+                cornerRadius: compact ? Theme.radiusChip : Theme.radiusControl,
+                fallback: Color.white.opacity(isHovered && isEnabled ? 0.13 : 0.08)
             )
             .overlay {
                 RoundedRectangle(cornerRadius: compact ? Theme.radiusChip : Theme.radiusControl)

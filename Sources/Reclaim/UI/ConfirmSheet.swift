@@ -126,7 +126,9 @@ struct ConfirmSheet: View {
             .padding(.top, 18)
             .padding(.bottom, 20)
         }
-        .background(Theme.surfaceRaised, in: RoundedRectangle(cornerRadius: Theme.radiusTile))
+        // Liquid Glass on Tahoe (a floating sheet is the canonical glass
+        // surface); the solid raised fill on earlier systems.
+        .floatingSurface(cornerRadius: Theme.radiusTile)
         .overlay {
             RoundedRectangle(cornerRadius: Theme.radiusTile)
                 .strokeBorder(.white.opacity(0.14), lineWidth: 0.5)
