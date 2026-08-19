@@ -50,69 +50,20 @@ public final class AppModel {
     /// selected target without an entry cleans everything.
     public private(set) var partialSelections: [CleanupTarget.ID: [String: Int64]] = [:]
 
-    public private(set) var isScanning = false
-    public private(set) var isCleaning = false
     public private(set) var lastScan: Date?
     /// When the last *completed* (non-cancelled) scan finished. Anchors
     /// the weekly background schedule and, being observable, keeps the
     /// footer's "next background scan" line live.
     public private(set) var lastCompletedScanDate: Date?
 
-    /// True while the pre-clean confirmation is on screen (set by the
-    /// view layer). The background scan defers while it is up so it can
-    /// never clear the selection the user is reviewing.
-    public var isReviewingSelection = false
+    /// What the app is doing right now — pass flags, progress, and the
+    /// latest pass outcome.
+    public let activity = ActivityModel()
 
-    /// True from the moment the user asks to stop a scan until the pass
-    /// actually unwinds — drives the "Stopping…" button state.
-    public private(set) var isCancellingScan = false
-    /// Same, for a running clean pass.
-    public private(set) var isCancellingClean = false
-
-    /// Live progress of the running scan pass, for the scanning screen.
-    public struct ScanProgress: Equatable, Sendable {
-        /// Targets fully measured so far.
-        public let completed: Int
-        public let total: Int
-        /// Name of the most recently started target.
-        public let currentTargetName: String
-        /// Tilde-form location being walked, or the command being probed.
-        public let currentPath: String
-
-        public var fraction: Double {
-            total > 0 ? Double(completed) / Double(total) : 0
-        }
-    }
-
-    /// Non-nil while a scan pass is running.
-    public private(set) var scanProgress: ScanProgress?
     /// Whether the most recent scan ran to completion. `false` means it
     /// was stopped early: measurements on screen are real but partial.
     /// Meaningful only once `lastScan` is non-nil.
     public private(set) var lastScanWasComplete = true
-
-    /// Set when a cleanup pass finishes; the UI presents it as an alert
-    /// and clears it by assigning `nil`.
-    public var lastCleanSummary: CleanSummary?
-
-    /// The target currently being cleaned, for progress UI.
-    public struct CleanProgress: Equatable, Sendable {
-        public let targetName: String
-        /// Tilde-form location being cleaned, when known.
-        public let targetPath: String?
-        /// 1-based position within this pass.
-        public let index: Int
-        public let total: Int
-
-        /// Counts the in-flight target as underway so the bar visibly
-        /// moves on the first item and reaches the end during the last.
-        public var fraction: Double {
-            total > 0 ? Double(index) / Double(total) : 0
-        }
-    }
-
-    /// Non-nil while a clean pass is processing a target.
-    public private(set) var cleanProgress: CleanProgress?
 
     /// Whether the process can read TCC-protected locations. Evaluated
     /// at scan time; `nil` before the first scan or when indeterminate.
@@ -469,7 +420,7 @@ public final class AppModel {
     /// Defers while the confirmation sheet is up — a background scan
     /// must never clear a selection the user is actively reviewing.
     public func runBackgroundScanIfDue(now: Date = .now) {
-        guard weeklyScanEnabled, !isScanning, !isCleaning, !isReviewingSelection else { return }
+        guard weeklyScanEnabled, !activity.isScanning, !activity.isCleaning, !activity.isReviewingSelection else { return }
         guard let next = nextBackgroundScanDate else { return }
         if now >= next { scanAll() }
     }
@@ -658,7 +609,7 @@ public final class AppModel {
 
     /// Whether the artifact's checkbox is enabled.
     public func isArtifactSelectable(_ artifact: DiscoveredArtifact) -> Bool {
-        !isScanning && !isCleaning && artifact.measurement.bytes > 0
+        !activity.isScanning && !activity.isCleaning && artifact.measurement.bytes > 0
     }
 
     public func isArtifactSelected(_ artifact: DiscoveredArtifact) -> Bool {
@@ -695,7 +646,7 @@ public final class AppModel {
     /// Whether the project row's checkbox is enabled: it has at least
     /// one artifact with measurable bytes to free.
     public func isProjectSelectable(_ project: DiscoveredProject) -> Bool {
-        !isScanning && !isCleaning
+        !activity.isScanning && !activity.isCleaning
             && project.artifacts.contains { $0.measurement.bytes > 0 }
     }
 
@@ -771,7 +722,7 @@ public final class AppModel {
 
     /// Whether the row's checkbox is enabled.
     public func isSelectable(_ target: CleanupTarget) -> Bool {
-        guard target.strategy.isCleanable, !isScanning, !isCleaning else { return false }
+        guard target.strategy.isCleanable, !activity.isScanning, !activity.isCleaning else { return false }
         switch status(of: target.id) {
         case .measured(let measurement, _, _): return measurement.bytes > 0
         case .unmeasurable: return true
@@ -884,7 +835,7 @@ public final class AppModel {
     /// missing path folds back into full selection; unticking the last
     /// ticked one deselects the target entirely.
     public func setPathSelected(_ target: CleanupTarget, path: String, _ on: Bool) {
-        guard target.strategy.isCleanable, !isScanning, !isCleaning else { return }
+        guard target.strategy.isCleanable, !activity.isScanning, !activity.isCleaning else { return }
         let allPaths = status(of: target.id).cleanupPaths.map(\.path)
         guard allPaths.contains(path) else { return }
 
@@ -944,18 +895,18 @@ public final class AppModel {
 
     /// Scan every target with bounded parallelism.
     public func scanAll() {
-        guard !isScanning, !isCleaning else { return }
-        isScanning = true
-        isCancellingScan = false
+        guard !activity.isScanning, !activity.isCleaning else { return }
+        activity.isScanning = true
+        activity.isCancellingScan = false
         selection.removeAll()
         partialSelections.removeAll()
-        lastCleanSummary = nil
+        activity.lastCleanSummary = nil
         invalidateBreakdowns()
         projectScans = []
         artifactSelection.removeAll()
         scanRealRoots.removeAll()
         scanRealDevRoots.removeAll()
-        scanProgress = ScanProgress(
+        activity.scanProgress = ScanProgress(
             completed: 0, total: targets.count + devRoots.count,
             currentTargetName: "", currentPath: ""
         )
@@ -989,9 +940,9 @@ public final class AppModel {
                 self.lastCompletedScanDate = .now
                 self.defaults.set(Date.now, forKey: DefaultsKey.lastScanDate)
             }
-            self.isScanning = false
-            self.isCancellingScan = false
-            self.scanProgress = nil
+            self.activity.isScanning = false
+            self.activity.isCancellingScan = false
+            self.activity.scanProgress = nil
             self.scanTask = nil
             self.applyPostScanSelection()
             self.refreshVolumeSpace()
@@ -1014,14 +965,14 @@ public final class AppModel {
 
     public func cancelScan() {
         guard scanTask != nil else { return }
-        isCancellingScan = true
+        activity.isCancellingScan = true
         scanTask?.cancel()
     }
 
     /// Stop the running clean pass after the in-flight target finishes.
     public func cancelClean() {
         guard cleanTask != nil else { return }
-        isCancellingClean = true
+        activity.isCancellingClean = true
         cleanTask?.cancel()
     }
 
@@ -1033,7 +984,7 @@ public final class AppModel {
     /// to call when nothing is running — it returns at once.
     public func prepareForTermination() async {
         if cleanTask != nil {
-            isCancellingClean = true
+            activity.isCancellingClean = true
             cleanTask?.cancel()
             _ = await cleanTask?.value
         }
@@ -1060,7 +1011,7 @@ public final class AppModel {
             @MainActor
             func publishProgress() {
                 let current = inFlight.first
-                scanProgress = ScanProgress(
+                activity.scanProgress = ScanProgress(
                     completed: completed,
                     total: targets.count + devRoots.count,
                     currentTargetName: current?.name ?? "",
@@ -1125,7 +1076,7 @@ public final class AppModel {
             @MainActor
             func publishProgress() {
                 let current = inFlight.first
-                scanProgress = ScanProgress(
+                activity.scanProgress = ScanProgress(
                     completed: baseCompleted + completed,
                     total: targets.count + roots.count,
                     currentTargetName: current?.lastPathComponent ?? "",
@@ -1208,7 +1159,7 @@ public final class AppModel {
     /// selection stays intact) — then re-scan the cleaned entries so
     /// the numbers on screen stay truthful.
     public func cleanSelected(scope: CleanScope = .selection) {
-        guard !isCleaning, !isScanning else { return }
+        guard !activity.isCleaning, !activity.isScanning else { return }
         guard !selection.isEmpty || !artifactSelection.isEmpty else { return }
 
         let targetLimit: Set<CleanupTarget.ID>? = switch scope {
@@ -1286,12 +1237,12 @@ public final class AppModel {
                     bytesFreed: job.artifact.measurement.bytes
                 ))
             }
-            lastCleanSummary = summary
+            activity.lastCleanSummary = summary
             return
         }
 
-        isCleaning = true
-        isCancellingClean = false
+        activity.isCleaning = true
+        activity.isCancellingClean = false
         let chosenDisposal = disposal
         let scan = scanExecutor
         let clean = cleanExecutor
@@ -1316,7 +1267,7 @@ public final class AppModel {
                     summary.wasStopped = true
                     break
                 }
-                self.cleanProgress = CleanProgress(
+                self.activity.cleanProgress = CleanProgress(
                     targetName: job.target.name,
                     targetPath: job.target.pathPatterns.first,
                     index: index + 1,
@@ -1403,7 +1354,7 @@ public final class AppModel {
                 let name = self.artifactDisplayName(
                     kindID: job.artifact.kindID, projectName: job.projectName
                 )
-                self.cleanProgress = CleanProgress(
+                self.activity.cleanProgress = CleanProgress(
                     targetName: name,
                     targetPath: (job.artifact.url.path as NSString).abbreviatingWithTildeInPath,
                     index: jobs.count + offset + 1,
@@ -1476,10 +1427,10 @@ public final class AppModel {
                 }
             }
 
-            self.cleanProgress = nil
-            self.lastCleanSummary = summary
-            self.isCleaning = false
-            self.isCancellingClean = false
+            self.activity.cleanProgress = nil
+            self.activity.lastCleanSummary = summary
+            self.activity.isCleaning = false
+            self.activity.isCancellingClean = false
             self.cleanTask = nil
             // Volume space is measured before recording, so the entry
             // carries the honest "free after this clean" figure.
@@ -1612,7 +1563,7 @@ public final class AppModel {
         self.breakdowns = breakdowns
         self.volumeSpace = volumeSpace
         self.hasFullDiskAccess = hasFullDiskAccess
-        self.lastCleanSummary = lastCleanSummary
+        self.activity.lastCleanSummary = lastCleanSummary
         self.lastScan = .now
         self.lastScanWasComplete = true
     }

@@ -22,7 +22,7 @@ struct ScanningView: View {
                 .foregroundStyle(Theme.textPrimary)
                 .padding(.top, 26)
 
-            Text(model.scanProgress?.currentPath
+            Text(model.activity.scanProgress?.currentPath
                 ?? localized("progress.finishingUp", defaultValue: "Finishing up…"))
                 .font(Theme.mono(11.5))
                 .foregroundStyle(Color(hex: 0x7E7E85))
@@ -30,9 +30,9 @@ struct ScanningView: View {
                 .frame(height: 16)
                 .padding(.top, 8)
                 .contentTransition(.opacity)
-                .animation(Theme.quick, value: model.scanProgress?.currentPath)
+                .animation(Theme.quick, value: model.activity.scanProgress?.currentPath)
 
-            ProgressBar(fraction: model.scanProgress?.fraction ?? 0)
+            ProgressBar(fraction: model.activity.scanProgress?.fraction ?? 0)
                 .frame(width: 420)
                 .padding(.top, 20)
 
@@ -63,14 +63,14 @@ struct ScanningView: View {
             .frame(width: 420)
             .padding(.top, 28)
 
-            Button(model.isCancellingScan
+            Button(model.activity.isCancellingScan
                 ? localized("scanning.stoppingButton", defaultValue: "Stopping…")
                 : localized("scanning.stopButton", defaultValue: "Stop")
             ) {
                 model.cancelScan()
             }
             .rcSecondary()
-            .disabled(model.isCancellingScan)
+            .disabled(model.activity.isCancellingScan)
             .padding(.top, 30)
             .help(localized(
                 "scanning.stopHelp",

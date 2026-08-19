@@ -388,7 +388,7 @@ struct DoneView: View {
 #if DEBUG
 #Preview(traits: .fixedLayout(width: 1060, height: 810)) {
     let model = PreviewData.cleaned()
-    return DoneView(summary: model.lastCleanSummary!, dismiss: {})
+    return DoneView(summary: model.activity.lastCleanSummary!, dismiss: {})
         .background(Theme.background)
         .environment(model)
         .preferredColorScheme(.dark)

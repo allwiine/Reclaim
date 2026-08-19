@@ -288,7 +288,7 @@ struct InspectorPanel: View {
                     .buttonStyle(.plain)
                     .scaledFont(size: 11, weight: .medium)
                     .foregroundStyle(Theme.textSecondary)
-                    .disabled(model.isScanning || model.isCleaning)
+                    .disabled(model.activity.isScanning || model.activity.isCleaning)
                 }
             }
             .padding(.top, 24)
@@ -354,7 +354,7 @@ struct InspectorPanel: View {
                     )
                     .toggleStyle(CheckboxToggleStyle(size: 15))
                     .labelsHidden()
-                    .disabled(model.isScanning || model.isCleaning)
+                    .disabled(model.activity.isScanning || model.activity.isCleaning)
                 }
                 Text(entry.name)
                     .scaledFont(size: 12)
@@ -393,7 +393,7 @@ struct InspectorPanel: View {
                 .frame(maxWidth: .infinity)
         }
         .rcPrimary()
-        .disabled(!model.isSelected(target) || model.isScanning || model.isCleaning)
+        .disabled(!model.isSelected(target) || model.activity.isScanning || model.activity.isCleaning)
         .padding(.top, 12)
     }
 

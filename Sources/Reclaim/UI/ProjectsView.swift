@@ -150,7 +150,7 @@ struct ProjectsView: View {
                 model.selectAllArtifacts()
             }
             .buttonStyle(StripChipButtonStyle())
-            .disabled(model.isScanning || model.isCleaning || model.selectableArtifactCount == 0)
+            .disabled(model.activity.isScanning || model.activity.isCleaning || model.selectableArtifactCount == 0)
 
             Button(localized("browser.clear", defaultValue: "Clear")) {
                 model.clearArtifactSelection()

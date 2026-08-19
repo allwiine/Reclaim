@@ -30,7 +30,7 @@ final class ReclaimAppDelegate: NSObject, NSApplicationDelegate {
     func applicationShouldTerminate(
         _ sender: NSApplication
     ) -> NSApplication.TerminateReply {
-        guard let model = ReclaimTermination.model, model.isCleaning else {
+        guard let model = ReclaimTermination.model, model.activity.isCleaning else {
             return .terminateNow
         }
         Log.app.info("Deferring termination to finish the clean pass")
@@ -107,7 +107,7 @@ struct ReclaimApp: App {
         // rebuild the main menu on every model change.
         CommandGroup(after: .newItem) {
             Button(localized("menu.scanThisMac", defaultValue: "Scan This Mac")) {
-                if !model.isScanning, !model.isCleaning {
+                if !model.activity.isScanning, !model.activity.isCleaning {
                     model.scanAll()
                 }
             }
@@ -150,13 +150,13 @@ private struct MenuBarSummary: View {
 
             Divider()
 
-            Button(model.isScanning
+            Button(model.activity.isScanning
                 ? localized("menu.scanning", defaultValue: "Scanning…")
                 : localized("menu.scanNow", defaultValue: "Scan Now")
             ) {
                 model.scanAll()
             }
-            .disabled(model.isScanning || model.isCleaning)
+            .disabled(model.activity.isScanning || model.activity.isCleaning)
 
             Button(localized("menu.reviewInReclaim", defaultValue: "Review in Reclaim…")) {
                 NSApp.activate()

@@ -194,7 +194,7 @@ struct ProjectInspectorPanel: View {
                     .buttonStyle(.plain)
                     .scaledFont(size: 11, weight: .medium)
                     .foregroundStyle(Theme.textSecondary)
-                    .disabled(model.isScanning || model.isCleaning)
+                    .disabled(model.activity.isScanning || model.activity.isCleaning)
                 }
             }
             .padding(.top, 24)
@@ -268,7 +268,7 @@ struct ProjectInspectorPanel: View {
         .rcPrimary()
         .disabled(
             model.selectedArtifacts(of: project).isEmpty
-                || model.isScanning || model.isCleaning
+                || model.activity.isScanning || model.activity.isCleaning
         )
         .padding(.top, 12)
     }

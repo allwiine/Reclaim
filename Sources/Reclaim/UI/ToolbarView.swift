@@ -71,7 +71,7 @@ struct ToolbarView: View {
             HStack(spacing: 5) {
                 Image(systemName: "arrow.clockwise")
                     .scaledFont(size: 10, weight: .medium)
-                Text(model.isScanning
+                Text(model.activity.isScanning
                     ? localized("menu.scanning", defaultValue: "Scanning…")
                     : model.lastScan == nil
                         ? localized("idle.scanButton", defaultValue: "Scan this Mac")
@@ -79,7 +79,7 @@ struct ToolbarView: View {
             }
         }
         .rcSecondaryCompact()
-        .disabled(model.isScanning || model.isCleaning)
+        .disabled(model.activity.isScanning || model.activity.isCleaning)
         .help(localized("toolbar.scanAgainHelp", defaultValue: "Scan again"))
         // ⌘R lives on the File-menu "Scan This Mac" command —
         // registering it here as well would collide.

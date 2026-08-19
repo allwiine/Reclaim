@@ -83,7 +83,7 @@ struct SidebarView: View {
     // MARK: - Headline
 
     private var hasMeasurements: Bool {
-        model.lastScan != nil || model.isScanning
+        model.lastScan != nil || model.activity.isScanning
     }
 
     private var headline: some View {

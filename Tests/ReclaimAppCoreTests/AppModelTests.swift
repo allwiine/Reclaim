@@ -93,10 +93,10 @@ struct AppModelTests {
         )
 
         model.scanAll()
-        #expect(model.isScanning)
+        #expect(model.activity.isScanning)
         await model.scanTask?.value
 
-        #expect(model.isScanning == false)
+        #expect(model.activity.isScanning == false)
         #expect(model.lastScan != nil)
         #expect(model.status(of: "cache").bytes == 100)
         #expect(model.status(of: "missing") == .notInstalled)
@@ -263,9 +263,9 @@ struct AppModelTests {
         #expect(calls.count == 1)
         #expect(calls.first?.1 == cleanupPaths)
         #expect(calls.first?.2 == .trash)
-        #expect(model.isCleaning == false)
+        #expect(model.activity.isCleaning == false)
         #expect(model.selection.isEmpty)
-        #expect(model.lastCleanSummary?.reclaimedBytes == 100)
+        #expect(model.activity.lastCleanSummary?.reclaimedBytes == 100)
         #expect(model.status(of: "cache").bytes == 0, "post-clean rescan must be reflected")
     }
 
@@ -299,7 +299,7 @@ struct AppModelTests {
         model.cleanSelected()
         await model.cleanTask?.value
 
-        let summary = model.lastCleanSummary
+        let summary = model.activity.lastCleanSummary
         #expect(summary?.itemsRemoved == 2)
         #expect(summary?.cleanedTargets == 1, "a target with zero removals was not cleaned")
         #expect(summary?.failedTargets == 1)
@@ -338,7 +338,7 @@ struct AppModelTests {
         model.cleanSelected()
         await model.cleanTask?.value
 
-        let summary = model.lastCleanSummary
+        let summary = model.activity.lastCleanSummary
         // The rescan saw a 90-byte drop, but no disposal succeeded — so
         // Reclaim must not claim it reclaimed anything.
         #expect(summary?.reclaimedBytes == 0)
@@ -371,7 +371,7 @@ struct AppModelTests {
         model.cleanSelected()
         await model.cleanTask?.value
 
-        let summary = model.lastCleanSummary
+        let summary = model.activity.lastCleanSummary
         #expect(summary?.itemsRemoved == 2)
         #expect(summary?.cleanedTargets == 1, "≥1 removal means the target is cleaned")
         #expect(summary?.failedTargets == 0, "a partial success is not a failed target")
@@ -427,7 +427,7 @@ struct AppModelTests {
         // the path is refused: the executor is handed nothing and the
         // summary records a failure.
         #expect(received.withLock { $0 }.isEmpty, "the swapped path must not reach the executor")
-        #expect(model.lastCleanSummary?.failures.isEmpty == false)
+        #expect(model.activity.lastCleanSummary?.failures.isEmpty == false)
     }
 
     @Test("Stopping a clean pass finishes the current target and skips the rest")
@@ -459,19 +459,19 @@ struct AppModelTests {
         model.cleanSelected()
 
         // Wait (bounded) until the first job is reported in flight.
-        for _ in 0..<10_000 where model.cleanProgress == nil {
+        for _ in 0..<10_000 where model.activity.cleanProgress == nil {
             await Task.yield()
         }
-        #expect(model.cleanProgress?.targetName == "first")
-        #expect(model.cleanProgress?.total == 2)
+        #expect(model.activity.cleanProgress?.targetName == "first")
+        #expect(model.activity.cleanProgress?.total == 2)
 
         model.cancelClean()
         gate.signal()
         await model.cleanTask?.value
 
         #expect(cleaned.withLock { $0 } == ["first"], "the in-flight target finishes; the rest are skipped")
-        #expect(model.cleanProgress == nil)
-        #expect(model.lastCleanSummary?.wasStopped == true)
+        #expect(model.activity.cleanProgress == nil)
+        #expect(model.activity.lastCleanSummary?.wasStopped == true)
         #expect(model.isSelected(second), "skipped targets stay selected")
         #expect(model.status(of: "second").bytes == 100, "skipped targets keep their measurement")
     }
@@ -532,9 +532,9 @@ struct AppModelTests {
         await model.cleanTask?.value
 
         #expect(cleanCalls.withLock { $0 } == 0, "a dry run must never reach the engine")
-        #expect(model.lastCleanSummary?.isDryRun == true)
-        #expect(model.lastCleanSummary?.reclaimedBytes == 100)
-        #expect(model.lastCleanSummary?.itemsRemoved == 2)
+        #expect(model.activity.lastCleanSummary?.isDryRun == true)
+        #expect(model.activity.lastCleanSummary?.reclaimedBytes == 100)
+        #expect(model.activity.lastCleanSummary?.itemsRemoved == 2)
         #expect(model.isSelected(cache), "the selection survives a dry run")
         #expect(model.status(of: "cache").bytes == 100, "measurements stay untouched")
         #expect(model.history.isEmpty, "dry runs are not history")
@@ -569,7 +569,7 @@ struct AppModelTests {
         #expect(model.history.first?.itemsRemoved == 3)
         #expect(model.history.first?.reclaimedBytes == 100)
         #expect(model.reclaimedAllTimeBytes == 100)
-        #expect(model.lastCleanSummary?.cleaned.map(\.name) == ["cache"])
+        #expect(model.activity.lastCleanSummary?.cleaned.map(\.name) == ["cache"])
 
         // The entry must survive a fresh model (i.e. an app restart).
         for _ in 0..<10_000 where historyStore.load().isEmpty {
@@ -589,13 +589,13 @@ struct AppModelTests {
             ),
             historyStore: temporaryHistoryStore()
         )
-        #expect(model.scanProgress == nil)
+        #expect(model.activity.scanProgress == nil)
 
         model.scanAll()
-        #expect(model.scanProgress?.total == 2)
+        #expect(model.activity.scanProgress?.total == 2)
 
         await model.scanTask?.value
-        #expect(model.scanProgress == nil)
+        #expect(model.activity.scanProgress == nil)
     }
 
     @Test("The weekly background scan fires only when due")
@@ -620,10 +620,10 @@ struct AppModelTests {
         #expect(next != nil)
 
         model.runBackgroundScanIfDue(now: .now)
-        #expect(!model.isScanning, "not due yet — a scan just finished")
+        #expect(!model.activity.isScanning, "not due yet — a scan just finished")
 
         model.runBackgroundScanIfDue(now: next!.addingTimeInterval(60))
-        #expect(model.isScanning, "a week later the scan starts")
+        #expect(model.activity.isScanning, "a week later the scan starts")
         await model.scanTask?.value
 
         model.weeklyScanEnabled = false
@@ -727,13 +727,13 @@ struct AppModelTests {
         await model.scanTask?.value
         let overdue = model.nextBackgroundScanDate!.addingTimeInterval(60)
 
-        model.isReviewingSelection = true
+        model.activity.isReviewingSelection = true
         model.runBackgroundScanIfDue(now: overdue)
-        #expect(!model.isScanning, "a background scan must never clear a selection under review")
+        #expect(!model.activity.isScanning, "a background scan must never clear a selection under review")
 
-        model.isReviewingSelection = false
+        model.activity.isReviewingSelection = false
         model.runBackgroundScanIfDue(now: overdue)
-        #expect(model.isScanning)
+        #expect(model.activity.isScanning)
         await model.scanTask?.value
     }
 
@@ -886,8 +886,8 @@ struct AppModelTests {
         // Dry run projects the subset, not the whole target.
         model.dryRun = true
         model.cleanSelected()
-        #expect(model.lastCleanSummary?.reclaimedBytes == 40)
-        #expect(model.lastCleanSummary?.itemsRemoved == 1)
+        #expect(model.activity.lastCleanSummary?.reclaimedBytes == 40)
+        #expect(model.activity.lastCleanSummary?.itemsRemoved == 1)
         #expect(model.isPartiallySelected(cache), "a dry run leaves the picks alone")
         model.dryRun = false
 
@@ -896,7 +896,7 @@ struct AppModelTests {
         #expect(cleanedPaths.withLock { $0 }.map(\.path) == ["/fixture/b"],
                 "the engine must receive only the ticked path")
         #expect(!model.isPartiallySelected(cache), "picks are consumed by the pass")
-        #expect(model.lastCleanSummary?.reclaimedBytes == 40, "freed is measured by the rescan")
+        #expect(model.activity.lastCleanSummary?.reclaimedBytes == 40, "freed is measured by the rescan")
         #expect(
             model.history.first?.items?.first?.bytesAfter == 60,
             "the remainder is recorded so it never counts as regrowth"
@@ -963,7 +963,7 @@ struct AppModelTests {
         model.cleanSelected()
         await model.cleanTask?.value
 
-        let summary = model.lastCleanSummary
+        let summary = model.activity.lastCleanSummary
         #expect(summary?.reclaimedBytes == 0, "an unmeasurable result must not be guessed")
         #expect(summary?.cleaned.first?.bytesFreed == nil, "command targets report unknown, not zero")
 
@@ -987,10 +987,10 @@ struct AppModelTests {
         await second.cleanTask?.value
 
         #expect(
-            second.lastCleanSummary?.reclaimedBytes == 0,
+            second.activity.lastCleanSummary?.reclaimedBytes == 0,
             "a failed rescan must not claim the full size as freed"
         )
-        #expect(second.lastCleanSummary?.cleaned.first?.bytesFreed == nil)
+        #expect(second.activity.lastCleanSummary?.cleaned.first?.bytesFreed == nil)
     }
 
     @Test("History entries carry the detail the history pane shows")
@@ -1132,15 +1132,15 @@ struct AppModelTests {
             ),
             historyStore: temporaryHistoryStore()
         )
-        #expect(!model.isCancellingScan)
+        #expect(!model.activity.isCancellingScan)
 
         model.scanAll()
         model.cancelScan()
-        #expect(model.isCancellingScan, "the Stop button needs to show 'Stopping…'")
+        #expect(model.activity.isCancellingScan, "the Stop button needs to show 'Stopping…'")
 
         gate.signal()
         await model.scanTask?.value
-        #expect(!model.isCancellingScan, "the flag resets once the pass unwinds")
+        #expect(!model.activity.isCancellingScan, "the flag resets once the pass unwinds")
     }
 
     @Test("The disposal chosen in Settings reaches the clean executor")

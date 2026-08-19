@@ -21,8 +21,8 @@ struct CleaningView: View {
                 .scaledFont(size: 20, weight: .semibold)
                 .foregroundStyle(Theme.textPrimary)
 
-            Text(model.cleanProgress?.targetPath
-                ?? model.cleanProgress?.targetName
+            Text(model.activity.cleanProgress?.targetPath
+                ?? model.activity.cleanProgress?.targetName
                 ?? localized("progress.finishingUp", defaultValue: "Finishing up…"))
                 .font(Theme.mono(11.5))
                 .foregroundStyle(Color(hex: 0x7E7E85))
@@ -30,13 +30,13 @@ struct CleaningView: View {
                 .frame(height: 16)
                 .padding(.top, 10)
                 .contentTransition(.opacity)
-                .animation(Theme.quick, value: model.cleanProgress?.targetPath)
+                .animation(Theme.quick, value: model.activity.cleanProgress?.targetPath)
 
-            ProgressBar(fraction: model.cleanProgress?.fraction ?? 0, height: 6)
+            ProgressBar(fraction: model.activity.cleanProgress?.fraction ?? 0, height: 6)
                 .frame(width: 420)
                 .padding(.top, 20)
 
-            if let progress = model.cleanProgress {
+            if let progress = model.activity.cleanProgress {
                 Text(localized(
                     "cleaning.progress",
                     defaultValue: "\(progress.index) of \(progress.total) locations"
@@ -49,14 +49,14 @@ struct CleaningView: View {
                 .animation(Theme.smooth, value: progress.index)
             }
 
-            Button(model.isCancellingClean
+            Button(model.activity.isCancellingClean
                 ? localized("cleaning.stoppingButton", defaultValue: "Stopping after this item…")
                 : localized("cleaning.stopButton", defaultValue: "Stop after this item")
             ) {
                 model.cancelClean()
             }
             .rcSecondary()
-            .disabled(model.isCancellingClean)
+            .disabled(model.activity.isCancellingClean)
             .padding(.top, 30)
             .help(localized(
                 "cleaning.stopHelp",

@@ -334,7 +334,7 @@ struct AppModelProjectTests {
         // The engine saw exactly the scan-time snapshot path.
         #expect(cleanedPaths.withLock { $0 } == ["/dev/app/node_modules"])
         // The fixture path does not exist on disk, so removal verifies.
-        let summary = try #require(model.lastCleanSummary)
+        let summary = try #require(model.activity.lastCleanSummary)
         #expect(summary.cleanedArtifacts.count == 1)
         #expect(summary.cleanedArtifacts.first?.bytesFreed == 500)
         #expect(summary.reclaimedBytes == 500)
@@ -376,7 +376,7 @@ struct AppModelProjectTests {
         model.cleanSelected()
 
         #expect(cleanCalls.withLock { $0 } == 0)
-        let summary = try #require(model.lastCleanSummary)
+        let summary = try #require(model.activity.lastCleanSummary)
         #expect(summary.isDryRun)
         #expect(summary.cleanedArtifacts.first?.bytesFreed == 500)
         #expect(summary.reclaimedBytes == 500)
@@ -749,7 +749,7 @@ struct AppModelProjectTests {
         #expect(model.selection.contains("cache"))
         #expect(model.isArtifactSelected(libModules))
         #expect(!model.isArtifactSelected(appModules))
-        let summary = try #require(model.lastCleanSummary)
+        let summary = try #require(model.activity.lastCleanSummary)
         #expect(summary.cleanedArtifacts.map(\.id) == ["/dev/app/node_modules"])
         #expect(summary.reclaimedBytes == 500)
     }
@@ -786,7 +786,7 @@ struct AppModelProjectTests {
         model.cleanSelected(scope: .projectArtifacts("/dev/app"))
 
         #expect(cleanCalls.withLock { $0 } == 0)
-        let summary = try #require(model.lastCleanSummary)
+        let summary = try #require(model.activity.lastCleanSummary)
         #expect(summary.isDryRun)
         #expect(summary.cleanedArtifacts.map(\.id) == ["/dev/app/node_modules"])
         #expect(summary.reclaimedBytes == 500)
@@ -822,7 +822,7 @@ struct AppModelProjectTests {
         await model.cleanTask?.value
 
         #expect(cleanCalls.withLock { $0 } == 0)
-        #expect(model.lastCleanSummary == nil)
+        #expect(model.activity.lastCleanSummary == nil)
         #expect(model.isArtifactSelected(nodeModules))
     }
 
@@ -849,7 +849,7 @@ struct AppModelProjectTests {
         #expect(model.isProjectSelectable(fixture))    // idle: selectable
 
         model.scanAll()
-        #expect(model.isScanning)
+        #expect(model.activity.isScanning)
         #expect(!model.isProjectSelectable(fixture))   // busy: not selectable
         model.setProjectSelected(fixture, true)        // refused while busy
         #expect(model.artifactSelection.isEmpty)

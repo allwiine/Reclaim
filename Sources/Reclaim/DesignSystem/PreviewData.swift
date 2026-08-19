@@ -210,7 +210,7 @@ enum PreviewData {
             .init(id: "gradle-caches", name: "Gradle caches", category: .android, bytesFreed: gb(8.6)),
             .init(id: "npm-cache", name: "npm cache", category: .packageManagers, bytesFreed: gb(3.4)),
         ]
-        model.lastCleanSummary = summary
+        model.activity.lastCleanSummary = summary
         return model
     }
 
