@@ -36,15 +36,6 @@ public final class AppModel {
     /// Per-target scan results and the totals derived from them.
     public let results: TargetResultsModel
 
-    /// Targets the user has ticked for cleaning.
-    public private(set) var selection: Set<CleanupTarget.ID> = []
-
-    /// Cherry-picked cleanup paths per target (path → scan-time bytes
-    /// from the contents breakdown). A target with an entry here is
-    /// *partially* selected: cleaning disposes only these paths. A
-    /// selected target without an entry cleans everything.
-    public private(set) var partialSelections: [CleanupTarget.ID: [String: Int64]] = [:]
-
     /// When the last *completed* (non-cancelled) scan finished. Anchors
     /// the weekly background schedule and, being observable, keeps the
     /// footer's "next background scan" line live.
@@ -57,13 +48,12 @@ public final class AppModel {
     /// Persistent clean history.
     public let history: HistoryModel
 
-    /// Target ids the user chose to keep out of automatic selection
-    /// (the post-scan preselection and "select all safe"). Ticking them
-    /// manually still works. Persisted across launches.
-    public private(set) var autoSelectExclusions: Set<CleanupTarget.ID>
-
     /// On-demand "largest contents" cache per target.
     public let breakdowns: BreakdownModel
+
+    /// What the user has ticked for cleaning, whole targets and
+    /// cherry-picked paths alike.
+    public let selection: SelectionModel
 
     /// User-configured development folders (the dev-folder feature is
     /// inert until this is non-empty). Persisted.
@@ -107,7 +97,6 @@ public final class AppModel {
 
     private enum DefaultsKey {
         static let lastScanDate = "state.lastScanDate"
-        static let autoSelectExclusions = "settings.autoSelectExclusions"
         static let devRoots = "settings.devRoots"
     }
 
@@ -129,6 +118,9 @@ public final class AppModel {
             targets: targets, settings: settings, volumeProbe: executors.volume
         )
         self.breakdowns = BreakdownModel(results: results, executor: executors.breakdown)
+        self.selection = SelectionModel(
+            results: results, activity: activity, breakdowns: breakdowns, defaults: defaults
+        )
         self.scanExecutor = executors.scan
         self.cleanExecutor = executors.clean
         self.projectScanExecutor = executors.projectScan
@@ -136,9 +128,6 @@ public final class AppModel {
         self.fullDiskAccessProbe = executors.fullDiskAccess
         self.volumeProbe = executors.volume
         self.history = HistoryModel(store: historyStore)
-        self.autoSelectExclusions = Set(
-            defaults.stringArray(forKey: DefaultsKey.autoSelectExclusions) ?? []
-        )
         self.devRoots = (defaults.stringArray(forKey: DefaultsKey.devRoots) ?? [])
             .map { URL(filePath: $0) }
         self.lastCompletedScanDate = defaults.object(forKey: DefaultsKey.lastScanDate) as? Date
@@ -165,7 +154,7 @@ public final class AppModel {
     /// Bytes covered by the current selection, partial picks and
     /// selected dev-folder artifacts included.
     public var selectedBytes: Int64 {
-        results.targets.reduce(0) { $0 + selectedBytes(of: $1) } + selectedArtifactBytes
+        results.targets.reduce(0) { $0 + selection.selectedBytes(of: $1) } + selectedArtifactBytes
     }
 
     // MARK: - Background scanning
@@ -353,7 +342,7 @@ public final class AppModel {
     /// ``selectedArtifacts``), not the raw id set, so ids left dangling
     /// by a root removed out from under the selection never count.
     public var hasCleanableSelection: Bool {
-        !selection.isEmpty || !selectedArtifacts.isEmpty
+        !selection.ids.isEmpty || !selectedArtifacts.isEmpty
     }
 
     // MARK: - Project selection
@@ -435,175 +424,14 @@ public final class AppModel {
 
     // MARK: - Selection
 
-    /// Whether the row's checkbox is enabled.
-    public func isSelectable(_ target: CleanupTarget) -> Bool {
-        guard target.strategy.isCleanable, !activity.isScanning, !activity.isCleaning else { return false }
-        switch results.status(of: target.id) {
-        case .measured(let measurement, _, _): return measurement.bytes > 0
-        case .unmeasurable: return true
-        default: return false
-        }
-    }
-
-    public func isSelected(_ target: CleanupTarget) -> Bool {
-        selection.contains(target.id)
-    }
-
-    /// The selected targets, in registry order.
-    public var selectedTargets: [CleanupTarget] {
-        results.targets.filter { selection.contains($0.id) }
-    }
-
-    /// How many targets could be ticked right now — the denominator for
-    /// "N of M selected". Manual-only targets never count.
-    public var selectableItemCount: Int {
-        selectableItemCount(among: results.targets)
-    }
-
-    /// The same count restricted to a subset (one browser view's list).
-    public func selectableItemCount(among candidates: [CleanupTarget]) -> Int {
-        candidates.count { target in
-            guard target.strategy.isCleanable else { return false }
-            switch results.status(of: target.id) {
-            case .measured(let measurement, _, _): return measurement.bytes > 0
-            case .unmeasurable: return true
-            default: return false
-            }
-        }
-    }
-
-    public func isExcludedFromAutoSelect(_ target: CleanupTarget) -> Bool {
-        autoSelectExclusions.contains(target.id)
-    }
-
-    /// Keep a target out of (or return it to) automatic selection.
-    /// Excluding a currently ticked target unticks it immediately.
-    public func setExcludedFromAutoSelect(_ target: CleanupTarget, _ excluded: Bool) {
-        if excluded {
-            autoSelectExclusions.insert(target.id)
-            selection.remove(target.id)
-            partialSelections[target.id] = nil
-        } else {
-            autoSelectExclusions.remove(target.id)
-        }
-        defaults.set(autoSelectExclusions.sorted(), forKey: DefaultsKey.autoSelectExclusions)
-    }
-
-    /// Select (fully) or deselect a target. Either way any cherry-picked
-    /// subset is discarded — this is the whole-target switch.
-    public func setSelected(_ target: CleanupTarget, _ selected: Bool) {
-        partialSelections[target.id] = nil
-        if selected, isSelectable(target) {
-            selection.insert(target.id)
-        } else {
-            selection.remove(target.id)
-        }
-    }
-
-    /// Select every selectable target rated ``SafetyLevel/safe``,
-    /// honoring the user's auto-select exclusions.
-    public func selectAllSafe() {
-        for target in results.targets where target.safety == .safe
-            && isSelectable(target)
-            && !autoSelectExclusions.contains(target.id) {
-            selection.insert(target.id)
-            partialSelections[target.id] = nil
-        }
-    }
-
-    public func clearSelection() {
-        selection.removeAll()
-        partialSelections.removeAll()
-    }
-
     /// Reset the selection to exactly the safe, cleanable targets —
     /// dropping any previously ticked Caution/Destructive targets and
     /// dev-folder artifacts — so the overview's "Reclaim safe space"
     /// confirms only what it names.
     public func selectOnlySafe() {
-        selection.removeAll()
-        partialSelections.removeAll()
+        selection.clear()
         artifactSelection.removeAll()
-        selectAllSafe()
-    }
-
-    // MARK: - Cherry-picking
-
-    public func isPartiallySelected(_ target: CleanupTarget) -> Bool {
-        partialSelections[target.id] != nil
-    }
-
-    /// (ticked, total) cleanup-path counts, when partially selected.
-    public func partialSelectionCounts(of target: CleanupTarget) -> (selected: Int, total: Int)? {
-        guard let partial = partialSelections[target.id] else { return nil }
-        return (partial.count, results.status(of: target.id).cleanupPaths.count)
-    }
-
-    /// Whether one scan-time cleanup path is in the effective clean scope.
-    public func isPathSelected(_ target: CleanupTarget, path: String) -> Bool {
-        guard selection.contains(target.id) else { return false }
-        guard let partial = partialSelections[target.id] else { return true }
-        return partial[path] != nil
-    }
-
-    /// Tick or untick a single scan-time cleanup path. Ticking the last
-    /// missing path folds back into full selection; unticking the last
-    /// ticked one deselects the target entirely.
-    public func setPathSelected(_ target: CleanupTarget, path: String, _ on: Bool) {
-        guard target.strategy.isCleanable, !activity.isScanning, !activity.isCleaning else { return }
-        let allPaths = results.status(of: target.id).cleanupPaths.map(\.path)
-        guard allPaths.contains(path) else { return }
-
-        var chosen: Set<String>
-        if !selection.contains(target.id) {
-            chosen = []
-        } else if let partial = partialSelections[target.id] {
-            chosen = Set(partial.keys)
-        } else {
-            chosen = Set(allPaths)
-        }
-        if on { chosen.insert(path) } else { chosen.remove(path) }
-
-        if chosen.isEmpty {
-            selection.remove(target.id)
-            partialSelections[target.id] = nil
-        } else if chosen.count == allPaths.count {
-            guard isSelectable(target) else { return }
-            selection.insert(target.id)
-            partialSelections[target.id] = nil
-        } else {
-            guard isSelectable(target) else { return }
-            selection.insert(target.id)
-            // Sizes come from the contents breakdown, which is loaded
-            // whenever the inspector (the only place that ticks paths)
-            // is showing the target.
-            let entries = breakdowns.entries[target.id] ?? []
-            partialSelections[target.id] = chosen.reduce(into: [:]) { map, chosenPath in
-                map[chosenPath] = entries.first { $0.id == chosenPath }?.bytes ?? 0
-            }
-        }
-    }
-
-    /// The exact paths a clean pass would dispose for this target now.
-    public func selectedCleanupPaths(of target: CleanupTarget) -> [URL] {
-        let all = results.status(of: target.id).cleanupPaths
-        guard let partial = partialSelections[target.id] else { return all }
-        return all.filter { partial.keys.contains($0.path) }
-    }
-
-    /// Bytes this target's current selection covers (subset-aware).
-    public func selectedBytes(of target: CleanupTarget) -> Int64 {
-        guard selection.contains(target.id) else { return 0 }
-        if let partial = partialSelections[target.id] {
-            return partial.values.reduce(0, +)
-        }
-        return results.status(of: target.id).bytes ?? 0
-    }
-
-    /// Scan-time size of one cleanup path, when the breakdown measured it.
-    public func breakdownBytes(of target: CleanupTarget, path: String) -> Int64? {
-        if let bytes = partialSelections[target.id]?[path] { return bytes }
-        return breakdowns.entries[target.id]?.first { $0.id == path }?.bytes
+        selection.selectAllSafe()
     }
 
     // MARK: - Scanning
@@ -613,8 +441,7 @@ public final class AppModel {
         guard !activity.isScanning, !activity.isCleaning else { return }
         activity.isScanning = true
         activity.isCancellingScan = false
-        selection.removeAll()
-        partialSelections.removeAll()
+        selection.clearForScan()
         activity.lastCleanSummary = nil
         breakdowns.invalidateAll()
         projectScans = []
@@ -668,12 +495,12 @@ public final class AppModel {
     /// (plus Caution when the setting opts in), so one click cleans.
     /// Targets the user excluded from automatic selection stay unticked.
     private func applyPostScanSelection() {
-        for target in results.targets where isSelectable(target) {
-            guard !autoSelectExclusions.contains(target.id) else { continue }
+        for target in results.targets where selection.isSelectable(target) {
+            guard !selection.isExcludedFromAutoSelect(target) else { continue }
             let wanted = target.safety == .safe
                 || (settings.preselectCaution && target.safety == .caution)
             if wanted {
-                selection.insert(target.id)
+                selection.insertForPostScan(target.id)
             }
         }
     }
@@ -876,7 +703,7 @@ public final class AppModel {
     /// the numbers on screen stay truthful.
     public func cleanSelected(scope: CleanScope = .selection) {
         guard !activity.isCleaning, !activity.isScanning else { return }
-        guard !selection.isEmpty || !artifactSelection.isEmpty else { return }
+        guard !selection.ids.isEmpty || !artifactSelection.isEmpty else { return }
 
         let targetLimit: Set<CleanupTarget.ID>? = switch scope {
         case .selection: nil
@@ -884,15 +711,15 @@ public final class AppModel {
         case .projectArtifacts: []      // registry targets never join
         }
         let jobs: [CleanJob] = results.targets.compactMap { target in
-            guard selection.contains(target.id), target.strategy.isCleanable,
+            guard selection.ids.contains(target.id), target.strategy.isCleanable,
                   targetLimit?.contains(target.id) != false else { return nil }
             switch results.status(of: target.id) {
             case .measured(let measurement, _, _):
                 return CleanJob(
                     target: target,
-                    paths: selectedCleanupPaths(of: target),
+                    paths: selection.selectedCleanupPaths(of: target),
                     bytesBefore: measurement.bytes,
-                    estimatedBytes: selectedBytes(of: target)
+                    estimatedBytes: selection.selectedBytes(of: target)
                 )
             case .unmeasurable:
                 return CleanJob(target: target, paths: [], bytesBefore: 0, estimatedBytes: 0)
@@ -1054,8 +881,7 @@ public final class AppModel {
                         bytesAfter: refreshed.bytes
                     ))
                 }
-                self.selection.remove(job.target.id)
-                self.partialSelections[job.target.id] = nil
+                self.selection.removeAfterClean(job.target.id)
             }
 
             // Dev-folder artifacts, after the registry targets. Same
@@ -1214,7 +1040,7 @@ public final class AppModel {
         lastCleanSummary: CleanSummary? = nil
     ) {
         self.results.statuses = statuses
-        self.selection = selection
+        self.selection.seed(ids: selection)
         self.history.seed(entries: history)
         self.breakdowns.seed(entries: breakdowns)
         self.results.volumeSpace = volumeSpace

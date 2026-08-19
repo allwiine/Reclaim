@@ -194,15 +194,15 @@ struct AppModelTests {
         model.scanAll()
         await model.scanTask?.value
 
-        #expect(!model.isSelectable(manual), "manual targets must never be selectable")
-        #expect(!model.isSelectable(empty), "empty targets have nothing to clean")
-        #expect(model.isSelectable(full))
-        #expect(model.isSelectable(command), "command targets are cleanable while unmeasured")
+        #expect(!model.selection.isSelectable(manual), "manual targets must never be selectable")
+        #expect(!model.selection.isSelectable(empty), "empty targets have nothing to clean")
+        #expect(model.selection.isSelectable(full))
+        #expect(model.selection.isSelectable(command), "command targets are cleanable while unmeasured")
 
-        model.setSelected(command, true)
-        model.setSelected(full, true)
+        model.selection.setSelected(command, true)
+        model.selection.setSelected(full, true)
         #expect(
-            model.selectedTargets.map(\.id) == ["full", "command"],
+            model.selection.selectedTargets.map(\.id) == ["full", "command"],
             "selected targets come back in registry order"
         )
     }
@@ -222,10 +222,10 @@ struct AppModelTests {
 
         model.scanAll()
         await model.scanTask?.value
-        model.selectAllSafe()
+        model.selection.selectAllSafe()
 
-        #expect(model.isSelected(safe))
-        #expect(!model.isSelected(risky))
+        #expect(model.selection.isSelected(safe))
+        #expect(!model.selection.isSelected(risky))
     }
 
     @Test("Cleaning disposes the scan-time cleanup paths and re-measures")
@@ -255,7 +255,7 @@ struct AppModelTests {
 
         model.scanAll()
         await model.scanTask?.value
-        model.setSelected(cache, true)
+        model.selection.setSelected(cache, true)
         model.cleanSelected()
         await model.cleanTask?.value
 
@@ -264,7 +264,7 @@ struct AppModelTests {
         #expect(calls.first?.1 == cleanupPaths)
         #expect(calls.first?.2 == .trash)
         #expect(model.activity.isCleaning == false)
-        #expect(model.selection.isEmpty)
+        #expect(model.selection.ids.isEmpty)
         #expect(model.activity.lastCleanSummary?.reclaimedBytes == 100)
         #expect(model.results.status(of: "cache").bytes == 0, "post-clean rescan must be reflected")
     }
@@ -294,8 +294,8 @@ struct AppModelTests {
 
         model.scanAll()
         await model.scanTask?.value
-        model.setSelected(ok, true)
-        model.setSelected(broken, true)
+        model.selection.setSelected(ok, true)
+        model.selection.setSelected(broken, true)
         model.cleanSelected()
         await model.cleanTask?.value
 
@@ -334,7 +334,7 @@ struct AppModelTests {
 
         model.scanAll()
         await model.scanTask?.value
-        model.setSelected(shrinker, true)
+        model.selection.setSelected(shrinker, true)
         model.cleanSelected()
         await model.cleanTask?.value
 
@@ -367,7 +367,7 @@ struct AppModelTests {
 
         model.scanAll()
         await model.scanTask?.value
-        model.setSelected(partial, true)
+        model.selection.setSelected(partial, true)
         model.cleanSelected()
         await model.cleanTask?.value
 
@@ -419,7 +419,7 @@ struct AppModelTests {
         try FileManager.default.removeItem(at: realCache)
         try FileManager.default.createSymbolicLink(at: realCache, withDestinationURL: evil)
 
-        model.setSelected(swappable, true)
+        model.selection.setSelected(swappable, true)
         model.cleanSelected()
         await model.cleanTask?.value
 
@@ -454,8 +454,8 @@ struct AppModelTests {
 
         model.scanAll()
         await model.scanTask?.value
-        model.setSelected(first, true)
-        model.setSelected(second, true)
+        model.selection.setSelected(first, true)
+        model.selection.setSelected(second, true)
         model.cleanSelected()
 
         // Wait (bounded) until the first job is reported in flight.
@@ -472,7 +472,7 @@ struct AppModelTests {
         #expect(cleaned.withLock { $0 } == ["first"], "the in-flight target finishes; the rest are skipped")
         #expect(model.activity.cleanProgress == nil)
         #expect(model.activity.lastCleanSummary?.wasStopped == true)
-        #expect(model.isSelected(second), "skipped targets stay selected")
+        #expect(model.selection.isSelected(second), "skipped targets stay selected")
         #expect(model.results.status(of: "second").bytes == 100, "skipped targets keep their measurement")
     }
 
@@ -494,15 +494,15 @@ struct AppModelTests {
         model.scanAll()
         await model.scanTask?.value
 
-        #expect(model.isSelected(safe), "Safe items come ticked after a scan")
-        #expect(!model.isSelected(risky), "Caution items stay unticked by default")
-        #expect(!model.isSelected(manual), "manual targets can never be selected")
+        #expect(model.selection.isSelected(safe), "Safe items come ticked after a scan")
+        #expect(!model.selection.isSelected(risky), "Caution items stay unticked by default")
+        #expect(!model.selection.isSelected(manual), "manual targets can never be selected")
 
         model.settings.preselectCaution = true
         model.scanAll()
         await model.scanTask?.value
 
-        #expect(model.isSelected(risky), "the Caution preselection setting is honored")
+        #expect(model.selection.isSelected(risky), "the Caution preselection setting is honored")
     }
 
     @Test("A dry run reports projections and touches nothing")
@@ -535,7 +535,7 @@ struct AppModelTests {
         #expect(model.activity.lastCleanSummary?.isDryRun == true)
         #expect(model.activity.lastCleanSummary?.reclaimedBytes == 100)
         #expect(model.activity.lastCleanSummary?.itemsRemoved == 2)
-        #expect(model.isSelected(cache), "the selection survives a dry run")
+        #expect(model.selection.isSelected(cache), "the selection survives a dry run")
         #expect(model.results.status(of: "cache").bytes == 100, "measurements stay untouched")
         #expect(model.history.entries.isEmpty, "dry runs are not history")
     }
@@ -751,22 +751,22 @@ struct AppModelTests {
             historyStore: temporaryHistoryStore()
         )
 
-        model.setExcludedFromAutoSelect(excluded, true)
+        model.selection.setExcludedFromAutoSelect(excluded, true)
         model.scanAll()
         await model.scanTask?.value
 
-        #expect(model.isSelected(kept))
-        #expect(!model.isSelected(excluded), "post-scan preselection must skip exclusions")
+        #expect(model.selection.isSelected(kept))
+        #expect(!model.selection.isSelected(excluded), "post-scan preselection must skip exclusions")
 
-        model.clearSelection()
-        model.selectAllSafe()
-        #expect(!model.isSelected(excluded), "selectAllSafe must skip exclusions")
+        model.selection.clear()
+        model.selection.selectAllSafe()
+        #expect(!model.selection.isSelected(excluded), "selectAllSafe must skip exclusions")
 
-        model.setSelected(excluded, true)
-        #expect(model.isSelected(excluded), "manual ticking still works")
+        model.selection.setSelected(excluded, true)
+        #expect(model.selection.isSelected(excluded), "manual ticking still works")
 
-        model.setExcludedFromAutoSelect(excluded, true)
-        #expect(!model.isSelected(excluded), "excluding a ticked target unticks it")
+        model.selection.setExcludedFromAutoSelect(excluded, true)
+        #expect(!model.selection.isSelected(excluded), "excluding a ticked target unticks it")
 
         let second = AppModel(
             targets: [kept, excluded],
@@ -776,11 +776,11 @@ struct AppModelTests {
             ),
             historyStore: temporaryHistoryStore()
         )
-        #expect(second.isExcludedFromAutoSelect(excluded), "exclusions survive a relaunch")
+        #expect(second.selection.isExcludedFromAutoSelect(excluded), "exclusions survive a relaunch")
 
-        model.setExcludedFromAutoSelect(excluded, false)
-        model.selectAllSafe()
-        #expect(model.isSelected(excluded), "revoking the exclusion restores auto-selection")
+        model.selection.setExcludedFromAutoSelect(excluded, false)
+        model.selection.selectAllSafe()
+        #expect(model.selection.isSelected(excluded), "revoking the exclusion restores auto-selection")
     }
 
     @Test("Cherry-picking paths drives partial selection state")
@@ -805,45 +805,45 @@ struct AppModelTests {
 
         model.scanAll()
         await model.scanTask?.value
-        #expect(model.isSelected(cache), "safe target arrives fully selected")
+        #expect(model.selection.isSelected(cache), "safe target arrives fully selected")
         model.breakdowns.load(for: cache)
         for _ in 0..<10_000 where model.breakdowns.entries["cache"] == nil {
             await Task.yield()
         }
 
         // Untick one path: full → partial.
-        model.setPathSelected(cache, path: "/fixture/a", false)
-        #expect(model.isSelected(cache))
-        #expect(model.isPartiallySelected(cache))
-        #expect(model.partialSelectionCounts(of: cache)?.selected == 1)
-        #expect(model.partialSelectionCounts(of: cache)?.total == 2)
-        #expect(model.selectedBytes(of: cache) == 40, "subset bytes come from the breakdown")
+        model.selection.setPathSelected(cache, path: "/fixture/a", false)
+        #expect(model.selection.isSelected(cache))
+        #expect(model.selection.isPartiallySelected(cache))
+        #expect(model.selection.partialSelectionCounts(of: cache)?.selected == 1)
+        #expect(model.selection.partialSelectionCounts(of: cache)?.total == 2)
+        #expect(model.selection.selectedBytes(of: cache) == 40, "subset bytes come from the breakdown")
         #expect(model.selectedBytes == 40)
-        #expect(model.selectedCleanupPaths(of: cache).map(\.path) == ["/fixture/b"])
-        #expect(!model.isPathSelected(cache, path: "/fixture/a"))
-        #expect(model.isPathSelected(cache, path: "/fixture/b"))
+        #expect(model.selection.selectedCleanupPaths(of: cache).map(\.path) == ["/fixture/b"])
+        #expect(!model.selection.isPathSelected(cache, path: "/fixture/a"))
+        #expect(model.selection.isPathSelected(cache, path: "/fixture/b"))
 
         // Untick the last path: partial → deselected.
-        model.setPathSelected(cache, path: "/fixture/b", false)
-        #expect(!model.isSelected(cache))
-        #expect(!model.isPartiallySelected(cache))
+        model.selection.setPathSelected(cache, path: "/fixture/b", false)
+        #expect(!model.selection.isSelected(cache))
+        #expect(!model.selection.isPartiallySelected(cache))
 
         // Tick one path from nothing: deselected → partial.
-        model.setPathSelected(cache, path: "/fixture/a", true)
-        #expect(model.isPartiallySelected(cache))
-        #expect(model.selectedBytes(of: cache) == 60)
+        model.selection.setPathSelected(cache, path: "/fixture/a", true)
+        #expect(model.selection.isPartiallySelected(cache))
+        #expect(model.selection.selectedBytes(of: cache) == 60)
 
         // Tick the rest: partial folds back into full selection.
-        model.setPathSelected(cache, path: "/fixture/b", true)
-        #expect(model.isSelected(cache))
-        #expect(!model.isPartiallySelected(cache))
-        #expect(model.selectedBytes(of: cache) == 100)
+        model.selection.setPathSelected(cache, path: "/fixture/b", true)
+        #expect(model.selection.isSelected(cache))
+        #expect(!model.selection.isPartiallySelected(cache))
+        #expect(model.selection.selectedBytes(of: cache) == 100)
 
         // The whole-target switch always discards the subset.
-        model.setPathSelected(cache, path: "/fixture/a", false)
-        model.setSelected(cache, true)
-        #expect(!model.isPartiallySelected(cache))
-        #expect(model.selectedBytes(of: cache) == 100)
+        model.selection.setPathSelected(cache, path: "/fixture/a", false)
+        model.selection.setSelected(cache, true)
+        #expect(!model.selection.isPartiallySelected(cache))
+        #expect(model.selection.selectedBytes(of: cache) == 100)
     }
 
     @Test("A partial selection cleans only the ticked paths")
@@ -881,21 +881,21 @@ struct AppModelTests {
         for _ in 0..<10_000 where model.breakdowns.entries["cache"] == nil {
             await Task.yield()
         }
-        model.setPathSelected(cache, path: "/fixture/a", false)
+        model.selection.setPathSelected(cache, path: "/fixture/a", false)
 
         // Dry run projects the subset, not the whole target.
         model.settings.dryRun = true
         model.cleanSelected()
         #expect(model.activity.lastCleanSummary?.reclaimedBytes == 40)
         #expect(model.activity.lastCleanSummary?.itemsRemoved == 1)
-        #expect(model.isPartiallySelected(cache), "a dry run leaves the picks alone")
+        #expect(model.selection.isPartiallySelected(cache), "a dry run leaves the picks alone")
         model.settings.dryRun = false
 
         model.cleanSelected()
         await model.cleanTask?.value
         #expect(cleanedPaths.withLock { $0 }.map(\.path) == ["/fixture/b"],
                 "the engine must receive only the ticked path")
-        #expect(!model.isPartiallySelected(cache), "picks are consumed by the pass")
+        #expect(!model.selection.isPartiallySelected(cache), "picks are consumed by the pass")
         #expect(model.activity.lastCleanSummary?.reclaimedBytes == 40, "freed is measured by the rescan")
         #expect(
             model.history.entries.first?.items?.first?.bytesAfter == 60,
@@ -925,14 +925,14 @@ struct AppModelTests {
 
         model.scanAll()
         await model.scanTask?.value
-        #expect(model.isSelected(first) && model.isSelected(second))
+        #expect(model.selection.isSelected(first) && model.selection.isSelected(second))
 
         model.cleanSelected(scope: .targets([first.id]))
         await model.cleanTask?.value
 
         #expect(cleanedIDs.withLock { $0 } == ["first"])
-        #expect(!model.isSelected(first), "the cleaned target leaves the selection")
-        #expect(model.isSelected(second), "the rest of the selection stays intact")
+        #expect(!model.selection.isSelected(first), "the cleaned target leaves the selection")
+        #expect(model.selection.isSelected(second), "the rest of the selection stays intact")
     }
 
     @Test("Freed space is only claimed when the rescan can measure it")
@@ -959,7 +959,7 @@ struct AppModelTests {
 
         model.scanAll()
         await model.scanTask?.value
-        model.setSelected(command, true)
+        model.selection.setSelected(command, true)
         model.cleanSelected()
         await model.cleanTask?.value
 
@@ -982,7 +982,7 @@ struct AppModelTests {
         scanCount.withLock { $0 = 0 }
         second.scanAll()
         await second.scanTask?.value
-        second.setSelected(broken, true)
+        second.selection.setSelected(broken, true)
         second.cleanSelected()
         await second.cleanTask?.value
 
@@ -1067,7 +1067,7 @@ struct AppModelTests {
         model.settings.disposal = .delete
         model.scanAll()
         await model.scanTask?.value
-        model.setSelected(cache, true)
+        model.selection.setSelected(cache, true)
         model.cleanSelected()
         await model.cleanTask?.value
         model.history.markTrashEmptied()
@@ -1165,7 +1165,7 @@ struct AppModelTests {
 
         model.scanAll()
         await model.scanTask?.value
-        model.setSelected(cache, true)
+        model.selection.setSelected(cache, true)
         model.cleanSelected()
         await model.cleanTask?.value
 

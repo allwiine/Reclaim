@@ -129,7 +129,7 @@ struct ToolbarView: View {
                 defaultValue: "Reclaim \(model.selectedBytes.formattedBytesCompact)"
             )
         }
-        return model.selection.isEmpty
+        return model.selection.ids.isEmpty
             ? localized("toolbar.nothingSelected", defaultValue: "Nothing selected")
             : localized("toolbar.reclaimSelection", defaultValue: "Reclaim selection")
     }

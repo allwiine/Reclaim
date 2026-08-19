@@ -57,7 +57,7 @@ struct ConfirmSheet: View {
     private var panel: some View {
         let picked: [CleanupTarget] =
             if case .project = scope { [] }
-            else { singleTarget.map { [$0] } ?? model.selectedTargets }
+            else { singleTarget.map { [$0] } ?? model.selection.selectedTargets }
         let toTrash = model.settings.disposal == .trash
 
         return VStack(alignment: .leading, spacing: 0) {
@@ -140,8 +140,8 @@ struct ConfirmSheet: View {
 
     private func title(_ picked: [CleanupTarget]) -> String {
         if let target = singleTarget {
-            let space = model.selectedBytes(of: target).formattedBytesCompact
-            if let counts = model.partialSelectionCounts(of: target) {
+            let space = model.selection.selectedBytes(of: target).formattedBytesCompact
+            if let counts = model.selection.partialSelectionCounts(of: target) {
                 let scope = localized(
                     "format.itemsOf",
                     defaultValue: "\(counts.selected) of \(counts.total) items"
@@ -194,7 +194,7 @@ struct ConfirmSheet: View {
             )
         }
         if let target = singleTarget {
-            if model.isPartiallySelected(target) {
+            if model.selection.isPartiallySelected(target) {
                 return localized(
                     "confirm.bodySinglePartial",
                     defaultValue: "Only the items listed below are affected. The rest of \(target.name) stays where it is."
@@ -293,7 +293,7 @@ struct ConfirmSheet: View {
 
     /// "Clean just this": the exact scan-time items that will go.
     private func singlePathList(for target: CleanupTarget) -> some View {
-        let paths = model.selectedCleanupPaths(of: target)
+        let paths = model.selection.selectedCleanupPaths(of: target)
         return listCard {
             ForEach(paths, id: \.path) { url in
                 HStack(spacing: 10) {
@@ -305,7 +305,7 @@ struct ConfirmSheet: View {
                         .foregroundStyle(Theme.textPrimary)
                         .lineLimit(1)
                     Spacer(minLength: 8)
-                    Text(model.breakdownBytes(of: target, path: url.path)
+                    Text(model.selection.breakdownBytes(of: target, path: url.path)
                         .map(\.formattedBytesCompact)
                         ?? localized("confirm.sizeUnknown", defaultValue: "size unknown"))
                         .scaledFont(size: 12)
@@ -370,7 +370,7 @@ struct ConfirmSheet: View {
     }
 
     private func partialScopeLabel(for target: CleanupTarget) -> String? {
-        guard let counts = model.partialSelectionCounts(of: target) else { return nil }
+        guard let counts = model.selection.partialSelectionCounts(of: target) else { return nil }
         return localized(
             "format.itemsOf",
             defaultValue: "\(counts.selected) of \(counts.total) items"
@@ -381,7 +381,7 @@ struct ConfirmSheet: View {
         if case .unmeasurable = model.results.status(of: target.id) {
             return localized("confirm.sizeUnknown", defaultValue: "size unknown")
         }
-        return model.selectedBytes(of: target).formattedBytesCompact
+        return model.selection.selectedBytes(of: target).formattedBytesCompact
     }
 
     private func warningText(_ picked: [CleanupTarget]) -> String? {

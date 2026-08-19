@@ -78,7 +78,7 @@ struct InspectorPanel: View {
                         .padding(.top, 10)
                 }
 
-                if target.strategy.isCleanable, model.isExcludedFromAutoSelect(target) {
+                if target.strategy.isCleanable, model.selection.isExcludedFromAutoSelect(target) {
                     Label(
                         localized(
                             "inspector.excludedNote",
@@ -276,13 +276,13 @@ struct InspectorPanel: View {
                 SectionLabel(localized("inspector.largestContents", defaultValue: "Largest contents"))
                     .frame(maxWidth: .infinity, alignment: .leading)
                 if pickable, !entries.isEmpty {
-                    Button(model.isSelected(target) && !model.isPartiallySelected(target)
+                    Button(model.selection.isSelected(target) && !model.selection.isPartiallySelected(target)
                         ? localized("inspector.deselectAllContents", defaultValue: "Deselect all")
                         : localized("inspector.selectAllContents", defaultValue: "Select all")
                     ) {
-                        model.setSelected(
+                        model.selection.setSelected(
                             target,
-                            !(model.isSelected(target) && !model.isPartiallySelected(target))
+                            !(model.selection.isSelected(target) && !model.selection.isPartiallySelected(target))
                         )
                     }
                     .buttonStyle(.plain)
@@ -348,8 +348,8 @@ struct InspectorPanel: View {
                     Toggle(
                         localized("browser.selectAccessibility", defaultValue: "Select \(entry.name)"),
                         isOn: Binding(
-                            get: { model.isPathSelected(target, path: entry.id) },
-                            set: { model.setPathSelected(target, path: entry.id, $0) }
+                            get: { model.selection.isPathSelected(target, path: entry.id) },
+                            set: { model.selection.setPathSelected(target, path: entry.id, $0) }
                         )
                     )
                     .toggleStyle(CheckboxToggleStyle(size: 15))
@@ -393,12 +393,12 @@ struct InspectorPanel: View {
                 .frame(maxWidth: .infinity)
         }
         .rcPrimary()
-        .disabled(!model.isSelected(target) || model.activity.isScanning || model.activity.isCleaning)
+        .disabled(!model.selection.isSelected(target) || model.activity.isScanning || model.activity.isCleaning)
         .padding(.top, 12)
     }
 
     private func scopeLabel(for target: CleanupTarget) -> String? {
-        guard let counts = model.partialSelectionCounts(of: target) else { return nil }
+        guard let counts = model.selection.partialSelectionCounts(of: target) else { return nil }
         return localized(
             "format.itemsOf",
             defaultValue: "\(counts.selected) of \(counts.total) items"
@@ -409,15 +409,15 @@ struct InspectorPanel: View {
         guard let scope = scopeLabel(for: target) else {
             return localized("inspector.tickHint", defaultValue: "Tick items to clean only those")
         }
-        let size = model.selectedBytes(of: target).formattedBytesCompact
+        let size = model.selection.selectedBytes(of: target).formattedBytesCompact
         return localized("inspector.tickedNote", defaultValue: "\(scope) ticked · \(size)")
     }
 
     private func cleanJustThisLabel(for target: CleanupTarget) -> String {
-        guard model.isSelected(target) else {
+        guard model.selection.isSelected(target) else {
             return localized("inspector.nothingTicked", defaultValue: "Nothing ticked here")
         }
-        let size = model.selectedBytes(of: target).formattedBytesCompact
+        let size = model.selection.selectedBytes(of: target).formattedBytesCompact
         guard let scope = scopeLabel(for: target) else {
             return localized("inspector.cleanJustThis", defaultValue: "Clean just this · \(size)")
         }

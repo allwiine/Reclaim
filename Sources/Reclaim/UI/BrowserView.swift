@@ -104,15 +104,15 @@ struct BrowserView: View {
     private var selectionStrip: some View {
         HStack(spacing: 10) {
             Button(localized("browser.selectAllSafe", defaultValue: "Select all safe")) {
-                model.selectAllSafe()
+                model.selection.selectAllSafe()
             }
             .buttonStyle(StripChipButtonStyle())
 
             Button(localized("browser.clear", defaultValue: "Clear")) {
-                model.clearSelection()
+                model.selection.clear()
             }
             .buttonStyle(StripChipButtonStyle(plain: true))
-            .disabled(model.selection.isEmpty)
+            .disabled(model.selection.ids.isEmpty)
 
             Spacer()
 
@@ -121,7 +121,7 @@ struct BrowserView: View {
                 .monospacedDigit()
                 .foregroundStyle(Theme.textLabel)
                 .contentTransition(.numericText())
-                .animation(Theme.smooth, value: model.selection.count)
+                .animation(Theme.smooth, value: model.selection.ids.count)
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 9)
@@ -132,12 +132,12 @@ struct BrowserView: View {
     /// list). The global size lives on the toolbar's Reclaim button.
     private var selectionSummary: String {
         let visible = visibleTargets
-        let pickedHere = visible.count { model.isSelected($0) }
+        let pickedHere = visible.count { model.selection.isSelected($0) }
         guard pickedHere > 0 else {
             return localized("browser.noItemsSelected", defaultValue: "No items selected")
         }
-        let selectable = model.selectableItemCount(among: visible)
-        let bytes = visible.reduce(Int64(0)) { $0 + model.selectedBytes(of: $1) }
+        let selectable = model.selection.selectableItemCount(among: visible)
+        let bytes = visible.reduce(Int64(0)) { $0 + model.selection.selectedBytes(of: $1) }
         return localized(
             "browser.selectionSummary",
             defaultValue: "\(pickedHere) of \(selectable) items selected · \(bytes.formattedBytesCompact)"
@@ -291,12 +291,12 @@ private struct TargetRow: View {
 
     /// "2 of 8 items · 1.2 GB" while the target is cherry-picked.
     private var partialNote: String? {
-        guard let counts = model.partialSelectionCounts(of: target) else { return nil }
+        guard let counts = model.selection.partialSelectionCounts(of: target) else { return nil }
         let scope = localized(
             "format.itemsOf",
             defaultValue: "\(counts.selected) of \(counts.total) items"
         )
-        let size = model.selectedBytes(of: target).formattedBytesCompact
+        let size = model.selection.selectedBytes(of: target).formattedBytesCompact
         return localized("browser.partialNote", defaultValue: "\(scope) · \(size)")
     }
 
@@ -304,14 +304,14 @@ private struct TargetRow: View {
         Toggle(
             localized("browser.selectAccessibility", defaultValue: "Select \(target.name)"),
             isOn: Binding(
-                get: { model.isSelected(target) },
-                set: { model.setSelected(target, $0) }
+                get: { model.selection.isSelected(target) },
+                set: { model.selection.setSelected(target, $0) }
             )
         )
-        .toggleStyle(CheckboxToggleStyle(mixed: model.isPartiallySelected(target)))
+        .toggleStyle(CheckboxToggleStyle(mixed: model.selection.isPartiallySelected(target)))
         .labelsHidden()
-        .disabled(!model.isSelectable(target))
-        .opacity(model.isSelectable(target) ? 1 : 0.35)
+        .disabled(!model.selection.isSelectable(target))
+        .opacity(model.selection.isSelectable(target) ? 1 : 0.35)
     }
 
     @ViewBuilder
@@ -394,8 +394,8 @@ private struct TargetRow: View {
             Toggle(
                 localized("browser.keepOutOfAutoSelect", defaultValue: "Keep out of automatic selection"),
                 isOn: Binding(
-                    get: { model.isExcludedFromAutoSelect(target) },
-                    set: { model.setExcludedFromAutoSelect(target, $0) }
+                    get: { model.selection.isExcludedFromAutoSelect(target) },
+                    set: { model.selection.setExcludedFromAutoSelect(target, $0) }
                 )
             )
         }

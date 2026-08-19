@@ -680,7 +680,7 @@ struct AppModelProjectTests {
         model.scanAll()
         await model.scanTask?.value
         // Post-scan auto-selection ticked the safe registry target.
-        #expect(model.selection.contains("cache"))
+        #expect(model.selection.ids.contains("cache"))
 
         model.selectAllArtifacts()
         #expect(model.selectedArtifacts.map(\.id).sorted() ==
@@ -690,7 +690,7 @@ struct AppModelProjectTests {
         model.clearArtifactSelection()
         #expect(model.artifactSelection.isEmpty)
         // The registry-target selection is untouched by either call.
-        #expect(model.selection.contains("cache"))
+        #expect(model.selection.ids.contains("cache"))
     }
 
     @Test("A project-scoped clean touches only that project's ticked artifacts")
@@ -737,7 +737,7 @@ struct AppModelProjectTests {
         model.setArtifactSelected(appModules, true)
         model.setArtifactSelected(libModules, true)
         // Post-scan auto-selection ticked the safe registry target too.
-        #expect(model.selection.contains("cache"))
+        #expect(model.selection.ids.contains("cache"))
 
         model.cleanSelected(scope: .projectArtifacts("/dev/app"))
         await model.cleanTask?.value
@@ -746,7 +746,7 @@ struct AppModelProjectTests {
         #expect(cleanedPaths.withLock { $0 } == ["/dev/app/node_modules"])
         #expect(targetCleans.withLock { $0 } == 0)
         // The rest of the selection survives.
-        #expect(model.selection.contains("cache"))
+        #expect(model.selection.ids.contains("cache"))
         #expect(model.isArtifactSelected(libModules))
         #expect(!model.isArtifactSelected(appModules))
         let summary = try #require(model.activity.lastCleanSummary)
