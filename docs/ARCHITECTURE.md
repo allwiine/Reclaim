@@ -105,7 +105,7 @@ Swift Testing (`swift test`), three test targets:
 - **ScanTests / CleanTests / CleanDryRunTests / CleanSafetyTests** — `ScanCoordinator`/`CleanCoordinator`: scan lifecycle (including cancellation → partial), the clean pass, dry-run projections, and scan-time safety pins.
 - **ProjectsTests / ProjectDiscoveryTests / ProjectSelectionTests / ProjectCleanTests / ProjectCleanScopeTests** — `ProjectsModel`: dev-folder roots and discovery, artifact/project selection, and cleanup-path plumbing for dev-folder artifacts.
 - **HistoryTests / CleanHistoryTests** — `HistoryModel` and the persisted clean-history store.
-- **AppModelTests** — the composition root: cross-model overview aggregates and the termination handshake.
+- **AppModelTests** — the composition root's cross-model overview aggregates (`selectedBytes`, `largestFindings(limit:)`), including dev-folder artifacts alongside registry targets. The termination handshake (`prepareForTermination()`) is exercised by the app lifecycle, not a unit test.
 - **LocalizationTests** — parity and coverage of the app-core catalogues.
 
 All of the above (aside from `LocalizationTests`) run against stubbed `Executors` (`Sources/ReclaimAppCore/Executors.swift`), never the real filesystem.
