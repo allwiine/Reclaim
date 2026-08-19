@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/allwiine/Reclaim/blob/main/Sources/ReclaimKit/Catalogue/schema/target.schema.json",
+  "title": "Reclaim cleanup target",
+  "description": "One cleanable location (or delegated command): what the data is, where it lives, how risky it is to remove, and how Reclaim cleans it. One file per target under Catalogue/<category>/<id>.json. Full guide: docs/CATALOGUE.md.",
+  "type": "object",
+  "required": ["id", "category", "safety", "strategy", "name", "summary"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "description": "Relative path to this schema so editors validate and autocomplete the manifest. Always '../schema/target.schema.json'.",
+      "const": "../schema/target.schema.json"
+    },
+    "id": {
+      "description": "Stable, unique, kebab-case identifier. Must equal the file name without '.json'. Never rename a shipped id — user selection state is stored against it.",
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+    },
+    "category": {
+      "description": "The tool family shown in the sidebar. Must equal the name of the directory this manifest lives in.",
+      "enum": ["xcode", "android", "dotNet", "gameEngines", "aiTools", "packageManagers", "containers", "jvm", "webTools", "cloudDevOps", "embedded", "otherTools"]
+    },
+    "safety": {
+      "description": "How risky cleaning is. 'safe': regenerated automatically (build caches, logs). 'caution': restorable, but re-downloading or losing history costs something (models, session history, archives). 'destructive': removes things the user created (emulators, installed language versions). Rubric: docs/CATALOGUE.md.",
+      "enum": ["safe", "caution", "destructive"]
+    },
+    "paths": {
+      "description": "Path patterns resolved at scan time. '~' expands to the user's home; '*' globs within a single path component (e.g. '~/Library/Caches/Google/AndroidStudio*'). Patterns that do not exist on a machine are silently dropped, so listing several historical or candidate locations is fine. Each starts with '~/' or '/', no trailing slash. Omit only for command targets whose size cannot be measured.",
+      "type": "array",
+      "items": { "type": "string", "pattern": "^(~/|/).*[^/]$" }
+    },
+    "strategy": {
+      "description": "How Reclaim cleans. 'removeContents': delete the children of each resolved directory but keep the directory — preferred for cache roots, tools expect them to exist. 'removePaths': delete each resolved path itself — only when removing the item is the point. 'command': delegate to an external executable (requires the 'command' object). 'manual': Reclaim measures but never deletes; the user is shown 'instructions' (required).",
+      "enum": ["removeContents", "removePaths", "command", "manual"]
+    },
+    "command": {
+      "description": "Companion for \"strategy\": \"command\" — the external tool that performs the cleanup safely on Reclaim's behalf.",
+      "type": "object",
+      "required": ["executable", "arguments", "display"],
+      "additionalProperties": false,
+      "properties": {
+        "executable": {
+          "description": "Absolute path to the executable. Never resolved via $PATH, so behavior is deterministic regardless of the user's shell.",
+          "type": "string",
+          "pattern": "^/"
+        },
+        "arguments": {
+          "description": "Arguments passed to the executable, one array element each.",
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "display": {
+          "description": "The human-readable command line shown in the UI, e.g. 'xcrun simctl delete unavailable'. Not localized — it is a literal command.",
+          "type": "string",
+          "minLength": 1
+        },
+        "availabilityProbe": {
+          "description": "Optional path pattern that must resolve for the tool to count as installed (e.g. '~/Library/Developer/CoreSimulator' for simctl — '/usr/bin/xcrun' exists on every Mac and proves nothing). Without a resolving probe the target scans as 'not installed' instead of 'unmeasurable'.",
+          "type": "string",
+          "pattern": "^(~/|/).*[^/]$"
+        }
+      }
+    },
+    "instructions": {
+      "description": "Companion for \"strategy\": \"manual\" — tells the user which tool to run instead, with the command in backticks, e.g. 'Run `docker system prune` in Terminal.'. Keep the backticked command identical in every language (test-enforced).",
+      "$ref": "#/$defs/localizedText"
+    },
+    "relatedApps": {
+      "description": "Bundle identifiers of apps that actively use this data. When one is running, the pre-clean confirmation warns the user (a soft warning, never a hard block). Set this for IDE and desktop-app caches.",
+      "type": "array",
+      "items": { "type": "string", "pattern": "^[A-Za-z0-9.-]+$" }
+    },
+    "name": {
+      "description": "Short display name shown as the row title, e.g. 'Derived data'.",
+      "$ref": "#/$defs/localizedText"
+    },
+    "summary": {
+      "description": "One or two sentences: what the data is and what happens after cleaning. Shown under the name.",
+      "$ref": "#/$defs/localizedText"
+    },
+    "note": {
+      "description": "Optional extra warning or tip surfaced in the row, e.g. 'Keep archives for versions that are live on the App Store.'",
+      "$ref": "#/$defs/localizedText"
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "strategy": { "description": "Matched by the conditional below.", "const": "command" } }, "required": ["strategy"] },
+      "then": { "required": ["command"], "properties": { "instructions": false } },
+      "else": { "properties": { "command": false } }
+    },
+    {
+      "if": { "properties": { "strategy": { "description": "Matched by the conditional below.", "const": "manual" } }, "required": ["strategy"] },
+      "then": { "required": ["instructions", "paths"] }
+    },
+    {
+      "if": { "properties": { "strategy": { "description": "Matched by the conditional below.", "enum": ["removeContents", "removePaths"] } }, "required": ["strategy"] },
+      "then": { "required": ["paths"], "properties": { "paths": { "minItems": 1 }, "instructions": false } }
+    }
+  ],
+  "$defs": {
+    "localizedText": {
+      "description": "Per-locale text. Every supported locale is required. Machine translation is acceptable for 'nb' — flag it in your PR so a native speaker reviews it.",
+      "type": "object",
+      "required": ["en", "nb"],
+      "additionalProperties": false,
+      "properties": {
+        "en": { "description": "English text.", "type": "string", "minLength": 1 },
+        "nb": { "description": "Norwegian (bokmål) text.", "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

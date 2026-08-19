@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/allwiine/Reclaim/blob/main/Sources/ReclaimKit/Catalogue/schema/exclusion.schema.json",
+  "title": "Reclaim structural exclusion",
+  "description": "Paths Reclaim structurally refuses to touch — credentials, settings and user data that live beside targeted caches. Entries are a ban list, not a scan list: a path here need not exist on disk. Each entry bans three things at once: the path itself, anything inside it, and any target that claims one of its ancestors. One file per entry under Catalogue/exclusions/<id>.json. Full guide: docs/CATALOGUE.md.",
+  "type": "object",
+  "required": ["id", "group", "paths", "reason"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "description": "Relative path to this schema so editors validate and autocomplete the manifest. Always '../schema/exclusion.schema.json'.",
+      "const": "../schema/exclusion.schema.json"
+    },
+    "id": {
+      "description": "Stable, unique, kebab-case identifier. Must equal the file name without '.json'.",
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+    },
+    "group": {
+      "description": "The heading this entry is listed under in Settings → 'Excluded from scans'.",
+      "enum": ["claudeCode", "aiTools", "cloudContainers", "toolchains", "keysCertificates", "editorSettings"]
+    },
+    "paths": {
+      "description": "Literal tilde-form or absolute paths (no globs), no trailing slash — the same shape as target paths, but always literal. Several sibling paths sharing one reason may live in one entry.",
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "pattern": "^(~/|/)[^*]*[^/*]$" }
+    },
+    "reason": {
+      "description": "Short noun phrase shown in Settings, e.g. 'auth token', 'cluster credentials'. Reuse the phrasing of an existing exclusion when one fits — the standard list is in docs/CATALOGUE.md.",
+      "$ref": "#/$defs/localizedText"
+    }
+  },
+  "$defs": {
+    "localizedText": {
+      "description": "Per-locale text. Every supported locale is required. Machine translation is acceptable for 'nb' — flag it in your PR so a native speaker reviews it.",
+      "type": "object",
+      "required": ["en", "nb"],
+      "additionalProperties": false,
+      "properties": {
+        "en": { "description": "English text.", "type": "string", "minLength": 1 },
+        "nb": { "description": "Norwegian (bokmål) text.", "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}
