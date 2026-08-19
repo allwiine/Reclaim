@@ -92,9 +92,9 @@ struct AppModelTests {
             )
         )
 
-        model.scanAll()
+        model.scanner.scanAll()
         #expect(model.activity.isScanning)
-        await model.scanTask?.value
+        await model.scanner.scanTask?.value
 
         #expect(model.activity.isScanning == false)
         #expect(model.results.lastScan != nil)
@@ -114,8 +114,8 @@ struct AppModelTests {
             )
         )
 
-        model.scanAll()
-        await model.scanTask?.value
+        model.scanner.scanAll()
+        await model.scanner.scanTask?.value
 
         #expect(model.results.lastScanWasComplete)
     }
@@ -140,10 +140,10 @@ struct AppModelTests {
             )
         )
 
-        model.scanAll()
-        model.cancelScan()
+        model.scanner.scanAll()
+        model.scanner.cancelScan()
         gate.signal()
-        await model.scanTask?.value
+        await model.scanner.scanTask?.value
 
         #expect(model.results.lastScan != nil, "partial data is real data — the scan still happened")
         #expect(model.results.status(of: "fast").bytes == 100, "completed measurements survive")
@@ -163,8 +163,8 @@ struct AppModelTests {
         )
         #expect(model.results.hasFullDiskAccess == nil, "no verdict before the first scan")
 
-        model.scanAll()
-        await model.scanTask?.value
+        model.scanner.scanAll()
+        await model.scanner.scanTask?.value
 
         #expect(model.results.hasFullDiskAccess == false)
     }
@@ -191,8 +191,8 @@ struct AppModelTests {
             )
         )
 
-        model.scanAll()
-        await model.scanTask?.value
+        model.scanner.scanAll()
+        await model.scanner.scanTask?.value
 
         #expect(!model.selection.isSelectable(manual), "manual targets must never be selectable")
         #expect(!model.selection.isSelectable(empty), "empty targets have nothing to clean")
@@ -220,8 +220,8 @@ struct AppModelTests {
             )
         )
 
-        model.scanAll()
-        await model.scanTask?.value
+        model.scanner.scanAll()
+        await model.scanner.scanTask?.value
         model.selection.selectAllSafe()
 
         #expect(model.selection.isSelected(safe))
@@ -253,8 +253,8 @@ struct AppModelTests {
             historyStore: temporaryHistoryStore()
         )
 
-        model.scanAll()
-        await model.scanTask?.value
+        model.scanner.scanAll()
+        await model.scanner.scanTask?.value
         model.selection.setSelected(cache, true)
         model.cleanSelected()
         await model.cleanTask?.value
@@ -292,8 +292,8 @@ struct AppModelTests {
             historyStore: temporaryHistoryStore()
         )
 
-        model.scanAll()
-        await model.scanTask?.value
+        model.scanner.scanAll()
+        await model.scanner.scanTask?.value
         model.selection.setSelected(ok, true)
         model.selection.setSelected(broken, true)
         model.cleanSelected()
@@ -332,8 +332,8 @@ struct AppModelTests {
             historyStore: temporaryHistoryStore()
         )
 
-        model.scanAll()
-        await model.scanTask?.value
+        model.scanner.scanAll()
+        await model.scanner.scanTask?.value
         model.selection.setSelected(shrinker, true)
         model.cleanSelected()
         await model.cleanTask?.value
@@ -365,8 +365,8 @@ struct AppModelTests {
             historyStore: temporaryHistoryStore()
         )
 
-        model.scanAll()
-        await model.scanTask?.value
+        model.scanner.scanAll()
+        await model.scanner.scanTask?.value
         model.selection.setSelected(partial, true)
         model.cleanSelected()
         await model.cleanTask?.value
@@ -411,8 +411,8 @@ struct AppModelTests {
             historyStore: temporaryHistoryStore()
         )
 
-        model.scanAll()
-        await model.scanTask?.value
+        model.scanner.scanAll()
+        await model.scanner.scanTask?.value
 
         // Swap the real cache root for a symlink pointing elsewhere,
         // exactly as an attacker would between scan and confirmation.
@@ -452,8 +452,8 @@ struct AppModelTests {
             historyStore: temporaryHistoryStore()
         )
 
-        model.scanAll()
-        await model.scanTask?.value
+        model.scanner.scanAll()
+        await model.scanner.scanTask?.value
         model.selection.setSelected(first, true)
         model.selection.setSelected(second, true)
         model.cleanSelected()
@@ -491,16 +491,16 @@ struct AppModelTests {
             historyStore: temporaryHistoryStore()
         )
 
-        model.scanAll()
-        await model.scanTask?.value
+        model.scanner.scanAll()
+        await model.scanner.scanTask?.value
 
         #expect(model.selection.isSelected(safe), "Safe items come ticked after a scan")
         #expect(!model.selection.isSelected(risky), "Caution items stay unticked by default")
         #expect(!model.selection.isSelected(manual), "manual targets can never be selected")
 
         model.settings.preselectCaution = true
-        model.scanAll()
-        await model.scanTask?.value
+        model.scanner.scanAll()
+        await model.scanner.scanTask?.value
 
         #expect(model.selection.isSelected(risky), "the Caution preselection setting is honored")
     }
@@ -526,8 +526,8 @@ struct AppModelTests {
         )
         model.settings.dryRun = true
 
-        model.scanAll()
-        await model.scanTask?.value
+        model.scanner.scanAll()
+        await model.scanner.scanTask?.value
         model.cleanSelected()
         await model.cleanTask?.value
 
@@ -559,8 +559,8 @@ struct AppModelTests {
             historyStore: historyStore
         )
 
-        model.scanAll()
-        await model.scanTask?.value
+        model.scanner.scanAll()
+        await model.scanner.scanTask?.value
         model.cleanSelected()
         await model.cleanTask?.value
 
@@ -591,10 +591,10 @@ struct AppModelTests {
         )
         #expect(model.activity.scanProgress == nil)
 
-        model.scanAll()
+        model.scanner.scanAll()
         #expect(model.activity.scanProgress?.total == 2)
 
-        await model.scanTask?.value
+        await model.scanner.scanTask?.value
         #expect(model.activity.scanProgress == nil)
     }
 
@@ -610,24 +610,24 @@ struct AppModelTests {
             historyStore: temporaryHistoryStore()
         )
 
-        #expect(model.nextBackgroundScanDate == nil, "no schedule before the first scan")
-        model.runBackgroundScanIfDue()
-        #expect(model.scanTask == nil, "never scans without a previous scan on record")
+        #expect(model.scanner.nextBackgroundScanDate == nil, "no schedule before the first scan")
+        model.scanner.runBackgroundScanIfDue()
+        #expect(model.scanner.scanTask == nil, "never scans without a previous scan on record")
 
-        model.scanAll()
-        await model.scanTask?.value
-        let next = model.nextBackgroundScanDate
+        model.scanner.scanAll()
+        await model.scanner.scanTask?.value
+        let next = model.scanner.nextBackgroundScanDate
         #expect(next != nil)
 
-        model.runBackgroundScanIfDue(now: .now)
+        model.scanner.runBackgroundScanIfDue(now: .now)
         #expect(!model.activity.isScanning, "not due yet — a scan just finished")
 
-        model.runBackgroundScanIfDue(now: next!.addingTimeInterval(60))
+        model.scanner.runBackgroundScanIfDue(now: next!.addingTimeInterval(60))
         #expect(model.activity.isScanning, "a week later the scan starts")
-        await model.scanTask?.value
+        await model.scanner.scanTask?.value
 
         model.settings.weeklyScanEnabled = false
-        #expect(model.nextBackgroundScanDate == nil, "disabling removes the schedule")
+        #expect(model.scanner.nextBackgroundScanDate == nil, "disabling removes the schedule")
     }
 
     @Test("Breakdowns load once per target and clear on rescan")
@@ -651,8 +651,8 @@ struct AppModelTests {
         model.breakdowns.load(for: cache)
         #expect(model.breakdowns.entries["cache"] == nil, "nothing to break down before a scan")
 
-        model.scanAll()
-        await model.scanTask?.value
+        model.scanner.scanAll()
+        await model.scanner.scanTask?.value
         model.breakdowns.load(for: cache)
         for _ in 0..<10_000 where model.breakdowns.entries["cache"] == nil {
             await Task.yield()
@@ -662,9 +662,9 @@ struct AppModelTests {
         model.breakdowns.load(for: cache)
         #expect(computeCalls.withLock { $0 } == 1, "cached breakdowns are not recomputed")
 
-        model.scanAll()
+        model.scanner.scanAll()
         #expect(model.breakdowns.entries.isEmpty, "a new scan invalidates every breakdown")
-        await model.scanTask?.value
+        await model.scanner.scanTask?.value
     }
 
     @Test("All-findings visibility spans categories and honors the hide rules")
@@ -697,8 +697,8 @@ struct AppModelTests {
         #expect(model.results.allVisibleTargets.count == 4,
                 "everything is listed before a scan")
 
-        model.scanAll()
-        await model.scanTask?.value
+        model.scanner.scanAll()
+        await model.scanner.scanTask?.value
         #expect(model.results.allVisibleTargets.map(\.id) == ["found", "lower"],
                 "not-installed and provably empty targets hide by default; a lower-bound zero stays")
 
@@ -723,18 +723,18 @@ struct AppModelTests {
             historyStore: temporaryHistoryStore()
         )
 
-        model.scanAll()
-        await model.scanTask?.value
-        let overdue = model.nextBackgroundScanDate!.addingTimeInterval(60)
+        model.scanner.scanAll()
+        await model.scanner.scanTask?.value
+        let overdue = model.scanner.nextBackgroundScanDate!.addingTimeInterval(60)
 
         model.activity.isReviewingSelection = true
-        model.runBackgroundScanIfDue(now: overdue)
+        model.scanner.runBackgroundScanIfDue(now: overdue)
         #expect(!model.activity.isScanning, "a background scan must never clear a selection under review")
 
         model.activity.isReviewingSelection = false
-        model.runBackgroundScanIfDue(now: overdue)
+        model.scanner.runBackgroundScanIfDue(now: overdue)
         #expect(model.activity.isScanning)
-        await model.scanTask?.value
+        await model.scanner.scanTask?.value
     }
 
     @Test("Auto-select exclusions are honored, revocable and persistent")
@@ -752,8 +752,8 @@ struct AppModelTests {
         )
 
         model.selection.setExcludedFromAutoSelect(excluded, true)
-        model.scanAll()
-        await model.scanTask?.value
+        model.scanner.scanAll()
+        await model.scanner.scanTask?.value
 
         #expect(model.selection.isSelected(kept))
         #expect(!model.selection.isSelected(excluded), "post-scan preselection must skip exclusions")
@@ -803,8 +803,8 @@ struct AppModelTests {
             historyStore: temporaryHistoryStore()
         )
 
-        model.scanAll()
-        await model.scanTask?.value
+        model.scanner.scanAll()
+        await model.scanner.scanTask?.value
         #expect(model.selection.isSelected(cache), "safe target arrives fully selected")
         model.breakdowns.load(for: cache)
         for _ in 0..<10_000 where model.breakdowns.entries["cache"] == nil {
@@ -875,8 +875,8 @@ struct AppModelTests {
             historyStore: temporaryHistoryStore()
         )
 
-        model.scanAll()
-        await model.scanTask?.value
+        model.scanner.scanAll()
+        await model.scanner.scanTask?.value
         model.breakdowns.load(for: cache)
         for _ in 0..<10_000 where model.breakdowns.entries["cache"] == nil {
             await Task.yield()
@@ -923,8 +923,8 @@ struct AppModelTests {
             historyStore: temporaryHistoryStore()
         )
 
-        model.scanAll()
-        await model.scanTask?.value
+        model.scanner.scanAll()
+        await model.scanner.scanTask?.value
         #expect(model.selection.isSelected(first) && model.selection.isSelected(second))
 
         model.cleanSelected(scope: .targets([first.id]))
@@ -957,8 +957,8 @@ struct AppModelTests {
             historyStore: temporaryHistoryStore()
         )
 
-        model.scanAll()
-        await model.scanTask?.value
+        model.scanner.scanAll()
+        await model.scanner.scanTask?.value
         model.selection.setSelected(command, true)
         model.cleanSelected()
         await model.cleanTask?.value
@@ -980,8 +980,8 @@ struct AppModelTests {
             historyStore: temporaryHistoryStore()
         )
         scanCount.withLock { $0 = 0 }
-        second.scanAll()
-        await second.scanTask?.value
+        second.scanner.scanAll()
+        await second.scanner.scanTask?.value
         second.selection.setSelected(broken, true)
         second.cleanSelected()
         await second.cleanTask?.value
@@ -1014,8 +1014,8 @@ struct AppModelTests {
             historyStore: temporaryHistoryStore()
         )
 
-        model.scanAll()
-        await model.scanTask?.value
+        model.scanner.scanAll()
+        await model.scanner.scanTask?.value
         model.cleanSelected()
         await model.cleanTask?.value
 
@@ -1048,8 +1048,8 @@ struct AppModelTests {
             historyStore: historyStore
         )
 
-        model.scanAll()
-        await model.scanTask?.value
+        model.scanner.scanAll()
+        await model.scanner.scanTask?.value
         model.cleanSelected()
         await model.cleanTask?.value
         #expect(model.history.entries.first?.trashEmptiedDate == nil)
@@ -1065,8 +1065,8 @@ struct AppModelTests {
 
         // Permanent-delete passes are never stamped.
         model.settings.disposal = .delete
-        model.scanAll()
-        await model.scanTask?.value
+        model.scanner.scanAll()
+        await model.scanner.scanTask?.value
         model.selection.setSelected(cache, true)
         model.cleanSelected()
         await model.cleanTask?.value
@@ -1099,8 +1099,8 @@ struct AppModelTests {
             historyStore: historyStore
         )
 
-        model.scanAll()
-        await model.scanTask?.value
+        model.scanner.scanAll()
+        await model.scanner.scanTask?.value
         model.cleanSelected()
         await model.cleanTask?.value
         #expect(model.history.entries.count == 1)
@@ -1134,12 +1134,12 @@ struct AppModelTests {
         )
         #expect(!model.activity.isCancellingScan)
 
-        model.scanAll()
-        model.cancelScan()
+        model.scanner.scanAll()
+        model.scanner.cancelScan()
         #expect(model.activity.isCancellingScan, "the Stop button needs to show 'Stopping…'")
 
         gate.signal()
-        await model.scanTask?.value
+        await model.scanner.scanTask?.value
         #expect(!model.activity.isCancellingScan, "the flag resets once the pass unwinds")
     }
 
@@ -1163,8 +1163,8 @@ struct AppModelTests {
         )
         model.settings.disposal = .delete
 
-        model.scanAll()
-        await model.scanTask?.value
+        model.scanner.scanAll()
+        await model.scanner.scanTask?.value
         model.selection.setSelected(cache, true)
         model.cleanSelected()
         await model.cleanTask?.value

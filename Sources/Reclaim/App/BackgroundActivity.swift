@@ -25,7 +25,7 @@ enum BackgroundActivity {
         while !Task.isCancelled {
             if model.settings.weeklyScanEnabled, !model.activity.isScanning, !model.activity.isCleaning {
                 let before = model.results.lastScan
-                model.runBackgroundScanIfDue()
+                model.scanner.runBackgroundScanIfDue()
                 if model.activity.isScanning {
                     // Wait for this scan to land, then evaluate the result.
                     while model.activity.isScanning, !Task.isCancelled {

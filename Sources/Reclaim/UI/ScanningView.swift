@@ -67,7 +67,7 @@ struct ScanningView: View {
                 ? localized("scanning.stoppingButton", defaultValue: "Stopping…")
                 : localized("scanning.stopButton", defaultValue: "Stop")
             ) {
-                model.cancelScan()
+                model.scanner.cancelScan()
             }
             .rcSecondary()
             .disabled(model.activity.isCancellingScan)

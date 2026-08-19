@@ -124,8 +124,8 @@ struct AppModelProjectTests {
         )
         model.projects.addDevRoot(URL(filePath: "/dev"))
 
-        model.scanAll()
-        await model.scanTask?.value
+        model.scanner.scanAll()
+        await model.scanner.scanTask?.value
 
         #expect(model.projects.projectScans.count == 1)
         #expect(model.projects.discovered.map(\.name) == ["app", "tidy"])
@@ -152,8 +152,8 @@ struct AppModelProjectTests {
             )
         )
 
-        model.scanAll()
-        await model.scanTask?.value
+        model.scanner.scanAll()
+        await model.scanner.scanTask?.value
 
         #expect(calls.withLock { $0 } == 0)
         #expect(model.projects.projectScans.isEmpty)
@@ -174,8 +174,8 @@ struct AppModelProjectTests {
         )
         model.projects.addDevRoot(URL(filePath: "/missing"))
 
-        model.scanAll()
-        await model.scanTask?.value
+        model.scanner.scanAll()
+        await model.scanner.scanTask?.value
 
         #expect(model.projects.projectScans.first?.failureMessage == "gone")
     }
@@ -195,8 +195,8 @@ struct AppModelProjectTests {
             )
         )
         model.projects.addDevRoot(URL(filePath: "/dev"))
-        model.scanAll()
-        await model.scanTask?.value
+        model.scanner.scanAll()
+        await model.scanner.scanTask?.value
         model.projects.setArtifactSelected(fixture.artifacts[0], true)
         #expect(model.projects.selectedArtifactBytes == 500)
 
@@ -221,8 +221,8 @@ struct AppModelProjectTests {
             )
         )
         model.projects.addDevRoot(URL(filePath: "/dev"))
-        model.scanAll()
-        await model.scanTask?.value
+        model.scanner.scanAll()
+        await model.scanner.scanTask?.value
 
         // Artifacts are never auto-selected after a scan.
         #expect(model.projects.artifactSelection.isEmpty)
@@ -258,8 +258,8 @@ struct AppModelProjectTests {
             )
         )
         model.projects.addDevRoot(URL(filePath: "/dev"))
-        model.scanAll()
-        await model.scanTask?.value
+        model.scanner.scanAll()
+        await model.scanner.scanTask?.value
 
         // Post-scan auto-selection ticked the safe target (100).
         #expect(model.selectedBytes == 100)
@@ -324,8 +324,8 @@ struct AppModelProjectTests {
             historyStore: temporaryHistoryStore()
         )
         model.projects.addDevRoot(URL(filePath: "/dev"))
-        model.scanAll()
-        await model.scanTask?.value
+        model.scanner.scanAll()
+        await model.scanner.scanTask?.value
         model.projects.setArtifactSelected(nodeModules, true)
 
         model.cleanSelected()
@@ -369,8 +369,8 @@ struct AppModelProjectTests {
         )
         model.settings.dryRun = true
         model.projects.addDevRoot(URL(filePath: "/dev"))
-        model.scanAll()
-        await model.scanTask?.value
+        model.scanner.scanAll()
+        await model.scanner.scanTask?.value
         model.projects.setArtifactSelected(nodeModules, true)
 
         model.cleanSelected()
@@ -405,8 +405,8 @@ struct AppModelProjectTests {
             historyStore: temporaryHistoryStore()
         )
         model.projects.addDevRoot(URL(filePath: "/dev"))
-        model.scanAll()
-        await model.scanTask?.value
+        model.scanner.scanAll()
+        await model.scanner.scanTask?.value
         model.projects.setArtifactSelected(nodeModules, true)
 
         model.cleanSelected(scope: .targets(["cache"]))
@@ -503,8 +503,8 @@ struct AppModelProjectTests {
             )
         )
         model.projects.addDevRoot(link)
-        model.scanAll()
-        await model.scanTask?.value
+        model.scanner.scanAll()
+        await model.scanner.scanTask?.value
         model.projects.setArtifactSelected(nodeModules, true)
         #expect(model.hasCleanableSelection)
 
@@ -538,8 +538,8 @@ struct AppModelProjectTests {
             )
         )
         model.projects.addDevRoot(URL(filePath: "/dev"))
-        model.scanAll()
-        await model.scanTask?.value
+        model.scanner.scanAll()
+        await model.scanner.scanTask?.value
 
         #expect(model.projects.largestProjects(limit: 5).map(\.name) == ["big", "small"])
         #expect(model.projects.largestProjects(limit: 1).map(\.name) == ["big"])
@@ -567,8 +567,8 @@ struct AppModelProjectTests {
             )
         )
         model.projects.addDevRoot(URL(filePath: "/dev"))
-        model.scanAll()
-        await model.scanTask?.value
+        model.scanner.scanAll()
+        await model.scanner.scanTask?.value
 
         let findings = model.largestFindings(limit: 6)
         #expect(findings.map(\.id) == ["project:/dev/big", "target:cache", "project:/dev/small"])
@@ -593,8 +593,8 @@ struct AppModelProjectTests {
             )
         )
         model.projects.addDevRoot(URL(filePath: "/dev"))
-        model.scanAll()
-        await model.scanTask?.value
+        model.scanner.scanAll()
+        await model.scanner.scanTask?.value
 
         #expect(model.projects.isProjectSelectable(fixture))
         #expect(!model.projects.isProjectSelected(fixture))
@@ -642,8 +642,8 @@ struct AppModelProjectTests {
             )
         )
         model.projects.addDevRoot(URL(filePath: "/dev"))
-        model.scanAll()
-        await model.scanTask?.value
+        model.scanner.scanAll()
+        await model.scanner.scanTask?.value
 
         #expect(!model.projects.isProjectSelectable(bare))
         #expect(!model.projects.isProjectSelectable(onlyEmpty))
@@ -677,8 +677,8 @@ struct AppModelProjectTests {
             )
         )
         model.projects.addDevRoot(URL(filePath: "/dev"))
-        model.scanAll()
-        await model.scanTask?.value
+        model.scanner.scanAll()
+        await model.scanner.scanTask?.value
         // Post-scan auto-selection ticked the safe registry target.
         #expect(model.selection.ids.contains("cache"))
 
@@ -732,8 +732,8 @@ struct AppModelProjectTests {
             historyStore: temporaryHistoryStore()
         )
         model.projects.addDevRoot(URL(filePath: "/dev"))
-        model.scanAll()
-        await model.scanTask?.value
+        model.scanner.scanAll()
+        await model.scanner.scanTask?.value
         model.projects.setArtifactSelected(appModules, true)
         model.projects.setArtifactSelected(libModules, true)
         // Post-scan auto-selection ticked the safe registry target too.
@@ -778,8 +778,8 @@ struct AppModelProjectTests {
         )
         model.settings.dryRun = true
         model.projects.addDevRoot(URL(filePath: "/dev"))
-        model.scanAll()
-        await model.scanTask?.value
+        model.scanner.scanAll()
+        await model.scanner.scanTask?.value
         model.projects.setArtifactSelected(appModules, true)
         model.projects.setArtifactSelected(libModules, true)
 
@@ -814,8 +814,8 @@ struct AppModelProjectTests {
             historyStore: temporaryHistoryStore()
         )
         model.projects.addDevRoot(URL(filePath: "/dev"))
-        model.scanAll()
-        await model.scanTask?.value
+        model.scanner.scanAll()
+        await model.scanner.scanTask?.value
         model.projects.setArtifactSelected(nodeModules, true)
 
         model.cleanSelected(scope: .projectArtifacts("/dev/gone"))
@@ -848,14 +848,14 @@ struct AppModelProjectTests {
         model.projects.addDevRoot(URL(filePath: "/dev"))
         #expect(model.projects.isProjectSelectable(fixture))    // idle: selectable
 
-        model.scanAll()
+        model.scanner.scanAll()
         #expect(model.activity.isScanning)
         #expect(!model.projects.isProjectSelectable(fixture))   // busy: not selectable
         model.projects.setProjectSelected(fixture, true)        // refused while busy
         #expect(model.projects.artifactSelection.isEmpty)
 
         gate.withLock { $0 = true }
-        await model.scanTask?.value
+        await model.scanner.scanTask?.value
         #expect(model.projects.isProjectSelectable(fixture))    // idle again
     }
 }

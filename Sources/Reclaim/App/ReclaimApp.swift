@@ -108,7 +108,7 @@ struct ReclaimApp: App {
         CommandGroup(after: .newItem) {
             Button(localized("menu.scanThisMac", defaultValue: "Scan This Mac")) {
                 if !model.activity.isScanning, !model.activity.isCleaning {
-                    model.scanAll()
+                    model.scanner.scanAll()
                 }
             }
             .keyboardShortcut("r", modifiers: .command)
@@ -154,7 +154,7 @@ private struct MenuBarSummary: View {
                 ? localized("menu.scanning", defaultValue: "Scanning…")
                 : localized("menu.scanNow", defaultValue: "Scan Now")
             ) {
-                model.scanAll()
+                model.scanner.scanAll()
             }
             .disabled(model.activity.isScanning || model.activity.isCleaning)
 

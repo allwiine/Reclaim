@@ -66,7 +66,7 @@ struct ToolbarView: View {
     /// area, so the disabled state only ever shows on History/Settings.
     private var scanButton: some View {
         Button {
-            model.scanAll()
+            model.scanner.scanAll()
         } label: {
             HStack(spacing: 5) {
                 Image(systemName: "arrow.clockwise")

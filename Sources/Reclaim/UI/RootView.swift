@@ -121,7 +121,7 @@ struct RootView: View {
                 NSApp.activate()
             }
             if arguments.contains("--scan-on-launch") {
-                model.scanAll()
+                model.scanner.scanAll()
             }
             // `--open=history|settings|<category rawValue>` jumps straight
             // to a destination for screenshot-driven smoke tests.

@@ -71,7 +71,7 @@ struct IdleView: View {
 
             HStack(spacing: 14) {
                 Button(localized("idle.scanButton", defaultValue: "Scan this Mac")) {
-                    model.scanAll()
+                    model.scanner.scanAll()
                 }
                 .rcPrimaryProminent()
                 .keyboardShortcut(.defaultAction)

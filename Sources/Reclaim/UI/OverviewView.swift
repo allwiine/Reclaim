@@ -180,7 +180,7 @@ struct OverviewView: View {
                         .rcPrimary()
                     } else {
                         Button(localized("action.scanAgain", defaultValue: "Scan again")) {
-                            model.scanAll()
+                            model.scanner.scanAll()
                         }
                         .rcPrimary()
                     }

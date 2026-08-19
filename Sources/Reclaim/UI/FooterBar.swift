@@ -79,7 +79,7 @@ struct FooterBar: View {
         guard model.settings.weeklyScanEnabled else {
             return localized("overview.off", defaultValue: "Off")
         }
-        guard let next = model.nextBackgroundScanDate else {
+        guard let next = model.scanner.nextBackgroundScanDate else {
             return localized("overview.afterFirstScan", defaultValue: "After first scan")
         }
         return next.formatted(.dateTime.weekday(.wide).hour().minute())

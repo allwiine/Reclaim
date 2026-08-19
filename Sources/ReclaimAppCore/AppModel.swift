@@ -25,21 +25,10 @@ import ReclaimKit
 @MainActor
 @Observable
 public final class AppModel {
-    // MARK: - Constants
-
-    /// Maximum directory walks in flight at once. Disk-bound work gains
-    /// little from more parallelism and would block cooperative threads.
-    private static let maxConcurrentScans = 4
-
     // MARK: - Session state
 
     /// Per-target scan results and the totals derived from them.
     public let results: TargetResultsModel
-
-    /// When the last *completed* (non-cancelled) scan finished. Anchors
-    /// the weekly background schedule and, being observable, keeps the
-    /// footer's "next background scan" line live.
-    public private(set) var lastCompletedScanDate: Date?
 
     /// What the app is doing right now — pass flags, progress, and the
     /// latest pass outcome.
@@ -58,8 +47,9 @@ public final class AppModel {
     /// Dev-folder roots, discovery results, and artifact selection.
     public let projects: ProjectsModel
 
-    @ObservationIgnored
-    private(set) var scanTask: Task<Void, Never>?
+    /// Scan orchestration and the weekly background schedule.
+    public let scanner: ScanCoordinator
+
     @ObservationIgnored
     private(set) var cleanTask: Task<Void, Never>?
 
@@ -72,23 +62,12 @@ public final class AppModel {
     @ObservationIgnored
     private let artifactCleanExecutor: ArtifactCleanExecutor
     @ObservationIgnored
-    private let fullDiskAccessProbe: @Sendable () -> Bool?
-    @ObservationIgnored
     private let volumeProbe: @Sendable () -> VolumeSpace?
 
     // MARK: - Persisted settings
 
-    private let defaults: UserDefaults
-
     /// UserDefaults-backed settings, split out of this model.
     public let settings: SettingsStore
-
-    private enum DefaultsKey {
-        static let lastScanDate = "state.lastScanDate"
-    }
-
-    /// How often the background scan runs while the app is open.
-    public static let backgroundScanInterval: TimeInterval = 7 * 24 * 3600
 
     // MARK: - Init
 
@@ -98,7 +77,6 @@ public final class AppModel {
         executors: Executors = Executors(),
         historyStore: CleanHistoryStore = CleanHistoryStore()
     ) {
-        self.defaults = defaults
         let settings = SettingsStore(defaults: defaults)
         self.settings = settings
         self.results = TargetResultsModel(
@@ -113,10 +91,19 @@ public final class AppModel {
         self.cleanExecutor = executors.clean
         self.projectScanExecutor = executors.projectScan
         self.artifactCleanExecutor = executors.artifactClean
-        self.fullDiskAccessProbe = executors.fullDiskAccess
         self.volumeProbe = executors.volume
         self.history = HistoryModel(store: historyStore)
-        self.lastCompletedScanDate = defaults.object(forKey: DefaultsKey.lastScanDate) as? Date
+        // Last: the coordinator takes every other model as a dependency.
+        self.scanner = ScanCoordinator(
+            executors: executors,
+            results: results,
+            selection: selection,
+            projects: projects,
+            breakdowns: breakdowns,
+            settings: settings,
+            activity: activity,
+            defaults: defaults
+        )
         results.refreshVolumeSpace()
     }
 
@@ -142,26 +129,6 @@ public final class AppModel {
     public var selectedBytes: Int64 {
         results.targets.reduce(0) { $0 + selection.selectedBytes(of: $1) }
             + projects.selectedArtifactBytes
-    }
-
-    // MARK: - Background scanning
-
-    /// When the next automatic scan is due, or `nil` when disabled or
-    /// no scan has happened yet.
-    public var nextBackgroundScanDate: Date? {
-        guard settings.weeklyScanEnabled else { return nil }
-        guard let last = lastCompletedScanDate else { return nil }
-        return last.addingTimeInterval(Self.backgroundScanInterval)
-    }
-
-    /// Start a scan if the weekly background scan is enabled and due.
-    /// Called periodically by the app layer while Reclaim is running.
-    /// Defers while the confirmation sheet is up — a background scan
-    /// must never clear a selection the user is actively reviewing.
-    public func runBackgroundScanIfDue(now: Date = .now) {
-        guard settings.weeklyScanEnabled, !activity.isScanning, !activity.isCleaning, !activity.isReviewingSelection else { return }
-        guard let next = nextBackgroundScanDate else { return }
-        if now >= next { scanAll() }
     }
 
     // MARK: - Dev-folder projects
@@ -226,80 +193,7 @@ public final class AppModel {
         selection.selectAllSafe()
     }
 
-    // MARK: - Scanning
-
-    /// Scan every target with bounded parallelism.
-    public func scanAll() {
-        guard !activity.isScanning, !activity.isCleaning else { return }
-        activity.isScanning = true
-        activity.isCancellingScan = false
-        selection.clearForScan()
-        activity.lastCleanSummary = nil
-        breakdowns.invalidateAll()
-        projects.resetForScan()
-        results.scanRealRoots.removeAll()
-        activity.scanProgress = ScanProgress(
-            completed: 0, total: results.targets.count + projects.devRoots.count,
-            currentTargetName: "", currentPath: ""
-        )
-        for target in results.targets {
-            results.setStatus(.scanning, for: target.id)
-        }
-
-        let probe = fullDiskAccessProbe
-        scanTask = Task { [targets = results.targets] in
-            // Keep the process off App Nap for the duration: a scan with
-            // the window closed (menu-bar-only) would otherwise be
-            // throttled, and the weekly background scan is exactly that
-            // case.
-            let activity = ProcessInfo.processInfo.beginActivity(
-                options: [.userInitiated], reason: "Scanning for reclaimable storage"
-            )
-            defer { ProcessInfo.processInfo.endActivity(activity) }
-            self.results.hasFullDiskAccess = await offMain { probe() }
-            await self.runScan(of: targets)
-            // Any rows still marked scanning were cancelled mid-flight.
-            for target in targets where self.results.statuses[target.id] == .scanning {
-                self.results.setStatus(.idle, for: target.id)
-            }
-            await self.runProjectScan()
-            self.results.lastScan = .now
-            self.results.lastScanWasComplete = !Task.isCancelled
-            // Only a completed scan anchors the weekly schedule — a scan
-            // the user stopped after two seconds must not push the next
-            // automatic scan a full week out.
-            if !Task.isCancelled {
-                self.lastCompletedScanDate = .now
-                self.defaults.set(Date.now, forKey: DefaultsKey.lastScanDate)
-            }
-            self.activity.isScanning = false
-            self.activity.isCancellingScan = false
-            self.activity.scanProgress = nil
-            self.scanTask = nil
-            self.applyPostScanSelection()
-            self.results.refreshVolumeSpace()
-        }
-    }
-
-    /// Mirrors the design's post-scan behavior: Safe items come ticked
-    /// (plus Caution when the setting opts in), so one click cleans.
-    /// Targets the user excluded from automatic selection stay unticked.
-    private func applyPostScanSelection() {
-        for target in results.targets where selection.isSelectable(target) {
-            guard !selection.isExcludedFromAutoSelect(target) else { continue }
-            let wanted = target.safety == .safe
-                || (settings.preselectCaution && target.safety == .caution)
-            if wanted {
-                selection.insertForPostScan(target.id)
-            }
-        }
-    }
-
-    public func cancelScan() {
-        guard scanTask != nil else { return }
-        activity.isCancellingScan = true
-        scanTask?.cancel()
-    }
+    // MARK: - Cleaning
 
     /// Stop the running clean pass after the in-flight target finishes.
     public func cancelClean() {
@@ -325,134 +219,6 @@ public final class AppModel {
         // is up to date.
         await history.flush()
     }
-
-    /// Fan out scans through a width-limited task group. Runs on the
-    /// main actor; the blocking work happens inside the child tasks,
-    /// which execute nonisolated on the global executor.
-    private func runScan(of targets: [CleanupTarget]) async {
-        let scan = scanExecutor
-        await withTaskGroup(of: (CleanupTarget.ID, TargetStatus, Set<String>).self) { group in
-            var pending = targets.makeIterator()
-            var completed = 0
-            // Started but not yet finished, oldest first. The head is
-            // the longest-running walk — the honest thing for the
-            // progress line to show while several run concurrently.
-            var inFlight: [CleanupTarget] = []
-
-            // Nested functions do not inherit the enclosing actor, so
-            // spell out the isolation these need to touch progress.
-            @MainActor
-            func publishProgress() {
-                let current = inFlight.first
-                activity.scanProgress = ScanProgress(
-                    completed: completed,
-                    total: targets.count + projects.devRoots.count,
-                    currentTargetName: current?.name ?? "",
-                    currentPath: current.map(Self.displayLocation(of:)) ?? ""
-                )
-            }
-
-            @MainActor
-            @discardableResult
-            func startNext() -> Bool {
-                guard let target = pending.next() else { return false }
-                inFlight.append(target)
-                group.addTask {
-                    let status = scan(target)
-                    // Resolve the roots' real paths in the worker (off
-                    // the main actor) so cleaning can later refuse a
-                    // cleanup path whose ancestry was swapped for a
-                    // symlink after the scan.
-                    let real: Set<String>
-                    if case .measured(_, let roots, _) = status {
-                        real = Set(roots.map { $0.resolvingSymlinksInPath().path })
-                    } else {
-                        real = []
-                    }
-                    return (target.id, status, real)
-                }
-                return true
-            }
-
-            for _ in 0..<Self.maxConcurrentScans {
-                startNext()
-            }
-            publishProgress()
-            while let (id, resolvedStatus, realRoots) = await group.next() {
-                results.setStatus(resolvedStatus, for: id)
-                if realRoots.isEmpty {
-                    results.scanRealRoots[id] = nil
-                } else {
-                    results.scanRealRoots[id] = realRoots
-                }
-                completed += 1
-                inFlight.removeAll { $0.id == id }
-                startNext()
-                publishProgress()
-            }
-        }
-    }
-
-    /// Fan dev-root discovery through the same width-limited pattern as
-    /// target scans, continuing the same progress counter.
-    private func runProjectScan() async {
-        let roots = projects.devRoots
-        guard !roots.isEmpty, !Task.isCancelled else { return }
-        let scan = projectScanExecutor
-        let baseCompleted = results.targets.count
-
-        await withTaskGroup(of: (DevRootScan, String).self) { group in
-            var pending = roots.makeIterator()
-            var completed = 0
-            var inFlight: [URL] = []
-
-            @MainActor
-            func publishProgress() {
-                let current = inFlight.first
-                activity.scanProgress = ScanProgress(
-                    completed: baseCompleted + completed,
-                    total: results.targets.count + roots.count,
-                    currentTargetName: current?.lastPathComponent ?? "",
-                    currentPath: current.map {
-                        ($0.path as NSString).abbreviatingWithTildeInPath
-                    } ?? ""
-                )
-            }
-
-            @MainActor
-            @discardableResult
-            func startNext() -> Bool {
-                guard let root = pending.next() else { return false }
-                inFlight.append(root)
-                // Resolve the root's real path in the worker so artifact
-                // cleaning can refuse anything whose parent no longer
-                // resolves inside a scanned dev root.
-                group.addTask { (scan(root), root.resolvingSymlinksInPath().path) }
-                return true
-            }
-
-            for _ in 0..<Self.maxConcurrentScans {
-                startNext()
-            }
-            publishProgress()
-            while let (result, realRoot) = await group.next() {
-                projects.recordScan(result, realRoot: realRoot)
-                completed += 1
-                inFlight.removeAll { $0.path == result.root.path }
-                startNext()
-                publishProgress()
-            }
-        }
-    }
-
-    /// Tilde-form location shown while a target is being processed.
-    private nonisolated static func displayLocation(of target: CleanupTarget) -> String {
-        if let pattern = target.pathPatterns.first { return pattern }
-        if case .command(let spec) = target.strategy { return spec.displayCommand }
-        return target.name
-    }
-
-    // MARK: - Cleaning
 
     private struct CleanJob {
         let target: CleanupTarget
