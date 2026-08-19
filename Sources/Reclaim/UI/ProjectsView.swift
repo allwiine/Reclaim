@@ -45,7 +45,7 @@ struct ProjectsView: View {
 
     var body: some View {
         Group {
-            if model.devRoots.isEmpty {
+            if model.projects.devRoots.isEmpty {
                 emptyState
             } else {
                 browser
@@ -75,7 +75,7 @@ struct ProjectsView: View {
             .frame(maxWidth: 420)
             Button(localized("projects.addFolder", defaultValue: "Add a development folder…")) {
                 for url in DevFolderPicker.pickFolders() {
-                    model.addDevRoot(url)
+                    model.projects.addDevRoot(url)
                 }
             }
             .rcPrimary()
@@ -89,16 +89,16 @@ struct ProjectsView: View {
     private var sortedProjects: [DiscoveredProject] {
         switch sortOrder {
         case .bySize:
-            model.projects.sorted { $0.artifactBytes > $1.artifactBytes }
+            model.projects.discovered.sorted { $0.artifactBytes > $1.artifactBytes }
         case .byActivity:
-            model.projects.sorted {
+            model.projects.discovered.sorted {
                 ($0.lastActivityDate ?? .distantPast) < ($1.lastActivityDate ?? .distantPast)
             }
         }
     }
 
     private var failedRoots: [DevRootScan] {
-        model.projectScans.filter { $0.failureMessage != nil }
+        model.projects.projectScans.filter { $0.failureMessage != nil }
     }
 
     /// The row the detail column shows: the clicked one, else the first.
@@ -147,16 +147,16 @@ struct ProjectsView: View {
             .fixedSize()
 
             Button(localized("projects.selectAllArtifacts", defaultValue: "Select all")) {
-                model.selectAllArtifacts()
+                model.projects.selectAllArtifacts()
             }
             .buttonStyle(StripChipButtonStyle())
-            .disabled(model.activity.isScanning || model.activity.isCleaning || model.selectableArtifactCount == 0)
+            .disabled(model.activity.isScanning || model.activity.isCleaning || model.projects.selectableArtifactCount == 0)
 
             Button(localized("browser.clear", defaultValue: "Clear")) {
-                model.clearArtifactSelection()
+                model.projects.clearArtifactSelection()
             }
             .buttonStyle(StripChipButtonStyle(plain: true))
-            .disabled(model.selectedArtifacts.isEmpty)
+            .disabled(model.projects.selectedArtifacts.isEmpty)
 
             Spacer()
 
@@ -165,11 +165,11 @@ struct ProjectsView: View {
                 .monospacedDigit()
                 .foregroundStyle(Theme.textLabel)
                 .contentTransition(.numericText())
-                .animation(Theme.smooth, value: model.selectedArtifactBytes)
+                .animation(Theme.smooth, value: model.projects.selectedArtifactBytes)
 
             Button(localized("projects.addFolder", defaultValue: "Add a development folder…")) {
                 for url in DevFolderPicker.pickFolders() {
-                    model.addDevRoot(url)
+                    model.projects.addDevRoot(url)
                 }
             }
             .rcSecondary()
@@ -181,13 +181,13 @@ struct ProjectsView: View {
     /// Scoped to the artifacts this screen lists — never the registry
     /// selection (that count lives in the category browser).
     private var selectionSummary: String {
-        let picked = model.selectedArtifacts.count
+        let picked = model.projects.selectedArtifacts.count
         guard picked > 0 else {
             return localized("browser.noItemsSelected", defaultValue: "No items selected")
         }
         return localized(
             "browser.selectionSummary",
-            defaultValue: "\(picked) of \(model.selectableArtifactCount) items selected · \(model.selectedArtifactBytes.formattedBytesCompact)"
+            defaultValue: "\(picked) of \(model.projects.selectableArtifactCount) items selected · \(model.projects.selectedArtifactBytes.formattedBytesCompact)"
         )
     }
 
@@ -205,7 +205,7 @@ struct ProjectsView: View {
                         "projects.notScanned",
                         defaultValue: "Run a scan to find projects and artifacts."
                     ))
-                } else if model.projects.isEmpty {
+                } else if model.projects.discovered.isEmpty {
                     hintText(localized(
                         "projects.noneFound",
                         defaultValue: "No projects found in the added folders."
@@ -279,7 +279,7 @@ private struct ProjectRow: View {
                             .scaledFont(size: 13.5, weight: .medium)
                             .foregroundStyle(Theme.textPrimary)
                             .lineLimit(1)
-                        if model.isProjectStale(project) {
+                        if model.projects.isProjectStale(project) {
                             StaleBadge()
                         }
                     }
@@ -331,14 +331,14 @@ private struct ProjectRow: View {
         Toggle(
             localized("browser.selectAccessibility", defaultValue: "Select \(project.name)"),
             isOn: Binding(
-                get: { model.isProjectSelected(project) },
-                set: { model.setProjectSelected(project, $0) }
+                get: { model.projects.isProjectSelected(project) },
+                set: { model.projects.setProjectSelected(project, $0) }
             )
         )
-        .toggleStyle(CheckboxToggleStyle(mixed: model.isProjectPartiallySelected(project)))
+        .toggleStyle(CheckboxToggleStyle(mixed: model.projects.isProjectPartiallySelected(project)))
         .labelsHidden()
-        .disabled(!model.isProjectSelectable(project))
-        .opacity(model.isProjectSelectable(project) ? 1 : 0.35)
+        .disabled(!model.projects.isProjectSelectable(project))
+        .opacity(model.projects.isProjectSelectable(project) ? 1 : 0.35)
     }
 
     @ViewBuilder

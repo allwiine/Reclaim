@@ -82,26 +82,26 @@ struct AppModelProjectTests {
     func devRootPersistence() {
         let store = TemporaryDefaults()
         let first = AppModel(targets: [], defaults: store.defaults)
-        first.addDevRoot(URL(filePath: "/Users/dev/Source"))
-        #expect(first.devRoots.map(\.path) == ["/Users/dev/Source"])
+        first.projects.addDevRoot(URL(filePath: "/Users/dev/Source"))
+        #expect(first.projects.devRoots.map(\.path) == ["/Users/dev/Source"])
 
         let second = AppModel(targets: [], defaults: store.defaults)
-        #expect(second.devRoots.map(\.path) == ["/Users/dev/Source"])
+        #expect(second.projects.devRoots.map(\.path) == ["/Users/dev/Source"])
     }
 
     @Test("Nested dev roots are deduplicated")
     func nestedRootsDeduplicated() {
         let store = TemporaryDefaults()
         let model = AppModel(targets: [], defaults: store.defaults)
-        model.addDevRoot(URL(filePath: "/Users/dev/Source"))
+        model.projects.addDevRoot(URL(filePath: "/Users/dev/Source"))
 
         // A child of an existing root is refused.
-        model.addDevRoot(URL(filePath: "/Users/dev/Source/sub"))
-        #expect(model.devRoots.count == 1)
+        model.projects.addDevRoot(URL(filePath: "/Users/dev/Source/sub"))
+        #expect(model.projects.devRoots.count == 1)
 
         // A parent replaces the roots it contains.
-        model.addDevRoot(URL(filePath: "/Users/dev"))
-        #expect(model.devRoots.map(\.path) == ["/Users/dev"])
+        model.projects.addDevRoot(URL(filePath: "/Users/dev"))
+        #expect(model.projects.devRoots.map(\.path) == ["/Users/dev"])
     }
 
     @Test("Scanning includes configured dev roots")
@@ -122,15 +122,15 @@ struct AppModelProjectTests {
                 }
             )
         )
-        model.addDevRoot(URL(filePath: "/dev"))
+        model.projects.addDevRoot(URL(filePath: "/dev"))
 
         model.scanAll()
         await model.scanTask?.value
 
-        #expect(model.projectScans.count == 1)
-        #expect(model.projects.map(\.name) == ["app", "tidy"])
-        #expect(model.projectArtifactBytes == 500)
-        #expect(model.projectsWithArtifactsCount == 1)   // artifact-free "tidy" not counted
+        #expect(model.projects.projectScans.count == 1)
+        #expect(model.projects.discovered.map(\.name) == ["app", "tidy"])
+        #expect(model.projects.projectArtifactBytes == 500)
+        #expect(model.projects.projectsWithArtifactsCount == 1)   // artifact-free "tidy" not counted
         #expect(model.totalFoundBytes == 600)   // 100 target + 500 artifacts
         #expect(model.cleanableBytes == 600)
         #expect(model.results.lastScanWasComplete)
@@ -156,7 +156,7 @@ struct AppModelProjectTests {
         await model.scanTask?.value
 
         #expect(calls.withLock { $0 } == 0)
-        #expect(model.projectScans.isEmpty)
+        #expect(model.projects.projectScans.isEmpty)
         #expect(model.totalFoundBytes == 100)
     }
 
@@ -172,12 +172,12 @@ struct AppModelProjectTests {
                 }
             )
         )
-        model.addDevRoot(URL(filePath: "/missing"))
+        model.projects.addDevRoot(URL(filePath: "/missing"))
 
         model.scanAll()
         await model.scanTask?.value
 
-        #expect(model.projectScans.first?.failureMessage == "gone")
+        #expect(model.projects.projectScans.first?.failureMessage == "gone")
     }
 
     @Test("Removing a root drops its results and selections")
@@ -194,17 +194,17 @@ struct AppModelProjectTests {
                 projectScan: { root in DevRootScan(root: root, projects: [fixture]) }
             )
         )
-        model.addDevRoot(URL(filePath: "/dev"))
+        model.projects.addDevRoot(URL(filePath: "/dev"))
         model.scanAll()
         await model.scanTask?.value
-        model.setArtifactSelected(fixture.artifacts[0], true)
-        #expect(model.selectedArtifactBytes == 500)
+        model.projects.setArtifactSelected(fixture.artifacts[0], true)
+        #expect(model.projects.selectedArtifactBytes == 500)
 
-        model.removeDevRoot(URL(filePath: "/dev"))
+        model.projects.removeDevRoot(URL(filePath: "/dev"))
 
-        #expect(model.devRoots.isEmpty)
-        #expect(model.projectScans.isEmpty)
-        #expect(model.selectedArtifactBytes == 0)
+        #expect(model.projects.devRoots.isEmpty)
+        #expect(model.projects.projectScans.isEmpty)
+        #expect(model.projects.selectedArtifactBytes == 0)
     }
 
     @Test("Artifact selection follows the selectability rules")
@@ -220,25 +220,25 @@ struct AppModelProjectTests {
                 projectScan: { root in DevRootScan(root: root, projects: [fixture]) }
             )
         )
-        model.addDevRoot(URL(filePath: "/dev"))
+        model.projects.addDevRoot(URL(filePath: "/dev"))
         model.scanAll()
         await model.scanTask?.value
 
         // Artifacts are never auto-selected after a scan.
-        #expect(model.artifactSelection.isEmpty)
+        #expect(model.projects.artifactSelection.isEmpty)
 
-        #expect(model.isArtifactSelectable(full))
-        #expect(!model.isArtifactSelectable(empty))    // nothing to free
+        #expect(model.projects.isArtifactSelectable(full))
+        #expect(!model.projects.isArtifactSelectable(empty))    // nothing to free
 
-        model.setArtifactSelected(full, true)
-        #expect(model.isArtifactSelected(full))
-        #expect(model.selectedArtifactBytes == 500)
+        model.projects.setArtifactSelected(full, true)
+        #expect(model.projects.isArtifactSelected(full))
+        #expect(model.projects.selectedArtifactBytes == 500)
         #expect(model.hasCleanableSelection)
 
-        model.setArtifactSelected(empty, true)          // refused
-        #expect(!model.isArtifactSelected(empty))
+        model.projects.setArtifactSelected(empty, true)          // refused
+        #expect(!model.projects.isArtifactSelected(empty))
 
-        model.setArtifactSelected(full, false)
+        model.projects.setArtifactSelected(full, false)
         #expect(!model.hasCleanableSelection)
     }
 
@@ -257,15 +257,15 @@ struct AppModelProjectTests {
                 projectScan: { root in DevRootScan(root: root, projects: [fixture]) }
             )
         )
-        model.addDevRoot(URL(filePath: "/dev"))
+        model.projects.addDevRoot(URL(filePath: "/dev"))
         model.scanAll()
         await model.scanTask?.value
 
         // Post-scan auto-selection ticked the safe target (100).
         #expect(model.selectedBytes == 100)
-        model.setArtifactSelected(fixture.artifacts[0], true)
+        model.projects.setArtifactSelected(fixture.artifacts[0], true)
         #expect(model.selectedBytes == 600)
-        #expect(model.selectedArtifactBytes == 500)
+        #expect(model.projects.selectedArtifactBytes == 500)
     }
 
     @Test("Stale detection uses the six-month threshold")
@@ -291,9 +291,9 @@ struct AppModelProjectTests {
             isGitRepo: false, lastEditDate: nil, lastGitActivityDate: nil,
             artifacts: []
         )
-        #expect(!model.isProjectStale(fresh, now: now))
-        #expect(model.isProjectStale(stale, now: now))
-        #expect(!model.isProjectStale(unknown, now: now))  // unknown ≠ stale
+        #expect(!model.projects.isProjectStale(fresh, now: now))
+        #expect(model.projects.isProjectStale(stale, now: now))
+        #expect(!model.projects.isProjectStale(unknown, now: now))  // unknown ≠ stale
     }
 
     @Test("Cleaning selected artifacts disposes, verifies, and rescans")
@@ -323,10 +323,10 @@ struct AppModelProjectTests {
             ),
             historyStore: temporaryHistoryStore()
         )
-        model.addDevRoot(URL(filePath: "/dev"))
+        model.projects.addDevRoot(URL(filePath: "/dev"))
         model.scanAll()
         await model.scanTask?.value
-        model.setArtifactSelected(nodeModules, true)
+        model.projects.setArtifactSelected(nodeModules, true)
 
         model.cleanSelected()
         await model.cleanTask?.value
@@ -341,9 +341,9 @@ struct AppModelProjectTests {
         #expect(summary.itemsRemoved == 1)
         // The affected root was re-discovered (executor ran twice).
         #expect(scanCount.withLock { $0 } == 2)
-        #expect(model.projects.first?.artifacts.isEmpty == true)
+        #expect(model.projects.discovered.first?.artifacts.isEmpty == true)
         // Selection cleared; history recorded the artifact.
-        #expect(model.artifactSelection.isEmpty)
+        #expect(model.projects.artifactSelection.isEmpty)
         #expect(model.history.entries.first?.items?.contains {
             $0.targetID == "artifact:/dev/app/node_modules"
         } == true)
@@ -368,10 +368,10 @@ struct AppModelProjectTests {
             historyStore: temporaryHistoryStore()
         )
         model.settings.dryRun = true
-        model.addDevRoot(URL(filePath: "/dev"))
+        model.projects.addDevRoot(URL(filePath: "/dev"))
         model.scanAll()
         await model.scanTask?.value
-        model.setArtifactSelected(nodeModules, true)
+        model.projects.setArtifactSelected(nodeModules, true)
 
         model.cleanSelected()
 
@@ -381,7 +381,7 @@ struct AppModelProjectTests {
         #expect(summary.cleanedArtifacts.first?.bytesFreed == 500)
         #expect(summary.reclaimedBytes == 500)
         // Dry run leaves the selection intact.
-        #expect(model.isArtifactSelected(nodeModules))
+        #expect(model.projects.isArtifactSelected(nodeModules))
     }
 
     @Test("Clean-just-this passes never touch artifacts")
@@ -404,16 +404,16 @@ struct AppModelProjectTests {
             ),
             historyStore: temporaryHistoryStore()
         )
-        model.addDevRoot(URL(filePath: "/dev"))
+        model.projects.addDevRoot(URL(filePath: "/dev"))
         model.scanAll()
         await model.scanTask?.value
-        model.setArtifactSelected(nodeModules, true)
+        model.projects.setArtifactSelected(nodeModules, true)
 
         model.cleanSelected(scope: .targets(["cache"]))
         await model.cleanTask?.value
 
         #expect(cleanCalls.withLock { $0 } == 0)
-        #expect(model.isArtifactSelected(nodeModules))  // selection survives
+        #expect(model.projects.isArtifactSelected(nodeModules))  // selection survives
     }
 
     // MARK: - ~/.claude exclusion
@@ -424,15 +424,15 @@ struct AppModelProjectTests {
         let model = AppModel(targets: [], defaults: store.defaults)
         let home = FileManager.default.homeDirectoryForCurrentUser
 
-        model.addDevRoot(home.appending(path: ".claude"))
-        #expect(model.devRoots.isEmpty)
+        model.projects.addDevRoot(home.appending(path: ".claude"))
+        #expect(model.projects.devRoots.isEmpty)
 
-        model.addDevRoot(home.appending(path: ".claude/plugins/foo"))
-        #expect(model.devRoots.isEmpty)
+        model.projects.addDevRoot(home.appending(path: ".claude/plugins/foo"))
+        #expect(model.projects.devRoots.isEmpty)
 
         // A sibling folder is unaffected.
-        model.addDevRoot(home.appending(path: "Source"))
-        #expect(model.devRoots.map(\.path) == [
+        model.projects.addDevRoot(home.appending(path: "Source"))
+        #expect(model.projects.devRoots.map(\.path) == [
             home.appending(path: "Source").resolvingSymlinksInPath().path,
         ])
     }
@@ -451,9 +451,9 @@ struct AppModelProjectTests {
         try FileManager.default.createSymbolicLink(at: link, withDestinationURL: real)
 
         let model = AppModel(targets: [], defaults: store.defaults)
-        model.addDevRoot(link)
+        model.projects.addDevRoot(link)
 
-        #expect(model.devRoots.map(\.path) == [resolvedReal.path])
+        #expect(model.projects.devRoots.map(\.path) == [resolvedReal.path])
     }
 
     @Test("A symlinked root and its resolved twin dedup to one root")
@@ -468,10 +468,10 @@ struct AppModelProjectTests {
         try FileManager.default.createSymbolicLink(at: link, withDestinationURL: real)
 
         let model = AppModel(targets: [], defaults: store.defaults)
-        model.addDevRoot(link)
-        model.addDevRoot(resolvedReal)
+        model.projects.addDevRoot(link)
+        model.projects.addDevRoot(resolvedReal)
 
-        #expect(model.devRoots.count == 1)
+        #expect(model.projects.devRoots.count == 1)
     }
 
     @Test("Removing a symlinked root's resolved twin clears its artifact selection")
@@ -502,17 +502,17 @@ struct AppModelProjectTests {
                 projectScan: { root in DevRootScan(root: root, projects: [fixture]) }
             )
         )
-        model.addDevRoot(link)
+        model.projects.addDevRoot(link)
         model.scanAll()
         await model.scanTask?.value
-        model.setArtifactSelected(nodeModules, true)
+        model.projects.setArtifactSelected(nodeModules, true)
         #expect(model.hasCleanableSelection)
 
         // The root is removed by its resolved form, matching what's
         // actually stored in `devRoots`.
-        model.removeDevRoot(resolvedReal)
+        model.projects.removeDevRoot(resolvedReal)
 
-        #expect(model.artifactSelection.isEmpty)
+        #expect(model.projects.artifactSelection.isEmpty)
         #expect(!model.hasCleanableSelection)
     }
 
@@ -537,12 +537,12 @@ struct AppModelProjectTests {
                 }
             )
         )
-        model.addDevRoot(URL(filePath: "/dev"))
+        model.projects.addDevRoot(URL(filePath: "/dev"))
         model.scanAll()
         await model.scanTask?.value
 
-        #expect(model.largestProjects(limit: 5).map(\.name) == ["big", "small"])
-        #expect(model.largestProjects(limit: 1).map(\.name) == ["big"])
+        #expect(model.projects.largestProjects(limit: 5).map(\.name) == ["big", "small"])
+        #expect(model.projects.largestProjects(limit: 1).map(\.name) == ["big"])
     }
 
     @Test("Largest findings mix registry targets and projects by size")
@@ -566,7 +566,7 @@ struct AppModelProjectTests {
                 }
             )
         )
-        model.addDevRoot(URL(filePath: "/dev"))
+        model.projects.addDevRoot(URL(filePath: "/dev"))
         model.scanAll()
         await model.scanTask?.value
 
@@ -592,36 +592,36 @@ struct AppModelProjectTests {
                 projectScan: { root in DevRootScan(root: root, projects: [fixture]) }
             )
         )
-        model.addDevRoot(URL(filePath: "/dev"))
+        model.projects.addDevRoot(URL(filePath: "/dev"))
         model.scanAll()
         await model.scanTask?.value
 
-        #expect(model.isProjectSelectable(fixture))
-        #expect(!model.isProjectSelected(fixture))
-        #expect(!model.isProjectPartiallySelected(fixture))
-        #expect(model.partialSelectionCounts(of: fixture) == nil)
+        #expect(model.projects.isProjectSelectable(fixture))
+        #expect(!model.projects.isProjectSelected(fixture))
+        #expect(!model.projects.isProjectPartiallySelected(fixture))
+        #expect(model.projects.partialSelectionCounts(of: fixture) == nil)
 
-        model.setArtifactSelected(nodeModules, true)
-        #expect(!model.isProjectSelected(fixture))
-        #expect(model.isProjectPartiallySelected(fixture))
-        let counts = try #require(model.partialSelectionCounts(of: fixture))
+        model.projects.setArtifactSelected(nodeModules, true)
+        #expect(!model.projects.isProjectSelected(fixture))
+        #expect(model.projects.isProjectPartiallySelected(fixture))
+        let counts = try #require(model.projects.partialSelectionCounts(of: fixture))
         #expect(counts.selected == 1)
         #expect(counts.total == 2)          // the empty artifact never counts
-        #expect(model.selectedArtifactBytes(of: fixture) == 500)
+        #expect(model.projects.selectedArtifactBytes(of: fixture) == 500)
 
-        model.setProjectSelected(fixture, true)
-        #expect(model.isProjectSelected(fixture))
-        #expect(!model.isProjectPartiallySelected(fixture))
+        model.projects.setProjectSelected(fixture, true)
+        #expect(model.projects.isProjectSelected(fixture))
+        #expect(!model.projects.isProjectPartiallySelected(fixture))
         // Full selection is not "partial": counts are nil, like targets.
-        #expect(model.partialSelectionCounts(of: fixture) == nil)
+        #expect(model.projects.partialSelectionCounts(of: fixture) == nil)
         // The empty artifact stays unticked (nothing to free).
-        #expect(!model.isArtifactSelected(empty))
-        #expect(model.selectedArtifactBytes(of: fixture) == 800)
-        #expect(model.selectedArtifacts(of: fixture).map(\.id) ==
+        #expect(!model.projects.isArtifactSelected(empty))
+        #expect(model.projects.selectedArtifactBytes(of: fixture) == 800)
+        #expect(model.projects.selectedArtifacts(of: fixture).map(\.id) ==
             ["/dev/app/node_modules", "/dev/app/.build"])
 
-        model.setProjectSelected(fixture, false)
-        #expect(model.artifactSelection.isEmpty)
+        model.projects.setProjectSelected(fixture, false)
+        #expect(model.projects.artifactSelection.isEmpty)
     }
 
     @Test("An artifact-free project is never selectable")
@@ -641,15 +641,15 @@ struct AppModelProjectTests {
                 }
             )
         )
-        model.addDevRoot(URL(filePath: "/dev"))
+        model.projects.addDevRoot(URL(filePath: "/dev"))
         model.scanAll()
         await model.scanTask?.value
 
-        #expect(!model.isProjectSelectable(bare))
-        #expect(!model.isProjectSelectable(onlyEmpty))
-        model.setProjectSelected(onlyEmpty, true)       // refused per artifact
-        #expect(model.artifactSelection.isEmpty)
-        #expect(model.selectableArtifactCount == 0)
+        #expect(!model.projects.isProjectSelectable(bare))
+        #expect(!model.projects.isProjectSelectable(onlyEmpty))
+        model.projects.setProjectSelected(onlyEmpty, true)       // refused per artifact
+        #expect(model.projects.artifactSelection.isEmpty)
+        #expect(model.projects.selectableArtifactCount == 0)
     }
 
     @Test("Select all and clear cover every project's artifacts, never targets")
@@ -676,19 +676,19 @@ struct AppModelProjectTests {
                 }
             )
         )
-        model.addDevRoot(URL(filePath: "/dev"))
+        model.projects.addDevRoot(URL(filePath: "/dev"))
         model.scanAll()
         await model.scanTask?.value
         // Post-scan auto-selection ticked the safe registry target.
         #expect(model.selection.ids.contains("cache"))
 
-        model.selectAllArtifacts()
-        #expect(model.selectedArtifacts.map(\.id).sorted() ==
+        model.projects.selectAllArtifacts()
+        #expect(model.projects.selectedArtifacts.map(\.id).sorted() ==
             ["/dev/app/node_modules", "/dev/lib/.build"])
-        #expect(model.selectableArtifactCount == 2)
+        #expect(model.projects.selectableArtifactCount == 2)
 
-        model.clearArtifactSelection()
-        #expect(model.artifactSelection.isEmpty)
+        model.projects.clearArtifactSelection()
+        #expect(model.projects.artifactSelection.isEmpty)
         // The registry-target selection is untouched by either call.
         #expect(model.selection.ids.contains("cache"))
     }
@@ -731,11 +731,11 @@ struct AppModelProjectTests {
             ),
             historyStore: temporaryHistoryStore()
         )
-        model.addDevRoot(URL(filePath: "/dev"))
+        model.projects.addDevRoot(URL(filePath: "/dev"))
         model.scanAll()
         await model.scanTask?.value
-        model.setArtifactSelected(appModules, true)
-        model.setArtifactSelected(libModules, true)
+        model.projects.setArtifactSelected(appModules, true)
+        model.projects.setArtifactSelected(libModules, true)
         // Post-scan auto-selection ticked the safe registry target too.
         #expect(model.selection.ids.contains("cache"))
 
@@ -747,8 +747,8 @@ struct AppModelProjectTests {
         #expect(targetCleans.withLock { $0 } == 0)
         // The rest of the selection survives.
         #expect(model.selection.ids.contains("cache"))
-        #expect(model.isArtifactSelected(libModules))
-        #expect(!model.isArtifactSelected(appModules))
+        #expect(model.projects.isArtifactSelected(libModules))
+        #expect(!model.projects.isArtifactSelected(appModules))
         let summary = try #require(model.activity.lastCleanSummary)
         #expect(summary.cleanedArtifacts.map(\.id) == ["/dev/app/node_modules"])
         #expect(summary.reclaimedBytes == 500)
@@ -777,11 +777,11 @@ struct AppModelProjectTests {
             historyStore: temporaryHistoryStore()
         )
         model.settings.dryRun = true
-        model.addDevRoot(URL(filePath: "/dev"))
+        model.projects.addDevRoot(URL(filePath: "/dev"))
         model.scanAll()
         await model.scanTask?.value
-        model.setArtifactSelected(appModules, true)
-        model.setArtifactSelected(libModules, true)
+        model.projects.setArtifactSelected(appModules, true)
+        model.projects.setArtifactSelected(libModules, true)
 
         model.cleanSelected(scope: .projectArtifacts("/dev/app"))
 
@@ -791,8 +791,8 @@ struct AppModelProjectTests {
         #expect(summary.cleanedArtifacts.map(\.id) == ["/dev/app/node_modules"])
         #expect(summary.reclaimedBytes == 500)
         // Dry run leaves the whole selection intact.
-        #expect(model.isArtifactSelected(appModules))
-        #expect(model.isArtifactSelected(libModules))
+        #expect(model.projects.isArtifactSelected(appModules))
+        #expect(model.projects.isArtifactSelected(libModules))
     }
 
     @Test("A project-scoped clean with an unknown id is a no-op")
@@ -813,17 +813,17 @@ struct AppModelProjectTests {
             ),
             historyStore: temporaryHistoryStore()
         )
-        model.addDevRoot(URL(filePath: "/dev"))
+        model.projects.addDevRoot(URL(filePath: "/dev"))
         model.scanAll()
         await model.scanTask?.value
-        model.setArtifactSelected(nodeModules, true)
+        model.projects.setArtifactSelected(nodeModules, true)
 
         model.cleanSelected(scope: .projectArtifacts("/dev/gone"))
         await model.cleanTask?.value
 
         #expect(cleanCalls.withLock { $0 } == 0)
         #expect(model.activity.lastCleanSummary == nil)
-        #expect(model.isArtifactSelected(nodeModules))
+        #expect(model.projects.isArtifactSelected(nodeModules))
     }
 
     @Test("Projects are unselectable while a scan is in flight")
@@ -845,17 +845,17 @@ struct AppModelProjectTests {
                 projectScan: { root in DevRootScan(root: root, projects: [fixture]) }
             )
         )
-        model.addDevRoot(URL(filePath: "/dev"))
-        #expect(model.isProjectSelectable(fixture))    // idle: selectable
+        model.projects.addDevRoot(URL(filePath: "/dev"))
+        #expect(model.projects.isProjectSelectable(fixture))    // idle: selectable
 
         model.scanAll()
         #expect(model.activity.isScanning)
-        #expect(!model.isProjectSelectable(fixture))   // busy: not selectable
-        model.setProjectSelected(fixture, true)        // refused while busy
-        #expect(model.artifactSelection.isEmpty)
+        #expect(!model.projects.isProjectSelectable(fixture))   // busy: not selectable
+        model.projects.setProjectSelected(fixture, true)        // refused while busy
+        #expect(model.projects.artifactSelection.isEmpty)
 
         gate.withLock { $0 = true }
         await model.scanTask?.value
-        #expect(model.isProjectSelectable(fixture))    // idle again
+        #expect(model.projects.isProjectSelectable(fixture))    // idle again
     }
 }

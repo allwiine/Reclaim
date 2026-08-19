@@ -55,7 +55,7 @@ struct ProjectInspectorPanel: View {
                     .padding(.top, 14)
 
                 HStack(spacing: 8) {
-                    if model.isProjectStale(project) {
+                    if model.projects.isProjectStale(project) {
                         StaleBadge()
                     }
                     Text((project.devRoot.path as NSString).abbreviatingWithTildeInPath)
@@ -185,11 +185,11 @@ struct ProjectInspectorPanel: View {
                 ))
                 .frame(maxWidth: .infinity, alignment: .leading)
                 if project.artifacts.contains(where: { $0.measurement.bytes > 0 }) {
-                    Button(model.isProjectSelected(project)
+                    Button(model.projects.isProjectSelected(project)
                         ? localized("inspector.deselectAllContents", defaultValue: "Deselect all")
                         : localized("inspector.selectAllContents", defaultValue: "Select all")
                     ) {
-                        model.setProjectSelected(project, !model.isProjectSelected(project))
+                        model.projects.setProjectSelected(project, !model.projects.isProjectSelected(project))
                     }
                     .buttonStyle(.plain)
                     .scaledFont(size: 11, weight: .medium)
@@ -220,14 +220,14 @@ struct ProjectInspectorPanel: View {
                         defaultValue: "Select \(artifact.kind?.name ?? artifact.kindID)"
                     ),
                     isOn: Binding(
-                        get: { model.isArtifactSelected(artifact) },
-                        set: { model.setArtifactSelected(artifact, $0) }
+                        get: { model.projects.isArtifactSelected(artifact) },
+                        set: { model.projects.setArtifactSelected(artifact, $0) }
                     )
                 )
                 .toggleStyle(CheckboxToggleStyle(size: 15))
                 .labelsHidden()
-                .disabled(!model.isArtifactSelectable(artifact))
-                .opacity(model.isArtifactSelectable(artifact) ? 1 : 0.35)
+                .disabled(!model.projects.isArtifactSelectable(artifact))
+                .opacity(model.projects.isArtifactSelectable(artifact) ? 1 : 0.35)
                 Text(artifact.kind?.name ?? artifact.kindID)
                     .scaledFont(size: 12)
                     .foregroundStyle(Theme.textPrimary)
@@ -267,14 +267,14 @@ struct ProjectInspectorPanel: View {
         }
         .rcPrimary()
         .disabled(
-            model.selectedArtifacts(of: project).isEmpty
+            model.projects.selectedArtifacts(of: project).isEmpty
                 || model.activity.isScanning || model.activity.isCleaning
         )
         .padding(.top, 12)
     }
 
     private func scopeLabel(for project: DiscoveredProject) -> String? {
-        guard let counts = model.partialSelectionCounts(of: project) else { return nil }
+        guard let counts = model.projects.partialSelectionCounts(of: project) else { return nil }
         return localized(
             "format.itemsOf",
             defaultValue: "\(counts.selected) of \(counts.total) items"
@@ -285,15 +285,15 @@ struct ProjectInspectorPanel: View {
         guard let scope = scopeLabel(for: project) else {
             return localized("inspector.tickHint", defaultValue: "Tick items to clean only those")
         }
-        let size = model.selectedArtifactBytes(of: project).formattedBytesCompact
+        let size = model.projects.selectedArtifactBytes(of: project).formattedBytesCompact
         return localized("inspector.tickedNote", defaultValue: "\(scope) ticked · \(size)")
     }
 
     private func cleanLabel(for project: DiscoveredProject) -> String {
-        guard !model.selectedArtifacts(of: project).isEmpty else {
+        guard !model.projects.selectedArtifacts(of: project).isEmpty else {
             return localized("inspector.nothingTicked", defaultValue: "Nothing ticked here")
         }
-        let size = model.selectedArtifactBytes(of: project).formattedBytesCompact
+        let size = model.projects.selectedArtifactBytes(of: project).formattedBytesCompact
         guard let scope = scopeLabel(for: project) else {
             return localized("inspector.cleanJustThis", defaultValue: "Clean just this · \(size)")
         }
@@ -306,7 +306,7 @@ struct ProjectInspectorPanel: View {
 #if DEBUG
 #Preview("Project", traits: .fixedLayout(width: 336, height: 810)) {
     let model = PreviewData.scannedWithProjects()
-    return ProjectInspectorPanel(project: model.projects.first)
+    return ProjectInspectorPanel(project: model.projects.discovered.first)
         .background(Theme.background)
         .environment(model)
         .preferredColorScheme(.dark)
@@ -314,7 +314,7 @@ struct ProjectInspectorPanel: View {
 
 #Preview("No artifacts", traits: .fixedLayout(width: 336, height: 810)) {
     let model = PreviewData.scannedWithProjects()
-    return ProjectInspectorPanel(project: model.projects.last)
+    return ProjectInspectorPanel(project: model.projects.discovered.last)
         .background(Theme.background)
         .environment(model)
         .preferredColorScheme(.dark)

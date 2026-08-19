@@ -246,12 +246,12 @@ struct IdleView: View {
                 Text(localized("sidebar.projects", defaultValue: "Projects"))
                     .scaledFont(size: 12.5, weight: .medium)
                     .foregroundStyle(Theme.textPrimary)
-                Text(model.devRoots.isEmpty
+                Text(model.projects.devRoots.isEmpty
                     ? localized(
                         "idle.projectsPitch",
                         defaultValue: "Find git repos, node_modules and build folders in your own projects."
                     )
-                    : model.devRoots
+                    : model.projects.devRoots
                         .map { ($0.path as NSString).abbreviatingWithTildeInPath }
                         .joined(separator: " · "))
                     .themeFont(.caption)
@@ -259,10 +259,10 @@ struct IdleView: View {
                     .lineLimit(1)
             }
             Spacer(minLength: 10)
-            if model.devRoots.isEmpty {
+            if model.projects.devRoots.isEmpty {
                 Button(localized("settings.addDevFolder", defaultValue: "Add folder…")) {
                     for url in DevFolderPicker.pickFolders() {
-                        model.addDevRoot(url)
+                        model.projects.addDevRoot(url)
                     }
                 }
                 .rcSecondary()

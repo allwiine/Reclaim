@@ -96,7 +96,7 @@ struct BrowserView: View {
     /// "Review everything" would under-account the headline it sits
     /// beneath without the projects' bytes — they get a pointer row.
     private var showsProjectsRow: Bool {
-        mode == .all && model.projectArtifactBytes > 0
+        mode == .all && model.projects.projectArtifactBytes > 0
     }
 
     // MARK: - Selection strip
@@ -161,8 +161,8 @@ struct BrowserView: View {
                     }
                     if showsProjectsRow {
                         ProjectsLinkRow(
-                            count: model.projectsWithArtifactsCount,
-                            bytes: model.projectArtifactBytes,
+                            count: model.projects.projectsWithArtifactsCount,
+                            bytes: model.projects.projectArtifactBytes,
                             open: onOpenProjects
                         )
                     }

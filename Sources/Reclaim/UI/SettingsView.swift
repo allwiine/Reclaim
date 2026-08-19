@@ -261,7 +261,7 @@ struct SettingsView: View {
     /// searches for projects. Empty list = feature entirely inert.
     @ViewBuilder
     private var devFoldersRows: some View {
-        ForEach(model.devRoots, id: \.path) { root in
+        ForEach(model.projects.devRoots, id: \.path) { root in
             HStack(spacing: 10) {
                 Text((root.path as NSString).abbreviatingWithTildeInPath)
                     .font(Theme.mono(11.5))
@@ -269,7 +269,7 @@ struct SettingsView: View {
                     .lineLimit(1)
                 Spacer(minLength: 8)
                 Button(localized("settings.removeDevFolder", defaultValue: "Remove")) {
-                    model.removeDevRoot(root)
+                    model.projects.removeDevRoot(root)
                 }
                 .rcSecondary()
             }
@@ -290,7 +290,7 @@ struct SettingsView: View {
             Spacer(minLength: 8)
             Button(localized("settings.addDevFolder", defaultValue: "Add folder…")) {
                 for url in DevFolderPicker.pickFolders() {
-                    model.addDevRoot(url)
+                    model.projects.addDevRoot(url)
                 }
             }
             .rcSecondary()

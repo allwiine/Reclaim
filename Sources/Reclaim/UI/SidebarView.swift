@@ -134,7 +134,7 @@ struct SidebarView: View {
     // would silently attribute the projects' bytes to the categories.
     private var categorySegments: [MeterSegment] {
         let totals = model.results.categoryTotals(cleanableOnly: true)
-        let projectBytes = model.projectArtifactBytes
+        let projectBytes = model.projects.projectArtifactBytes
         let sum = max(1, totals.reduce(Int64(0)) { $0 + $1.bytes } + projectBytes)
         var segments = totals.map { total in
             MeterSegment(
@@ -191,7 +191,7 @@ struct SidebarView: View {
     }
 
     private var projectsRow: some View {
-        let bytes = model.projectArtifactBytes
+        let bytes = model.projects.projectArtifactBytes
         let isSelected = destination == .projects
 
         return Button {

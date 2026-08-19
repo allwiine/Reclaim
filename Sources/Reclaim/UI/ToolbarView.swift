@@ -190,11 +190,11 @@ struct ToolbarView: View {
             // "All findings" lists a dev-folder pointer row too — its
             // header must account for those bytes or the rows below
             // would sum past it.
-            if destination == .allFindings, model.projectArtifactBytes > 0 {
-                let total = bytes + model.projectArtifactBytes
+            if destination == .allFindings, model.projects.projectArtifactBytes > 0 {
+                let total = bytes + model.projects.projectArtifactBytes
                 return localized(
                     "toolbar.allFindingsSubtitle",
-                    defaultValue: "\(targets.count) items + \(model.projectsWithArtifactsCount) projects · \(total.formattedBytesCompact)"
+                    defaultValue: "\(targets.count) items + \(model.projects.projectsWithArtifactsCount) projects · \(total.formattedBytesCompact)"
                 )
             }
             return localized(
@@ -209,10 +209,10 @@ struct ToolbarView: View {
                 defaultValue: "\(recent) cleans on record"
             )
         case .projects:
-            guard model.results.lastScan != nil, !model.projects.isEmpty else { return "" }
+            guard model.results.lastScan != nil, !model.projects.discovered.isEmpty else { return "" }
             return localized(
                 "toolbar.projectsSubtitle",
-                defaultValue: "\(model.projects.count) projects · \(model.projectArtifactBytes.formattedBytesCompact)"
+                defaultValue: "\(model.projects.discovered.count) projects · \(model.projects.projectArtifactBytes.formattedBytesCompact)"
             )
         default:
             return ""

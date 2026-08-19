@@ -59,9 +59,9 @@ struct OverviewView: View {
                         .entrance(appeared, delay: 0.18)
                     // Lifetime/last/next stats live in the global footer;
                     // the column only appears when it has cards to show.
-                    if !model.devRoots.isEmpty || !model.results.manualTargets.isEmpty {
+                    if !model.projects.devRoots.isEmpty || !model.results.manualTargets.isEmpty {
                         VStack(spacing: 12) {
-                            if !model.devRoots.isEmpty {
+                            if !model.projects.devRoots.isEmpty {
                                 projectsCard
                             }
                             if !model.results.manualTargets.isEmpty {
@@ -155,16 +155,16 @@ struct OverviewView: View {
                     )
                     // Dev-folder artifacts are inside the ring's total, so
                     // the rows only sum up to it with this third slice.
-                    if model.projectArtifactBytes > 0 {
+                    if model.projects.projectArtifactBytes > 0 {
                         breakdownRow(
                             color: Theme.accent,
                             title: localized(
                                 "overview.projectArtifacts",
-                                defaultValue: "\(model.projectArtifactBytes.formattedBytesCompact) in project artifacts"
+                                defaultValue: "\(model.projects.projectArtifactBytes.formattedBytesCompact) in project artifacts"
                             ),
                             subtitle: localized(
                                 "overview.projectArtifactsSubtitle",
-                                defaultValue: "\(model.projectsWithArtifactsCount) projects, cleaned from the Projects screen"
+                                defaultValue: "\(model.projects.projectsWithArtifactsCount) projects, cleaned from the Projects screen"
                             )
                         )
                     }
@@ -221,7 +221,7 @@ struct OverviewView: View {
     // so projects get their own segment.
     private var ringSegments: [MeterSegment] {
         let totals = model.results.categoryTotals()
-        let projectBytes = model.projectArtifactBytes
+        let projectBytes = model.projects.projectArtifactBytes
         let sum = max(1, totals.reduce(Int64(0)) { $0 + $1.bytes } + projectBytes)
         var segments = totals.map {
             MeterSegment(
@@ -411,7 +411,7 @@ struct OverviewView: View {
                         .scaledFont(size: 10, weight: .semibold)
                         .foregroundStyle(Theme.textQuaternary)
                 }
-                if model.projects.isEmpty {
+                if model.projects.discovered.isEmpty {
                     Text(localized(
                         "projects.noneFound",
                         defaultValue: "No projects found in the added folders."
@@ -421,16 +421,16 @@ struct OverviewView: View {
                 } else {
                     Text(localized(
                         "toolbar.projectsSubtitle",
-                        defaultValue: "\(model.projects.count) projects · \(model.projectArtifactBytes.formattedBytesCompact)"
+                        defaultValue: "\(model.projects.discovered.count) projects · \(model.projects.projectArtifactBytes.formattedBytesCompact)"
                     ))
                     .scaledFont(size: 14, weight: .semibold)
                     .monospacedDigit()
                     .foregroundStyle(Theme.textPrimary)
                     .contentTransition(.numericText())
-                    .animation(Theme.smooth, value: model.projectArtifactBytes)
+                    .animation(Theme.smooth, value: model.projects.projectArtifactBytes)
 
                     VStack(spacing: 6) {
-                        ForEach(model.largestProjects(limit: 2)) { project in
+                        ForEach(model.projects.largestProjects(limit: 2)) { project in
                             HStack(spacing: 8) {
                                 Image(systemName: "folder.badge.gearshape")
                                     .scaledFont(size: 10.5)

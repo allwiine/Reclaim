@@ -55,15 +55,8 @@ public final class AppModel {
     /// cherry-picked paths alike.
     public let selection: SelectionModel
 
-    /// User-configured development folders (the dev-folder feature is
-    /// inert until this is non-empty). Persisted.
-    public private(set) var devRoots: [URL] = []
-
-    /// Discovery results per dev root, from the most recent scan.
-    public private(set) var projectScans: [DevRootScan] = []
-
-    /// Artifact ids (absolute paths) ticked for cleaning.
-    public private(set) var artifactSelection: Set<String> = []
+    /// Dev-folder roots, discovery results, and artifact selection.
+    public let projects: ProjectsModel
 
     @ObservationIgnored
     private(set) var scanTask: Task<Void, Never>?
@@ -83,11 +76,6 @@ public final class AppModel {
     @ObservationIgnored
     private let volumeProbe: @Sendable () -> VolumeSpace?
 
-    /// The same pin for dev-folder roots: an artifact is only disposed
-    /// of while its parent still resolves inside a scanned dev root.
-    @ObservationIgnored
-    private var scanRealDevRoots: Set<String> = []
-
     // MARK: - Persisted settings
 
     private let defaults: UserDefaults
@@ -97,7 +85,6 @@ public final class AppModel {
 
     private enum DefaultsKey {
         static let lastScanDate = "state.lastScanDate"
-        static let devRoots = "settings.devRoots"
     }
 
     /// How often the background scan runs while the app is open.
@@ -121,6 +108,7 @@ public final class AppModel {
         self.selection = SelectionModel(
             results: results, activity: activity, breakdowns: breakdowns, defaults: defaults
         )
+        self.projects = ProjectsModel(activity: activity, defaults: defaults)
         self.scanExecutor = executors.scan
         self.cleanExecutor = executors.clean
         self.projectScanExecutor = executors.projectScan
@@ -128,8 +116,6 @@ public final class AppModel {
         self.fullDiskAccessProbe = executors.fullDiskAccess
         self.volumeProbe = executors.volume
         self.history = HistoryModel(store: historyStore)
-        self.devRoots = (defaults.stringArray(forKey: DefaultsKey.devRoots) ?? [])
-            .map { URL(filePath: $0) }
         self.lastCompletedScanDate = defaults.object(forKey: DefaultsKey.lastScanDate) as? Date
         results.refreshVolumeSpace()
     }
@@ -140,7 +126,7 @@ public final class AppModel {
     /// dev-folder artifacts.
     public var totalFoundBytes: Int64 {
         results.targets.reduce(0) { $0 + (results.status(of: $1.id).bytes ?? 0) }
-            + projectArtifactBytes
+            + projects.projectArtifactBytes
     }
 
     /// Only what Reclaim itself can clean, including dev-folder artifacts.
@@ -148,13 +134,14 @@ public final class AppModel {
         results.targets.reduce(0) { sum, target in
             guard target.strategy.isCleanable else { return sum }
             return sum + (results.status(of: target.id).bytes ?? 0)
-        } + projectArtifactBytes
+        } + projects.projectArtifactBytes
     }
 
     /// Bytes covered by the current selection, partial picks and
     /// selected dev-folder artifacts included.
     public var selectedBytes: Int64 {
-        results.targets.reduce(0) { $0 + selection.selectedBytes(of: $1) } + selectedArtifactBytes
+        results.targets.reduce(0) { $0 + selection.selectedBytes(of: $1) }
+            + projects.selectedArtifactBytes
     }
 
     // MARK: - Background scanning
@@ -178,32 +165,6 @@ public final class AppModel {
     }
 
     // MARK: - Dev-folder projects
-
-    /// All discovered projects across roots, scan order.
-    public var projects: [DiscoveredProject] {
-        projectScans.flatMap(\.projects)
-    }
-
-    /// Measured artifact bytes across all projects.
-    public var projectArtifactBytes: Int64 {
-        projects.reduce(0) { $0 + $1.artifactBytes }
-    }
-
-    /// Number of projects currently holding artifact bytes — the count
-    /// that pairs honestly with ``projectArtifactBytes`` in UI copy.
-    public var projectsWithArtifactsCount: Int {
-        projects.count { $0.artifactBytes > 0 }
-    }
-
-    /// The projects with the most reclaimable artifact bytes, for the
-    /// overview's Projects card. Artifact-free projects are omitted.
-    public func largestProjects(limit: Int) -> [DiscoveredProject] {
-        projects
-            .filter { $0.artifactBytes > 0 }
-            .sorted { $0.artifactBytes > $1.artifactBytes }
-            .prefix(limit)
-            .map { $0 }
-    }
 
     /// One entry in the overview's "biggest single locations" list —
     /// either a registry target or a discovered project. Projects are
@@ -235,7 +196,7 @@ public final class AppModel {
             let bytes = results.status(of: target.id).bytes ?? 0
             return bytes > 0 ? .target(target, bytes: bytes) : nil
         }
-        let projectFindings: [OverviewFinding] = projects
+        let projectFindings: [OverviewFinding] = projects.discovered
             .filter { $0.artifactBytes > 0 }
             .map { .project($0) }
         return (targetFindings + projectFindings)
@@ -244,182 +205,13 @@ public final class AppModel {
             .map { $0 }
     }
 
-    /// Add a development folder. The path is resolved (symlinks followed)
-    /// before any comparison, so a symlinked root and its real target are
-    /// recognized as the same root — `ProjectDiscovery` itself resolves
-    /// symlinks, so project and artifact URLs always live under the
-    /// resolved path. Nested roots are walked once: a folder inside an
-    /// existing root is refused; a folder containing existing roots
-    /// replaces them. `~/.claude` (and anything inside it) is refused
-    /// outright — Claude Code's own data is structurally excluded from
-    /// discovery, never a dev root.
-    public func addDevRoot(_ url: URL) {
-        let root = url.standardizedFileURL.resolvingSymlinksInPath()
-        let claudeRoot = FileManager.default.homeDirectoryForCurrentUser
-            .resolvingSymlinksInPath()
-            .appending(path: ".claude")
-        // Compare case-insensitively: the default APFS volume is
-        // case-insensitive, so a typed `~/.CLAUDE` denotes the same
-        // directory as `~/.claude` and must be refused just the same.
-        let rootPath = root.path.lowercased()
-        let claudePath = claudeRoot.path.lowercased()
-        guard rootPath != claudePath, !rootPath.hasPrefix(claudePath + "/") else {
-            return
-        }
-        guard !devRoots.contains(where: {
-            root.path == $0.path || root.path.hasPrefix($0.path + "/")
-        }) else { return }
-        devRoots.removeAll { $0.path.hasPrefix(root.path + "/") }
-        devRoots.append(root)
-        persistDevRoots()
-    }
-
-    /// Remove a development folder and everything derived from it.
-    public func removeDevRoot(_ url: URL) {
-        devRoots.removeAll { $0.path == url.path }
-        projectScans.removeAll { $0.root.path == url.path }
-        // Prune by membership, not by path prefix: discovery resolves
-        // symlinks, so artifact ids live under the *resolved* root, which
-        // can differ from the configured `url` textually even though it
-        // is the same root.
-        let remaining = Set(projects.flatMap(\.artifacts).map(\.id))
-        artifactSelection = artifactSelection.filter { remaining.contains($0) }
-        persistDevRoots()
-    }
-
-    private func persistDevRoots() {
-        defaults.set(devRoots.map(\.path), forKey: DefaultsKey.devRoots)
-    }
-
-    /// Display label for an artifact: "node_modules in my-app".
-    public func artifactDisplayName(kindID: String, projectName: String) -> String {
-        let kindName = ArtifactCatalog.kind(withID: kindID)?.name ?? kindID
-        return localized(
-            "projects.artifactLabel",
-            defaultValue: "\(kindName) in \(projectName)"
-        )
-    }
-
-    /// Six months without edits or git activity marks a project stale
-    /// (a purely visual badge — staleness changes no behavior).
-    public static let staleProjectInterval: TimeInterval = 183 * 24 * 3600
-
-    /// Whether a project shows the "no recent activity" badge. A
-    /// project with no known dates is unknown, not stale.
-    public func isProjectStale(_ project: DiscoveredProject, now: Date = .now) -> Bool {
-        guard let activity = project.lastActivityDate else { return false }
-        return now.timeIntervalSince(activity) > Self.staleProjectInterval
-    }
-
-    /// Whether the artifact's checkbox is enabled.
-    public func isArtifactSelectable(_ artifact: DiscoveredArtifact) -> Bool {
-        !activity.isScanning && !activity.isCleaning && artifact.measurement.bytes > 0
-    }
-
-    public func isArtifactSelected(_ artifact: DiscoveredArtifact) -> Bool {
-        artifactSelection.contains(artifact.id)
-    }
-
-    public func setArtifactSelected(_ artifact: DiscoveredArtifact, _ selected: Bool) {
-        if selected, isArtifactSelectable(artifact) {
-            artifactSelection.insert(artifact.id)
-        } else {
-            artifactSelection.remove(artifact.id)
-        }
-    }
-
-    /// The selected artifacts, discovery order.
-    public var selectedArtifacts: [DiscoveredArtifact] {
-        projects.flatMap(\.artifacts).filter { artifactSelection.contains($0.id) }
-    }
-
-    public var selectedArtifactBytes: Int64 {
-        selectedArtifacts.reduce(0) { $0 + $1.measurement.bytes }
-    }
-
     /// Whether a clean pass has anything to do — registry targets or
     /// dev-folder artifacts. Derived from live projects (via
-    /// ``selectedArtifacts``), not the raw id set, so ids left dangling
-    /// by a root removed out from under the selection never count.
+    /// ``ProjectsModel/selectedArtifacts``), not the raw id set, so ids
+    /// left dangling by a root removed out from under the selection
+    /// never count.
     public var hasCleanableSelection: Bool {
-        !selection.ids.isEmpty || !selectedArtifacts.isEmpty
-    }
-
-    // MARK: - Project selection
-
-    /// Whether the project row's checkbox is enabled: it has at least
-    /// one artifact with measurable bytes to free.
-    public func isProjectSelectable(_ project: DiscoveredProject) -> Bool {
-        !activity.isScanning && !activity.isCleaning
-            && project.artifacts.contains { $0.measurement.bytes > 0 }
-    }
-
-    /// The project's ticked artifacts, discovery order.
-    public func selectedArtifacts(of project: DiscoveredProject) -> [DiscoveredArtifact] {
-        project.artifacts.filter { artifactSelection.contains($0.id) }
-    }
-
-    public func selectedArtifactBytes(of project: DiscoveredProject) -> Int64 {
-        selectedArtifacts(of: project).reduce(0) { $0 + $1.measurement.bytes }
-    }
-
-    /// Selected vs selectable artifact counts backing the tri-state.
-    private func artifactSelectionCounts(
-        of project: DiscoveredProject
-    ) -> (selected: Int, selectable: Int) {
-        (
-            selected: selectedArtifacts(of: project).count,
-            selectable: project.artifacts.count { $0.measurement.bytes > 0 }
-        )
-    }
-
-    /// Whether every selectable artifact of the project is ticked (the
-    /// row checkbox's "on"; empty artifacts never count).
-    public func isProjectSelected(_ project: DiscoveredProject) -> Bool {
-        let counts = artifactSelectionCounts(of: project)
-        return counts.selected > 0 && counts.selected == counts.selectable
-    }
-
-    /// Whether some but not all selectable artifacts are ticked (the
-    /// row checkbox's mixed state).
-    public func isProjectPartiallySelected(_ project: DiscoveredProject) -> Bool {
-        let counts = artifactSelectionCounts(of: project)
-        return counts.selected > 0 && counts.selected < counts.selectable
-    }
-
-    /// Tick or untick all of the project's artifacts (empty ones are
-    /// refused by the per-artifact rule).
-    public func setProjectSelected(_ project: DiscoveredProject, _ selected: Bool) {
-        for artifact in project.artifacts {
-            setArtifactSelected(artifact, selected)
-        }
-    }
-
-    /// "K of M items" while the project is cherry-picked; nil when
-    /// nothing or everything selectable is ticked (mirrors the target
-    /// counterpart).
-    public func partialSelectionCounts(
-        of project: DiscoveredProject
-    ) -> (selected: Int, total: Int)? {
-        guard isProjectPartiallySelected(project) else { return nil }
-        let counts = artifactSelectionCounts(of: project)
-        return (selected: counts.selected, total: counts.selectable)
-    }
-
-    /// Artifacts with measurable bytes across all projects — the
-    /// projects strip summary's denominator.
-    public var selectableArtifactCount: Int {
-        projects.flatMap(\.artifacts).count { $0.measurement.bytes > 0 }
-    }
-
-    /// Tick every selectable artifact across all projects.
-    public func selectAllArtifacts() {
-        for project in projects { setProjectSelected(project, true) }
-    }
-
-    /// Untick every artifact. The registry-target selection stays.
-    public func clearArtifactSelection() {
-        artifactSelection.removeAll()
+        !selection.ids.isEmpty || !projects.selectedArtifacts.isEmpty
     }
 
     // MARK: - Selection
@@ -430,7 +222,7 @@ public final class AppModel {
     /// confirms only what it names.
     public func selectOnlySafe() {
         selection.clear()
-        artifactSelection.removeAll()
+        projects.clearArtifactSelection()
         selection.selectAllSafe()
     }
 
@@ -444,12 +236,10 @@ public final class AppModel {
         selection.clearForScan()
         activity.lastCleanSummary = nil
         breakdowns.invalidateAll()
-        projectScans = []
-        artifactSelection.removeAll()
+        projects.resetForScan()
         results.scanRealRoots.removeAll()
-        scanRealDevRoots.removeAll()
         activity.scanProgress = ScanProgress(
-            completed: 0, total: results.targets.count + devRoots.count,
+            completed: 0, total: results.targets.count + projects.devRoots.count,
             currentTargetName: "", currentPath: ""
         )
         for target in results.targets {
@@ -556,7 +346,7 @@ public final class AppModel {
                 let current = inFlight.first
                 activity.scanProgress = ScanProgress(
                     completed: completed,
-                    total: targets.count + devRoots.count,
+                    total: targets.count + projects.devRoots.count,
                     currentTargetName: current?.name ?? "",
                     currentPath: current.map(Self.displayLocation(of:)) ?? ""
                 )
@@ -606,7 +396,7 @@ public final class AppModel {
     /// Fan dev-root discovery through the same width-limited pattern as
     /// target scans, continuing the same progress counter.
     private func runProjectScan() async {
-        let roots = devRoots
+        let roots = projects.devRoots
         guard !roots.isEmpty, !Task.isCancelled else { return }
         let scan = projectScanExecutor
         let baseCompleted = results.targets.count
@@ -646,13 +436,7 @@ public final class AppModel {
             }
             publishProgress()
             while let (result, realRoot) = await group.next() {
-                // A root removed mid-scan must not resurrect: with no
-                // configured root left to remove it, its rows would
-                // linger until the next scan.
-                if devRoots.contains(where: { $0.path == result.root.path }) {
-                    projectScans.append(result)
-                    scanRealDevRoots.insert(realRoot)
-                }
+                projects.recordScan(result, realRoot: realRoot)
                 completed += 1
                 inFlight.removeAll { $0.path == result.root.path }
                 startNext()
@@ -703,7 +487,7 @@ public final class AppModel {
     /// the numbers on screen stay truthful.
     public func cleanSelected(scope: CleanScope = .selection) {
         guard !activity.isCleaning, !activity.isScanning else { return }
-        guard !selection.ids.isEmpty || !artifactSelection.isEmpty else { return }
+        guard !selection.ids.isEmpty || !projects.artifactSelection.isEmpty else { return }
 
         let targetLimit: Set<CleanupTarget.ID>? = switch scope {
         case .selection: nil
@@ -736,12 +520,12 @@ public final class AppModel {
         case .selection, .projectArtifacts:
             let projectLimit: DiscoveredProject.ID? =
                 if case .projectArtifacts(let id) = scope { id } else { nil }
-            artifactJobs = projectScans.flatMap { scan in
+            artifactJobs = projects.projectScans.flatMap { scan in
                 scan.projects
                     .filter { projectLimit == nil || $0.id == projectLimit }
                     .flatMap { project in
                         project.artifacts
-                            .filter { artifactSelection.contains($0.id) }
+                            .filter { projects.artifactSelection.contains($0.id) }
                             .map { ArtifactCleanJob(
                                 artifact: $0, projectName: project.name, devRoot: scan.root
                             ) }
@@ -774,7 +558,7 @@ public final class AppModel {
                 summary.reclaimedBytes += job.artifact.measurement.bytes
                 summary.cleanedArtifacts.append(CleanSummary.CleanedArtifact(
                     id: job.artifact.id,
-                    name: artifactDisplayName(
+                    name: projects.artifactDisplayName(
                         kindID: job.artifact.kindID, projectName: job.projectName
                     ),
                     bytesFreed: job.artifact.measurement.bytes
@@ -893,7 +677,7 @@ public final class AppModel {
                     summary.wasStopped = true
                     break
                 }
-                let name = self.artifactDisplayName(
+                let name = self.projects.artifactDisplayName(
                     kindID: job.artifact.kindID, projectName: job.projectName
                 )
                 self.activity.cleanProgress = CleanProgress(
@@ -907,7 +691,7 @@ public final class AppModel {
                 // Same scan-time pin as registry targets: only dispose
                 // of the artifact while its parent still resolves inside
                 // a scanned dev root.
-                let devRootsSnapshot = self.scanRealDevRoots
+                let devRootsSnapshot = self.projects.scanRealDevRoots
                 let pinHolds = await offMain {
                     Self.artifactPinHolds(url, allowedRealDevRoots: devRootsSnapshot)
                 }
@@ -954,7 +738,7 @@ public final class AppModel {
                 } else if !outcome.failures.isEmpty {
                     summary.failedTargets += 1
                 }
-                self.artifactSelection.remove(job.artifact.id)
+                self.projects.removeFromSelection(job.artifact.id)
             }
 
             // Re-discover the affected roots so the Projects list stays
@@ -962,11 +746,7 @@ public final class AppModel {
             let rescan = self.projectScanExecutor
             for root in cleanedRoots {
                 let refreshed = await offMain { rescan(root) }
-                if let index = self.projectScans.firstIndex(where: {
-                    $0.root.path == root.path
-                }) {
-                    self.projectScans[index] = refreshed
-                }
+                self.projects.replaceScan(refreshed)
             }
 
             self.activity.cleanProgress = nil
@@ -1053,8 +833,7 @@ public final class AppModel {
     /// Preview-only: canned dev-folder discovery without touching
     /// UserDefaults persistence or running a scan.
     public func seedProjectsForPreview(devRoots: [URL], projectScans: [DevRootScan]) {
-        self.devRoots = devRoots
-        self.projectScans = projectScans
+        projects.seed(devRoots: devRoots, projectScans: projectScans)
     }
     #endif
 }

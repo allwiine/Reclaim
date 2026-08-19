@@ -30,7 +30,7 @@ struct ConfirmSheet: View {
     /// this sheet covers.
     private var singleProject: DiscoveredProject? {
         guard case .project(let id) = scope else { return nil }
-        return model.projects.first { $0.id == id }
+        return model.projects.discovered.first { $0.id == id }
     }
 
     var body: some View {
@@ -157,8 +157,8 @@ struct ConfirmSheet: View {
             )
         }
         if let project = singleProject {
-            let space = model.selectedArtifactBytes(of: project).formattedBytesCompact
-            if let counts = model.partialSelectionCounts(of: project) {
+            let space = model.projects.selectedArtifactBytes(of: project).formattedBytesCompact
+            if let counts = model.projects.partialSelectionCounts(of: project) {
                 let scope = localized(
                     "format.itemsOf",
                     defaultValue: "\(counts.selected) of \(counts.total) items"
@@ -174,7 +174,7 @@ struct ConfirmSheet: View {
             )
         }
         let space = model.selectedBytes.formattedBytesCompact
-        let locationCount = picked.count + model.selectedArtifacts.count
+        let locationCount = picked.count + model.projects.selectedArtifacts.count
         return model.settings.dryRun
             ? localized(
                 "confirm.titleDryRun",
@@ -210,7 +210,7 @@ struct ConfirmSheet: View {
                     defaultValue: "This one location is deleted immediately and cannot be recovered."
                 )
         }
-        if let project = singleProject, model.isProjectPartiallySelected(project) {
+        if let project = singleProject, model.projects.isProjectPartiallySelected(project) {
             return localized(
                 "confirm.bodySinglePartial",
                 defaultValue: "Only the items listed below are affected. The rest of \(project.name) stays where it is."
@@ -253,12 +253,12 @@ struct ConfirmSheet: View {
                 .padding(.horizontal, 12)
                 .padding(.vertical, 9)
                 .overlay(alignment: .bottom) {
-                    if target.id != picked.last?.id || !model.selectedArtifacts.isEmpty {
+                    if target.id != picked.last?.id || !model.projects.selectedArtifacts.isEmpty {
                         Rectangle().fill(Theme.separator).frame(height: 1)
                     }
                 }
             }
-            ForEach(model.selectedArtifacts) { artifact in
+            ForEach(model.projects.selectedArtifacts) { artifact in
                 HStack(spacing: 10) {
                     Circle()
                         .fill(Theme.safe)
@@ -276,7 +276,7 @@ struct ConfirmSheet: View {
                 .padding(.horizontal, 12)
                 .padding(.vertical, 9)
                 .overlay(alignment: .bottom) {
-                    if artifact.id != model.selectedArtifacts.last?.id {
+                    if artifact.id != model.projects.selectedArtifacts.last?.id {
                         Rectangle().fill(Theme.separator).frame(height: 1)
                     }
                 }
@@ -285,10 +285,10 @@ struct ConfirmSheet: View {
     }
 
     private func artifactLabel(_ artifact: DiscoveredArtifact) -> String {
-        let projectName = model.projects
+        let projectName = model.projects.discovered
             .first { $0.artifacts.contains(where: { $0.id == artifact.id }) }?
             .name ?? ""
-        return model.artifactDisplayName(kindID: artifact.kindID, projectName: projectName)
+        return model.projects.artifactDisplayName(kindID: artifact.kindID, projectName: projectName)
     }
 
     /// "Clean just this": the exact scan-time items that will go.
@@ -325,7 +325,7 @@ struct ConfirmSheet: View {
 
     /// Per-project "Clean just this": the ticked artifacts that will go.
     private func projectArtifactList(for project: DiscoveredProject) -> some View {
-        let picked = model.selectedArtifacts(of: project)
+        let picked = model.projects.selectedArtifacts(of: project)
         return listCard {
             ForEach(picked) { artifact in
                 HStack(spacing: 10) {
