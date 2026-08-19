@@ -1,0 +1,25 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "xcode-archives",
+  "category": "xcode",
+  "safety": "caution",
+  "paths": [
+    "~/Library/Developer/Xcode/Archives"
+  ],
+  "strategy": "removeContents",
+  "relatedApps": [
+    "com.apple.dt.Xcode"
+  ],
+  "name": {
+    "en": "Archives",
+    "nb": "Arkiver"
+  },
+  "summary": {
+    "en": "App archives with dSYMs, used to distribute builds and symbolicate crash reports.",
+    "nb": "Apparkiver med dSYM-er, brukt til å distribuere bygg og gjøre krasjrapporter lesbare."
+  },
+  "note": {
+    "en": "Keep archives for versions that are live on the App Store — you need their dSYMs to read crash reports.",
+    "nb": "Behold arkiver for versjoner som er ute på App Store: du trenger dSYM-ene deres for å lese krasjrapporter."
+  }
+}

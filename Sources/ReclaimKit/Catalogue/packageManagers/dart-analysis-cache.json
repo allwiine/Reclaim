@@ -1,0 +1,18 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "dart-analysis-cache",
+  "category": "packageManagers",
+  "safety": "safe",
+  "paths": [
+    "~/.dartServer"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "Dart analysis cache",
+    "nb": "Dart-analysecache"
+  },
+  "summary": {
+    "en": "Code indexes built by the Dart analysis server. Rebuilt on next analysis.",
+    "nb": "Kodeindekser bygget av Darts analyseserver. Bygges på nytt ved neste analyse."
+  }
+}

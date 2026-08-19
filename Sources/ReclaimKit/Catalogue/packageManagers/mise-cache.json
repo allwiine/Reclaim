@@ -1,0 +1,19 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "mise-cache",
+  "category": "packageManagers",
+  "safety": "safe",
+  "paths": [
+    "~/Library/Caches/mise",
+    "~/.cache/mise"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "mise cache",
+    "nb": "mise-cache"
+  },
+  "summary": {
+    "en": "Version lists and downloads cached by the mise version manager. Installed runtimes are not touched.",
+    "nb": "Versjonslister og nedlastinger cachet av versjonsbehandleren mise. Installerte runtimes røres ikke."
+  }
+}

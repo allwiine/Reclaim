@@ -1,0 +1,13 @@
+{
+  "$schema": "../schema/exclusion.schema.json",
+  "id": "claude-settings",
+  "group": "claudeCode",
+  "paths": [
+    "~/.claude/settings.json",
+    "~/.claude/settings.local.json"
+  ],
+  "reason": {
+    "en": "settings",
+    "nb": "innstillinger"
+  }
+}

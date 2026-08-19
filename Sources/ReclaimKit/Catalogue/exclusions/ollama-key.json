@@ -1,0 +1,12 @@
+{
+  "$schema": "../schema/exclusion.schema.json",
+  "id": "ollama-key",
+  "group": "aiTools",
+  "paths": [
+    "~/.ollama/id_ed25519"
+  ],
+  "reason": {
+    "en": "signing key",
+    "nb": "signeringsnøkkel"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "cargo-registry",
+  "category": "packageManagers",
+  "safety": "safe",
+  "paths": [
+    "~/.cargo/registry"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "Cargo registry",
+    "nb": "Cargo-registry"
+  },
+  "summary": {
+    "en": "Downloaded Rust crates and registry indexes.",
+    "nb": "Nedlastede Rust-crates og registry-indekser."
+  },
+  "note": {
+    "en": "Crates are re-downloaded on the next `cargo build`.",
+    "nb": "Crates lastes ned på nytt ved neste `cargo build`."
+  }
+}

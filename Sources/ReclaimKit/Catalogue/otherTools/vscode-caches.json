@@ -1,0 +1,24 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "vscode-caches",
+  "category": "otherTools",
+  "safety": "safe",
+  "paths": [
+    "~/Library/Application Support/Code/Cache",
+    "~/Library/Application Support/Code/CachedData",
+    "~/Library/Application Support/Code/Code Cache",
+    "~/Library/Application Support/Code/CachedExtensionVSIXs"
+  ],
+  "strategy": "removeContents",
+  "relatedApps": [
+    "com.microsoft.VSCode"
+  ],
+  "name": {
+    "en": "VS Code caches",
+    "nb": "VS Code-cacher"
+  },
+  "summary": {
+    "en": "Extension host, rendering and code caches for Visual Studio Code.",
+    "nb": "Extension host-, gjengivelses- og kodecacher for Visual Studio Code."
+  }
+}

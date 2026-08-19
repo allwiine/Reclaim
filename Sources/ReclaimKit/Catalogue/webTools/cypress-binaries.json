@@ -1,0 +1,22 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "cypress-binaries",
+  "category": "webTools",
+  "safety": "caution",
+  "paths": [
+    "~/Library/Caches/Cypress"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "Cypress binaries",
+    "nb": "Cypress-binærer"
+  },
+  "summary": {
+    "en": "Every Cypress version ever installed, each around half a gigabyte. Old versions are never pruned.",
+    "nb": "Hver Cypress-versjon som noen gang er installert, hver på rundt en halv gigabyte. Gamle versjoner ryddes aldri."
+  },
+  "note": {
+    "en": "Run `npx cypress install` to restore the binary before the next test run.",
+    "nb": "Kjør `npx cypress install` for å gjenopprette binæren før neste testkjøring."
+  }
+}

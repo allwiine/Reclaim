@@ -1,0 +1,24 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "codex-cli-sessions",
+  "category": "aiTools",
+  "safety": "caution",
+  "paths": [
+    "~/.codex/sessions",
+    "~/.codex/archived_sessions",
+    "~/.codex/log"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "Codex CLI session history",
+    "nb": "Codex CLI-økthistorikk"
+  },
+  "summary": {
+    "en": "Session transcripts and logs written by OpenAI's Codex CLI. Cleaning removes the ability to resume past sessions.",
+    "nb": "Øktutskrifter og logger skrevet av OpenAIs Codex CLI. Rydding fjerner muligheten til å gjenoppta tidligere økter."
+  },
+  "note": {
+    "en": "Auth and config in ~/.codex (auth.json, config.toml) are never touched by Reclaim.",
+    "nb": "Autentisering og konfigurasjon i ~/.codex (auth.json, config.toml) røres aldri av Reclaim."
+  }
+}

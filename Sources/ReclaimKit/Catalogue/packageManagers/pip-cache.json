@@ -1,0 +1,18 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "pip-cache",
+  "category": "packageManagers",
+  "safety": "safe",
+  "paths": [
+    "~/Library/Caches/pip"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "pip cache",
+    "nb": "pip-cache"
+  },
+  "summary": {
+    "en": "Wheels and HTTP responses cached by pip.",
+    "nb": "Wheels og HTTP-svar cachet av pip."
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "xcode-derived-data",
+  "category": "xcode",
+  "safety": "safe",
+  "paths": [
+    "~/Library/Developer/Xcode/DerivedData"
+  ],
+  "strategy": "removeContents",
+  "relatedApps": [
+    "com.apple.dt.Xcode"
+  ],
+  "name": {
+    "en": "Derived data",
+    "nb": "DerivedData"
+  },
+  "summary": {
+    "en": "Build products, indexes and module caches for every project you have opened. Rebuilt on the next build.",
+    "nb": "Byggprodukter, indekser og modulcacher for hvert prosjekt du har åpnet. Bygges på nytt ved neste bygg."
+  },
+  "note": {
+    "en": "The next build of each project will be a clean build.",
+    "nb": "Neste bygg av hvert prosjekt blir en clean build."
+  }
+}

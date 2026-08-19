@@ -1,0 +1,18 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "asdf-installs",
+  "category": "packageManagers",
+  "safety": "destructive",
+  "paths": [
+    "~/.asdf/installs"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "asdf installed versions",
+    "nb": "asdf-installerte versjoner"
+  },
+  "summary": {
+    "en": "Language runtimes installed by asdf. Removing them means reinstalling each version with `asdf install`.",
+    "nb": "Språkruntimer installert av asdf. Å fjerne dem betyr å installere hver versjon på nytt med `asdf install`."
+  }
+}

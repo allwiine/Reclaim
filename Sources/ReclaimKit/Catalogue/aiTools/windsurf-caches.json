@@ -1,0 +1,24 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "windsurf-caches",
+  "category": "aiTools",
+  "safety": "safe",
+  "paths": [
+    "~/Library/Application Support/Windsurf/Cache",
+    "~/Library/Application Support/Windsurf/CachedData",
+    "~/Library/Application Support/Windsurf/Code Cache",
+    "~/Library/Application Support/Windsurf/GPUCache"
+  ],
+  "strategy": "removeContents",
+  "relatedApps": [
+    "com.exafunction.windsurf"
+  ],
+  "name": {
+    "en": "Windsurf caches",
+    "nb": "Windsurf-cacher"
+  },
+  "summary": {
+    "en": "Extension host, rendering and code caches for the Windsurf editor.",
+    "nb": "Extension host-, gjengivelses- og kodecacher for Windsurf-editoren."
+  }
+}

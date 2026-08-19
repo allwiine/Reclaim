@@ -1,0 +1,25 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "android-system-images",
+  "category": "android",
+  "safety": "caution",
+  "paths": [
+    "~/Library/Android/sdk/system-images"
+  ],
+  "strategy": "removeContents",
+  "relatedApps": [
+    "com.google.android.studio"
+  ],
+  "name": {
+    "en": "SDK system images",
+    "nb": "SDK system-images"
+  },
+  "summary": {
+    "en": "Emulator system images downloaded via the SDK Manager. Each API level is multiple gigabytes.",
+    "nb": "System-images for emulatoren, lastet ned via SDK Manager. Hvert API-nivå er flere gigabyte."
+  },
+  "note": {
+    "en": "Existing emulators using a deleted image stop booting until it is re-downloaded from the SDK Manager.",
+    "nb": "Eksisterende emulatorer som bruker et slettet image, starter ikke før det lastes ned på nytt fra SDK Manager."
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "$schema": "../schema/exclusion.schema.json",
+  "id": "kube-config",
+  "group": "cloudContainers",
+  "paths": [
+    "~/.kube/config"
+  ],
+  "reason": {
+    "en": "cluster credentials",
+    "nb": "klyngepålogging"
+  }
+}

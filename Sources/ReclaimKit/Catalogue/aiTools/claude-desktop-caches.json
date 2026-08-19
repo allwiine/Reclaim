@@ -1,0 +1,24 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "claude-desktop-caches",
+  "category": "aiTools",
+  "safety": "safe",
+  "paths": [
+    "~/Library/Caches/com.anthropic.claudefordesktop",
+    "~/Library/Application Support/Claude/Cache",
+    "~/Library/Application Support/Claude/Code Cache",
+    "~/Library/Application Support/Claude/GPUCache"
+  ],
+  "strategy": "removeContents",
+  "relatedApps": [
+    "com.anthropic.claudefordesktop"
+  ],
+  "name": {
+    "en": "Claude Desktop caches",
+    "nb": "Claude Desktop-cacher"
+  },
+  "summary": {
+    "en": "Rendering and code caches for the Claude desktop app. Rebuilt on next launch.",
+    "nb": "Gjengivelses- og kodecacher for Claude-skrivebordsappen. Bygges på nytt ved neste oppstart."
+  }
+}

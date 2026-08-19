@@ -1,0 +1,19 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "lmstudio-models",
+  "category": "aiTools",
+  "safety": "caution",
+  "paths": [
+    "~/.lmstudio/models",
+    "~/.cache/lm-studio/models"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "LM Studio models",
+    "nb": "LM Studio-modeller"
+  },
+  "summary": {
+    "en": "Model files downloaded through LM Studio.",
+    "nb": "Modellfiler lastet ned gjennom LM Studio."
+  }
+}

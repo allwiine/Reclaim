@@ -1,0 +1,22 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "unity-caches",
+  "category": "gameEngines",
+  "safety": "safe",
+  "paths": [
+    "~/Library/Unity/cache",
+    "~/Library/Caches/Unity"
+  ],
+  "strategy": "removeContents",
+  "relatedApps": [
+    "com.unity3d.UnityEditor5.x"
+  ],
+  "name": {
+    "en": "Unity caches",
+    "nb": "Unity-cacher"
+  },
+  "summary": {
+    "en": "Unity's global package cache and editor caches, shared by all projects. Rebuilt and re-downloaded as projects open.",
+    "nb": "Unitys globale pakkecache og editorcacher, delt av alle prosjekter. Bygges på nytt og lastes ned igjen når prosjekter åpnes."
+  }
+}

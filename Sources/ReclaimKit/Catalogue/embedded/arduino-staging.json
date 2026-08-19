@@ -1,0 +1,18 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "arduino-staging",
+  "category": "embedded",
+  "safety": "safe",
+  "paths": [
+    "~/Library/Arduino15/staging"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "Arduino downloads",
+    "nb": "Arduino-nedlastinger"
+  },
+  "summary": {
+    "en": "Board core and library archives downloaded by the Arduino IDE and CLI. Kept after installation and re-downloaded on demand.",
+    "nb": "Arkiver for kort-cores og biblioteker lastet ned av Arduino IDE og CLI. Beholdes etter installasjon og lastes ned på nytt ved behov."
+  }
+}

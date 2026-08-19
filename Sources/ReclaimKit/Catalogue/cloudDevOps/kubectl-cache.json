@@ -1,0 +1,23 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "kubectl-cache",
+  "category": "cloudDevOps",
+  "safety": "safe",
+  "paths": [
+    "~/.kube/cache",
+    "~/.kube/http-cache"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "kubectl cache",
+    "nb": "kubectl-cache"
+  },
+  "summary": {
+    "en": "API discovery and HTTP caches written by kubectl.",
+    "nb": "API-discovery- og HTTP-cacher skrevet av kubectl."
+  },
+  "note": {
+    "en": "Your cluster config in ~/.kube/config is never touched.",
+    "nb": "Klusterkonfigen din i ~/.kube/config røres aldri."
+  }
+}

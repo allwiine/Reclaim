@@ -1,0 +1,25 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "android-studio-caches",
+  "category": "android",
+  "safety": "safe",
+  "paths": [
+    "~/Library/Caches/Google/AndroidStudio*"
+  ],
+  "strategy": "removePaths",
+  "relatedApps": [
+    "com.google.android.studio"
+  ],
+  "name": {
+    "en": "Android Studio caches",
+    "nb": "Android Studio-cacher"
+  },
+  "summary": {
+    "en": "IDE caches and indexes, kept per Android Studio version — old versions linger forever.",
+    "nb": "IDE-cacher og indekser, lagret per Android Studio-versjon. Gamle versjoner blir liggende for alltid."
+  },
+  "note": {
+    "en": "Android Studio rebuilds its index on next launch.",
+    "nb": "Android Studio bygger indeksen sin på nytt ved neste oppstart."
+  }
+}

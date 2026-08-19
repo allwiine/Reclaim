@@ -1,0 +1,18 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "sccache-cache",
+  "category": "otherTools",
+  "safety": "safe",
+  "paths": [
+    "~/Library/Caches/Mozilla.sccache"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "sccache compiler cache",
+    "nb": "sccache-kompilatorcache"
+  },
+  "summary": {
+    "en": "Compilation results cached by sccache for Rust, C and CUDA builds.",
+    "nb": "Kompileringsresultater cachet av sccache for Rust-, C- og CUDA-bygg."
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "android-avds",
+  "category": "android",
+  "safety": "destructive",
+  "paths": [
+    "~/.android/avd"
+  ],
+  "strategy": "removeContents",
+  "relatedApps": [
+    "com.google.android.studio"
+  ],
+  "name": {
+    "en": "Emulator devices (AVDs)",
+    "nb": "Emulatorenheter (AVD-er)"
+  },
+  "summary": {
+    "en": "Your Android Virtual Devices, including their user data and snapshots.",
+    "nb": "Dine Android Virtual Devices, inkludert brukerdata og snapshots."
+  },
+  "note": {
+    "en": "Deletes the emulators themselves, not just caches. Recreate them from Device Manager afterwards.",
+    "nb": "Sletter selve emulatorene, ikke bare cacher. Opprett dem på nytt fra Device Manager etterpå."
+  }
+}

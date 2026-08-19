@@ -1,0 +1,22 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "rbenv-versions",
+  "category": "packageManagers",
+  "safety": "destructive",
+  "paths": [
+    "~/.rbenv/versions"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "rbenv Ruby versions",
+    "nb": "rbenv Ruby-versjoner"
+  },
+  "summary": {
+    "en": "Every Ruby version installed through rbenv, including their installed gems.",
+    "nb": "Hver Ruby-versjon installert via rbenv, inkludert installerte gems."
+  },
+  "note": {
+    "en": "Reinstall with `rbenv install <version>`.",
+    "nb": "Installer på nytt med `rbenv install <versjon>`."
+  }
+}

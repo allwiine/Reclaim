@@ -1,0 +1,25 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "unity-asset-store-cache",
+  "category": "gameEngines",
+  "safety": "caution",
+  "paths": [
+    "~/Library/Unity/Asset Store-5.x"
+  ],
+  "strategy": "removeContents",
+  "relatedApps": [
+    "com.unity3d.UnityEditor5.x"
+  ],
+  "name": {
+    "en": "Unity Asset Store downloads",
+    "nb": "Unity Asset Store-nedlastinger"
+  },
+  "summary": {
+    "en": "Asset Store packages downloaded through the Unity editor. Kept forever, even for assets you no longer import.",
+    "nb": "Asset Store-pakker lastet ned gjennom Unity-editoren. Beholdes for alltid, også for assets du ikke lenger importerer."
+  },
+  "note": {
+    "en": "Assets re-download from My Assets in the Package Manager when needed.",
+    "nb": "Assets lastes ned på nytt fra My Assets i Package Manager ved behov."
+  }
+}

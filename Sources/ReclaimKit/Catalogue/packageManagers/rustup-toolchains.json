@@ -1,0 +1,22 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "rustup-toolchains",
+  "category": "packageManagers",
+  "safety": "destructive",
+  "paths": [
+    "~/.rustup/toolchains"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "rustup toolchains",
+    "nb": "rustup-verktøykjeder"
+  },
+  "summary": {
+    "en": "Every Rust toolchain installed through rustup. Old nightlies especially pile up, each taking a gigabyte or more.",
+    "nb": "Hver Rust-verktøykjede installert via rustup. Spesielt gamle nightlies hoper seg opp, hver på en gigabyte eller mer."
+  },
+  "note": {
+    "en": "Reinstall with `rustup toolchain install <version>`; builds stop working until then.",
+    "nb": "Installer på nytt med `rustup toolchain install <versjon>`; bygg virker ikke før det er gjort."
+  }
+}

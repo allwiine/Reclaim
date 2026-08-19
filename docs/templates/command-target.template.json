@@ -1,0 +1,18 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "toolname-prune",
+  "category": "otherTools",
+  "safety": "safe",
+  "strategy": "command",
+  "command": {
+    "executable": "/absolute/path/to/tool",
+    "arguments": ["cleanup", "--flag"],
+    "display": "tool cleanup --flag",
+    "availabilityProbe": "~/path/that/proves/the/tool/is/installed"
+  },
+  "name": { "en": "Toolname cleanup", "nb": "Toolname-opprydding" },
+  "summary": {
+    "en": "What the tool's own cleanup command removes.",
+    "nb": "Hva verktøyets egen oppryddingskommando fjerner."
+  }
+}

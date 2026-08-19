@@ -1,0 +1,32 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "cline-tasks",
+  "category": "aiTools",
+  "safety": "caution",
+  "paths": [
+    "~/Library/Application Support/Code/User/globalStorage/saoudrizwan.claude-dev/tasks",
+    "~/Library/Application Support/Code/User/globalStorage/saoudrizwan.claude-dev/checkpoints",
+    "~/Library/Application Support/Cursor/User/globalStorage/saoudrizwan.claude-dev/tasks",
+    "~/Library/Application Support/Cursor/User/globalStorage/saoudrizwan.claude-dev/checkpoints",
+    "~/Library/Application Support/Windsurf/User/globalStorage/saoudrizwan.claude-dev/tasks",
+    "~/Library/Application Support/Windsurf/User/globalStorage/saoudrizwan.claude-dev/checkpoints"
+  ],
+  "strategy": "removeContents",
+  "relatedApps": [
+    "com.microsoft.VSCode",
+    "com.todesktop.230313mzl4w4u92",
+    "com.exafunction.windsurf"
+  ],
+  "name": {
+    "en": "Cline task history",
+    "nb": "Cline-oppgavehistorikk"
+  },
+  "summary": {
+    "en": "Conversation history and file checkpoints for every Cline task, stored inside VS Code, Cursor and Windsurf. Grows by gigabytes under heavy use.",
+    "nb": "Samtalehistorikk og filsjekkpunkter for hver Cline-oppgave, lagret i VS Code, Cursor og Windsurf. Vokser med gigabyte ved tung bruk."
+  },
+  "note": {
+    "en": "Cline's settings and MCP configuration are never touched by Reclaim.",
+    "nb": "Clines innstillinger og MCP-konfigurasjon røres aldri av Reclaim."
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "ivy-cache",
+  "category": "jvm",
+  "safety": "safe",
+  "paths": [
+    "~/.ivy2/cache"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "Ivy cache",
+    "nb": "Ivy-cache"
+  },
+  "summary": {
+    "en": "Artifacts cached by sbt and Apache Ivy builds.",
+    "nb": "Artefakter cachet av sbt- og Apache Ivy-bygg."
+  }
+}

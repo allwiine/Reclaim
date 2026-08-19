@@ -1,0 +1,16 @@
+{
+  "$schema": "../schema/exclusion.schema.json",
+  "id": "claude-user-content",
+  "group": "claudeCode",
+  "paths": [
+    "~/.claude/CLAUDE.md",
+    "~/.claude/agents",
+    "~/.claude/commands",
+    "~/.claude/skills",
+    "~/.claude/keybindings.json"
+  ],
+  "reason": {
+    "en": "instructions & custom commands",
+    "nb": "instruksjoner og egendefinerte kommandoer"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "roo-code-tasks",
+  "category": "aiTools",
+  "safety": "caution",
+  "paths": [
+    "~/Library/Application Support/Code/User/globalStorage/rooveterinaryinc.roo-cline/tasks",
+    "~/Library/Application Support/Code/User/globalStorage/rooveterinaryinc.roo-cline/checkpoints",
+    "~/Library/Application Support/Cursor/User/globalStorage/rooveterinaryinc.roo-cline/tasks",
+    "~/Library/Application Support/Cursor/User/globalStorage/rooveterinaryinc.roo-cline/checkpoints",
+    "~/Library/Application Support/Windsurf/User/globalStorage/rooveterinaryinc.roo-cline/tasks",
+    "~/Library/Application Support/Windsurf/User/globalStorage/rooveterinaryinc.roo-cline/checkpoints"
+  ],
+  "strategy": "removeContents",
+  "relatedApps": [
+    "com.microsoft.VSCode",
+    "com.todesktop.230313mzl4w4u92",
+    "com.exafunction.windsurf"
+  ],
+  "name": {
+    "en": "Roo Code task history",
+    "nb": "Roo Code-oppgavehistorikk"
+  },
+  "summary": {
+    "en": "Conversation history and file checkpoints for every Roo Code task, stored inside VS Code, Cursor and Windsurf.",
+    "nb": "Samtalehistorikk og filsjekkpunkter for hver Roo Code-oppgave, lagret i VS Code, Cursor og Windsurf."
+  },
+  "note": {
+    "en": "Roo Code's settings and MCP configuration are never touched by Reclaim.",
+    "nb": "Roo Codes innstillinger og MCP-konfigurasjon røres aldri av Reclaim."
+  }
+}

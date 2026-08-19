@@ -1,0 +1,25 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "godot-export-templates",
+  "category": "gameEngines",
+  "safety": "caution",
+  "paths": [
+    "~/Library/Application Support/Godot/export_templates"
+  ],
+  "strategy": "removeContents",
+  "relatedApps": [
+    "org.godotengine.godot"
+  ],
+  "name": {
+    "en": "Godot export templates",
+    "nb": "Godot-eksportmaler"
+  },
+  "summary": {
+    "en": "Export templates for every Godot version ever installed. Old versions linger after upgrades.",
+    "nb": "Eksportmaler for hver Godot-versjon som noen gang er installert. Gamle versjoner blir liggende etter oppgraderinger."
+  },
+  "note": {
+    "en": "Download the matching templates from the editor before exporting a project again.",
+    "nb": "Last ned malene som passer fra editoren før du eksporterer et prosjekt igjen."
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "nix-store",
+  "category": "packageManagers",
+  "safety": "caution",
+  "paths": [
+    "/nix/store"
+  ],
+  "strategy": "manual",
+  "instructions": {
+    "en": "Run `nix-collect-garbage -d` to remove unreferenced store paths and old generations.",
+    "nb": "Kjør `nix-collect-garbage -d` for å fjerne ubrukte lagerstier og gamle generasjoner."
+  },
+  "name": {
+    "en": "Nix store",
+    "nb": "Nix-lager"
+  },
+  "summary": {
+    "en": "Packages and build outputs kept by Nix. Reclaim measures it but leaves collection to Nix.",
+    "nb": "Pakker og byggresultater fra Nix. Reclaim måler det, men overlater opprydding til Nix."
+  }
+}

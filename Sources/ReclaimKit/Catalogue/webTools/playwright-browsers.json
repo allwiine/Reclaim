@@ -1,0 +1,22 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "playwright-browsers",
+  "category": "webTools",
+  "safety": "caution",
+  "paths": [
+    "~/Library/Caches/ms-playwright"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "Playwright browsers",
+    "nb": "Playwright-nettlesere"
+  },
+  "summary": {
+    "en": "Browser builds downloaded by Playwright for testing. Each version set is over a gigabyte.",
+    "nb": "Nettleserbygg lastet ned av Playwright for testing. Hvert versjonssett er over en gigabyte."
+  },
+  "note": {
+    "en": "Run `npx playwright install` to restore browsers before the next test run.",
+    "nb": "Kjør `npx playwright install` for å gjenopprette nettlesere før neste testkjøring."
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "lima-vms",
+  "category": "containers",
+  "safety": "caution",
+  "paths": [
+    "~/.lima"
+  ],
+  "strategy": "manual",
+  "instructions": {
+    "en": "Run `limactl delete <name>` in Terminal to remove a VM you no longer use.",
+    "nb": "Kjør `limactl delete <navn>` i Terminal for å fjerne en VM du ikke lenger bruker."
+  },
+  "name": {
+    "en": "Lima VMs",
+    "nb": "Lima-VM-er"
+  },
+  "summary": {
+    "en": "Virtual machines created by Lima, including their disks.",
+    "nb": "Virtuelle maskiner opprettet av Lima, inkludert diskene deres."
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "platformio-cache",
+  "category": "embedded",
+  "safety": "safe",
+  "paths": [
+    "~/.platformio/.cache"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "PlatformIO cache",
+    "nb": "PlatformIO-cache"
+  },
+  "summary": {
+    "en": "Download and HTTP caches kept by PlatformIO Core. Installed platforms, toolchains and libraries are not touched.",
+    "nb": "Nedlastings- og HTTP-cacher fra PlatformIO Core. Installerte plattformer, verktøykjeder og biblioteker røres ikke."
+  }
+}

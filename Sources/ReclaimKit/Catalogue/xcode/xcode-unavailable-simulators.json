@@ -1,0 +1,29 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "xcode-unavailable-simulators",
+  "category": "xcode",
+  "safety": "safe",
+  "strategy": "command",
+  "command": {
+    "executable": "/usr/bin/xcrun",
+    "arguments": [
+      "simctl",
+      "delete",
+      "unavailable"
+    ],
+    "display": "xcrun simctl delete unavailable",
+    "availabilityProbe": "~/Library/Developer/CoreSimulator"
+  },
+  "name": {
+    "en": "Unavailable simulators",
+    "nb": "Utilgjengelige simulatorer"
+  },
+  "summary": {
+    "en": "Simulator devices left behind by runtimes that are no longer installed.",
+    "nb": "Simulatorenheter etterlatt av runtimes som ikke lenger er installert."
+  },
+  "note": {
+    "en": "Size is only known after cleaning — simctl decides what qualifies.",
+    "nb": "Størrelsen er først kjent etter rydding; simctl avgjør hva som kvalifiserer."
+  }
+}

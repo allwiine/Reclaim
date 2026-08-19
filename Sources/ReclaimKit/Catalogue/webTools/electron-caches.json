@@ -1,0 +1,19 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "electron-caches",
+  "category": "webTools",
+  "safety": "safe",
+  "paths": [
+    "~/Library/Caches/electron",
+    "~/Library/Caches/electron-builder"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "Electron caches",
+    "nb": "Electron-cacher"
+  },
+  "summary": {
+    "en": "Electron builds and build tooling downloaded by electron and electron-builder.",
+    "nb": "Electron-bygg og byggverktøy lastet ned av electron og electron-builder."
+  }
+}

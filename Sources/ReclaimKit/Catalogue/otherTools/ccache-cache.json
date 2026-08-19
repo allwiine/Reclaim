@@ -1,0 +1,19 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "ccache-cache",
+  "category": "otherTools",
+  "safety": "safe",
+  "paths": [
+    "~/.ccache",
+    "~/Library/Caches/ccache"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "ccache compiler cache",
+    "nb": "ccache-kompilatorcache"
+  },
+  "summary": {
+    "en": "Compiled objects cached by ccache to speed up C and C++ rebuilds. Rebuilt as you compile.",
+    "nb": "Kompilerte objekter cachet av ccache for å gjøre C- og C++-bygg raskere. Bygges opp igjen etter hvert som du kompilerer."
+  }
+}

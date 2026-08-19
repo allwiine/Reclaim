@@ -1,0 +1,19 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "composer-cache",
+  "category": "packageManagers",
+  "safety": "safe",
+  "paths": [
+    "~/.composer/cache",
+    "~/Library/Caches/composer"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "Composer cache",
+    "nb": "Composer-cache"
+  },
+  "summary": {
+    "en": "Package archives cached by PHP's Composer.",
+    "nb": "Pakkearkiver cachet av PHPs Composer."
+  }
+}

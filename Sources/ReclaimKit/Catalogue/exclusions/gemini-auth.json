@@ -1,0 +1,12 @@
+{
+  "$schema": "../schema/exclusion.schema.json",
+  "id": "gemini-auth",
+  "group": "aiTools",
+  "paths": [
+    "~/.gemini/oauth_creds.json"
+  ],
+  "reason": {
+    "en": "OAuth credentials",
+    "nb": "OAuth-påloggingsinformasjon"
+  }
+}

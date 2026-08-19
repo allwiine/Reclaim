@@ -1,0 +1,24 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "vscode-insiders-caches",
+  "category": "otherTools",
+  "safety": "safe",
+  "paths": [
+    "~/Library/Application Support/Code - Insiders/Cache",
+    "~/Library/Application Support/Code - Insiders/CachedData",
+    "~/Library/Application Support/Code - Insiders/Code Cache",
+    "~/Library/Application Support/Code - Insiders/CachedExtensionVSIXs"
+  ],
+  "strategy": "removeContents",
+  "relatedApps": [
+    "com.microsoft.VSCodeInsiders"
+  ],
+  "name": {
+    "en": "VS Code Insiders caches",
+    "nb": "VS Code Insiders-cacher"
+  },
+  "summary": {
+    "en": "Extension host, rendering and code caches for the Insiders build of Visual Studio Code.",
+    "nb": "Extension host-, gjengivelses- og kodecacher for Insiders-utgaven av Visual Studio Code."
+  }
+}

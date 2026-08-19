@@ -1,0 +1,18 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "yarn-cache",
+  "category": "packageManagers",
+  "safety": "safe",
+  "paths": [
+    "~/Library/Caches/Yarn"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "Yarn cache",
+    "nb": "Yarn-cache"
+  },
+  "summary": {
+    "en": "Yarn's global package cache.",
+    "nb": "Yarns globale pakkecache."
+  }
+}

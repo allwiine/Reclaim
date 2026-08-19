@@ -1,0 +1,19 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "coursier-cache",
+  "category": "jvm",
+  "safety": "safe",
+  "paths": [
+    "~/Library/Caches/Coursier",
+    "~/.cache/coursier"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "Coursier cache",
+    "nb": "Coursier-cache"
+  },
+  "summary": {
+    "en": "Artifacts cached by Coursier for Scala and JVM builds.",
+    "nb": "Artefakter cachet av Coursier for Scala- og JVM-bygg."
+  }
+}

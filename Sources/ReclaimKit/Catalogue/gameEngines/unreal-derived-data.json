@@ -1,0 +1,23 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "unreal-derived-data",
+  "category": "gameEngines",
+  "safety": "caution",
+  "paths": [
+    "~/Library/Application Support/Epic/UnrealEngine/Common/DerivedDataCache",
+    "~/Library/Application Support/Epic/UnrealEngine/Common/Zen/Data"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "Unreal derived data",
+    "nb": "Unreal derived data"
+  },
+  "summary": {
+    "en": "Unreal Engine's shared derived-data cache, including the Zen storage used by UE 5.4 and newer. Shaders and textures rebuild on demand.",
+    "nb": "Unreal Engines delte derived data-cache, inkludert Zen-lagringen brukt av UE 5.4 og nyere. Shadere og teksturer bygges på nytt ved behov."
+  },
+  "note": {
+    "en": "Quit Unreal Editor before cleaning. The next open of each project recompiles shaders, which takes a while.",
+    "nb": "Avslutt Unreal Editor før rydding. Neste åpning av hvert prosjekt rekompilerer shadere, og det tar tid."
+  }
+}

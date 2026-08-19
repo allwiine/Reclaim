@@ -1,0 +1,24 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "cursor-caches",
+  "category": "aiTools",
+  "safety": "safe",
+  "paths": [
+    "~/Library/Application Support/Cursor/Cache",
+    "~/Library/Application Support/Cursor/CachedData",
+    "~/Library/Application Support/Cursor/Code Cache",
+    "~/Library/Application Support/Cursor/GPUCache"
+  ],
+  "strategy": "removeContents",
+  "relatedApps": [
+    "com.todesktop.230313mzl4w4u92"
+  ],
+  "name": {
+    "en": "Cursor caches",
+    "nb": "Cursor-cacher"
+  },
+  "summary": {
+    "en": "Extension host, rendering and code caches for the Cursor editor.",
+    "nb": "Extension host-, gjengivelses- og kodecacher for Cursor-editoren."
+  }
+}

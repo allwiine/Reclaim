@@ -1,0 +1,22 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "nvm-node-versions",
+  "category": "webTools",
+  "safety": "destructive",
+  "paths": [
+    "~/.nvm/versions/node"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "nvm Node versions",
+    "nb": "nvm Node-versjoner"
+  },
+  "summary": {
+    "en": "Every Node.js version installed through nvm, including their global packages.",
+    "nb": "Hver Node.js-versjon installert via nvm, inkludert deres globale pakker."
+  },
+  "note": {
+    "en": "Reinstall with `nvm install <version>`; your default version stops working until reinstalled.",
+    "nb": "Installer på nytt med `nvm install <versjon>`; standardversjonen din slutter å virke til den er reinstallert."
+  }
+}

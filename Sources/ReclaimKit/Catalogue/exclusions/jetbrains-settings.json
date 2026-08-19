@@ -1,0 +1,12 @@
+{
+  "$schema": "../schema/exclusion.schema.json",
+  "id": "jetbrains-settings",
+  "group": "editorSettings",
+  "paths": [
+    "~/Library/Application Support/JetBrains"
+  ],
+  "reason": {
+    "en": "IDE settings & plugins",
+    "nb": "IDE-innstillinger og programtillegg"
+  }
+}

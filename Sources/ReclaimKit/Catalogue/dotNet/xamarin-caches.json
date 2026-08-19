@@ -1,0 +1,18 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "xamarin-caches",
+  "category": "dotNet",
+  "safety": "safe",
+  "paths": [
+    "~/Library/Caches/Xamarin"
+  ],
+  "strategy": "removePaths",
+  "name": {
+    "en": "Xamarin caches",
+    "nb": "Xamarin-cacher"
+  },
+  "summary": {
+    "en": "Build-agent and archive caches from the retired Xamarin toolchain.",
+    "nb": "Byggagent- og arkivcacher fra den avviklede Xamarin-verktøykjeden."
+  }
+}

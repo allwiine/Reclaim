@@ -1,0 +1,22 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "llamacpp-cache",
+  "category": "aiTools",
+  "safety": "caution",
+  "paths": [
+    "~/Library/Caches/llama.cpp"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "llama.cpp model cache",
+    "nb": "llama.cpp-modellcache"
+  },
+  "summary": {
+    "en": "Models downloaded by llama.cpp tools with the -hf flag. Often several gigabytes.",
+    "nb": "Modeller lastet ned av llama.cpp-verktøy med -hf-flagget. Ofte flere gigabyte."
+  },
+  "note": {
+    "en": "Models are re-downloaded on next use.",
+    "nb": "Modeller lastes ned på nytt ved neste bruk."
+  }
+}

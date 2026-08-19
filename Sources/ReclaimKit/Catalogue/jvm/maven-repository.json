@@ -1,0 +1,22 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "maven-repository",
+  "category": "jvm",
+  "safety": "safe",
+  "paths": [
+    "~/.m2/repository"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "Maven local repository",
+    "nb": "Lokalt Maven-repo"
+  },
+  "summary": {
+    "en": "Every artifact any Maven or JVM build has ever downloaded, kept forever. The next build re-downloads what it still uses.",
+    "nb": "Alle artefakter noe Maven- eller JVM-bygg noen gang har lastet ned, beholdt for alltid. Neste bygg laster ned det det fortsatt bruker på nytt."
+  },
+  "note": {
+    "en": "The next build of each project is slower once.",
+    "nb": "Neste bygg av hvert prosjekt går tregere én gang."
+  }
+}

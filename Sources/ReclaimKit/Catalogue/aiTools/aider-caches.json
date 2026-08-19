@@ -1,0 +1,18 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "aider-caches",
+  "category": "aiTools",
+  "safety": "safe",
+  "paths": [
+    "~/.aider/caches"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "Aider caches",
+    "nb": "Aider-cacher"
+  },
+  "summary": {
+    "en": "Model metadata and version-check caches kept by aider.",
+    "nb": "Modellmetadata- og versjonssjekkcacher fra aider."
+  }
+}

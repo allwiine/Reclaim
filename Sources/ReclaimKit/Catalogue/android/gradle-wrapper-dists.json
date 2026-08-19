@@ -1,0 +1,21 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "gradle-wrapper-dists",
+  "category": "android",
+  "safety": "safe",
+  "paths": [
+    "~/.gradle/wrapper/dists"
+  ],
+  "strategy": "removeContents",
+  "relatedApps": [
+    "com.google.android.studio"
+  ],
+  "name": {
+    "en": "Gradle wrapper distributions",
+    "nb": "Gradle wrapper-distribusjoner"
+  },
+  "summary": {
+    "en": "Every Gradle version any wrapper script has ever downloaded. Projects re-download their pinned version when needed.",
+    "nb": "Hver Gradle-versjon noe wrapper-skript noen gang har lastet ned. Prosjekter laster ned sin pinnede versjon på nytt ved behov."
+  }
+}

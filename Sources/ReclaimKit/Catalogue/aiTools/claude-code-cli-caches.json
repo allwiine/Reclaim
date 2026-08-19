@@ -1,0 +1,18 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "claude-code-cli-caches",
+  "category": "aiTools",
+  "safety": "safe",
+  "paths": [
+    "~/Library/Caches/claude-cli-nodejs"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "Claude Code CLI caches",
+    "nb": "Claude Code CLI-cacher"
+  },
+  "summary": {
+    "en": "Per-project diagnostic output and MCP logs written by Claude Code's Node harness. This folder grows without bound under heavy use.",
+    "nb": "Diagnostikk per prosjekt og MCP-logger fra Claude Codes Node-harness. Denne mappen vokser uten grenser ved tung bruk."
+  }
+}

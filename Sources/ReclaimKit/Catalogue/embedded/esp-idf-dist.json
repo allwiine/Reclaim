@@ -1,0 +1,18 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "esp-idf-dist",
+  "category": "embedded",
+  "safety": "safe",
+  "paths": [
+    "~/.espressif/dist"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "ESP-IDF download archives",
+    "nb": "ESP-IDF-nedlastingsarkiver"
+  },
+  "summary": {
+    "en": "Toolchain and tool archives downloaded by the ESP-IDF installer. The extracted tools stay installed.",
+    "nb": "Verktøykjede- og verktøyarkiver lastet ned av ESP-IDF-installereren. De utpakkede verktøyene forblir installert."
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "go-module-cache",
+  "category": "packageManagers",
+  "safety": "caution",
+  "paths": [
+    "~/go/pkg/mod"
+  ],
+  "strategy": "manual",
+  "instructions": {
+    "en": "Run `go clean -modcache` in Terminal.",
+    "nb": "Kjør `go clean -modcache` i Terminal."
+  },
+  "name": {
+    "en": "Go module cache",
+    "nb": "Go-modulcache"
+  },
+  "summary": {
+    "en": "Downloaded Go modules. Go marks these files read-only, so deletion must go through the Go toolchain.",
+    "nb": "Nedlastede Go-moduler. Go merker disse filene som skrivebeskyttede, så sletting må gå gjennom Go-verktøykjeden."
+  }
+}

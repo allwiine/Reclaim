@@ -1,0 +1,12 @@
+{
+  "$schema": "../schema/exclusion.schema.json",
+  "id": "continue-sessions",
+  "group": "aiTools",
+  "paths": [
+    "~/.continue/sessions"
+  ],
+  "reason": {
+    "en": "chat history",
+    "nb": "samtalehistorikk"
+  }
+}

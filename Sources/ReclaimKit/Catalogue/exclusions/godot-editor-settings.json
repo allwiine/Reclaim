@@ -1,0 +1,13 @@
+{
+  "$schema": "../schema/exclusion.schema.json",
+  "id": "godot-editor-settings",
+  "group": "editorSettings",
+  "paths": [
+    "~/Library/Application Support/Godot/editor_settings-4.tres",
+    "~/Library/Application Support/Godot/editor_settings-3.tres"
+  ],
+  "reason": {
+    "en": "user settings",
+    "nb": "brukerinnstillinger"
+  }
+}

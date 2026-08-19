@@ -1,0 +1,12 @@
+{
+  "$schema": "../schema/exclusion.schema.json",
+  "id": "azure-tokens",
+  "group": "cloudContainers",
+  "paths": [
+    "~/.azure/msal_token_cache.json"
+  ],
+  "reason": {
+    "en": "access tokens",
+    "nb": "tilgangsnøkler"
+  }
+}

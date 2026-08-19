@@ -1,0 +1,18 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "prisma-engines-cache",
+  "category": "webTools",
+  "safety": "safe",
+  "paths": [
+    "~/.cache/prisma"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "Prisma engine binaries",
+    "nb": "Prisma-engine-binærer"
+  },
+  "summary": {
+    "en": "Query and schema engine binaries downloaded for every Prisma version a project has ever used.",
+    "nb": "Query- og schema-engine-binærer lastet ned for hver Prisma-versjon noe prosjekt noen gang har brukt."
+  }
+}

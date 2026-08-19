@@ -27,7 +27,7 @@ Reclaim is deliberately small and layered. The core insight is that a storage cl
 │  Domain    CleanupTarget · TargetRegistry · SafetyLevel  │
 │            CleanupStrategy · TargetStatus · ToolCategory │
 │            ExclusionRegistry · ArtifactCatalog           │
-│            DiscoveredProject                             │
+│            DiscoveredProject · CatalogueLoader           │
 │  Services  PathResolver → DiskSizer → TargetScanner      │
 │            BreakdownSizer · VolumeSpace                  │
 │            CleanupEngine (FileRemoving protocol)         │
@@ -39,6 +39,16 @@ Reclaim is deliberately small and layered. The core insight is that a storage cl
 ```
 
 **Dependency rule:** `Reclaim` imports `ReclaimAppCore` imports `ReclaimKit`; never the reverse. `ReclaimKit` imports Foundation, os, plus `Synchronization` (`Mutex` in `CleanupEngine`) and `Darwin` in exactly one file (`BulkDirectoryReader`); `ReclaimAppCore` adds Observation. Both compile without AppKit/SwiftUI, which is what makes the entire non-view codebase fast to unit-test.
+
+## The catalogue
+
+The declarative catalogue named above is not Swift — it is JSON. `Sources/ReclaimKit/Catalogue/` holds one manifest per target (`<category>/<id>.json`) and one per structural exclusion (`exclusions/<id>.json`), plus `exclusions/reviewed-safe-roots.json` and two JSON Schemas. `Package.swift` bundles the directory with `.copy("Catalogue")` so its layout survives into `Bundle.module` unmodified (the neighboring `Resources` directory keeps `.process`, since those are compiled `.lproj` tables, not passthrough files).
+
+`Sources/ReclaimKit/Domain/CatalogueManifest.swift` defines the wire format — `TargetManifest`, `ExclusionManifest`, and a `localizedText` shape requiring every `CatalogueLocales.supported` language — and maps each manifest onto the existing domain types (`CleanupTarget`, `StructuralExclusion`). `CatalogueLoader` (`Sources/ReclaimKit/Domain/CatalogueLoader.swift`) does the materializing: it enumerates every `.json` file under the category directories and under `exclusions/` (skipping `schema/`, `README.md`, and `reviewed-safe-roots.json` itself), decodes each one, and resolves its localized text objects to plain `String`s at load time using `Bundle.module`'s preferred localization with English fallback — so `CleanupTarget` and `StructuralExclusion` keep the same resolved-`String` fields they always had, and nothing downstream of the registries changed. Loading happens once, lazily, via `static let` properties on the loader.
+
+The loader exposes two policies over the same decoding logic. **Strict** loading (`loadTargets`, `loadExclusions`, `loadReviewedSafeRoots`) throws on the first invalid file; `CatalogueConventionTests` and `CatalogueLoaderTests` call it directly, so a malformed manifest fails CI rather than shipping. **Lenient** loading (`targetsSkippingFailures` and friends) backs `TargetRegistry.all` and `ExclusionRegistry.all` at runtime: a decode failure is impossible unless the app bundle itself is corrupt, so rather than crash, the loader logs an `os_log` fault naming the file and skips it. `TargetRegistry` and `ExclusionRegistry` themselves shrank to thin façades — `TargetRegistry.all` is now just `CatalogueLoader.bundledTargets` — so `AppModel`, `TargetScanner`, `CleanupEngine`, every view, and their tests are untouched by the catalogue's existence.
+
+This shape is deliberate as the project's primary contribution surface: a new tool means one new file, reviewable at a glance, with no shared Swift file to merge-conflict against; the `$schema` reference gives contributors editor autocomplete and inline validation before they ever run `swift test`; and `swift test` — not reviewer vigilance — is what actually enforces shape, uniqueness, and the exclusion rules. See `docs/CATALOGUE.md` for the contributor-facing guide.
 
 ## Data flow
 
@@ -75,7 +85,8 @@ Swift Testing (`swift test`), three test targets:
 
 `Tests/ReclaimKitTests`:
 
-- **RegistryTests / ExclusionRegistryTests** — the catalogue's contract: unique ids, pattern shape, pathless ⇒ command, related-app declarations, and the guarantee that structurally excluded paths (Claude Code auth/settings/plugins among them) can never be registered. This is what makes "just add a struct" safe.
+- **RegistryTests / ExclusionRegistryTests** — the catalogue's contract: unique ids, pattern shape, pathless ⇒ command, related-app declarations, and the guarantee that structurally excluded paths (Claude Code auth/settings/plugins among them) can never be registered. This is what makes "just add a manifest" safe.
+- **CatalogueManifestTests / CatalogueLoaderTests / CatalogueConventionTests** — the JSON layer underneath the above: manifest decoding and its mapping onto `CleanupTarget`/`StructuralExclusion` (including locale resolution and the strategy/companion-field mismatches the schema's `oneOf` is meant to catch), category-ordering and file-discovery behavior of `CatalogueLoader`, and authoring conventions the schema alone can't enforce — unknown keys, filename-equals-id, directory-equals-category, complete locales, and that every bundled manifest decodes strictly.
 - **PathResolverTests / DiskSizerTests / BreakdownSizerTests / VolumeSpaceTests / TargetScannerTests / FullDiskAccessProbeTests** — behavior against real temporary directories via a `withTemporaryDirectory` fixture, including chmod-based permission fixtures.
 - **BulkDirectoryReaderTests / ProjectDiscoveryTests / GitActivityReaderTests / ArtifactCatalogTests** — dev-folder discovery: the bulk directory walk, project detection, git activity reading, and the artifact catalogue's conventions.
 - **CleanupEngineTests / CleanupEngineRemoveTests** — engine logic against a `Mutex`-protected mock `FileRemoving`, so no test can ever touch the real Trash. The protocol seam exists precisely for this. Command execution runs real (harmless) processes, including a stderr-flood regression test.
@@ -97,8 +108,8 @@ UI is kept logic-free (views derive everything from `AppModel`), so model-level 
 
 | To add… | Touch… |
 | --- | --- |
-| A new cleanable tool | One `CleanupTarget` in `TargetRegistry` + its `target.<id>.name`/`.summary` keys in both Kit catalogues |
-| A protected sibling path (credentials, settings) | One `StructuralExclusion` in `ExclusionRegistry` + reason keys in both Kit catalogues |
+| A new cleanable tool | One target manifest under `Catalogue/<category>/<id>.json` (see `docs/CATALOGUE.md`) |
+| A protected sibling path (credentials, settings) | One exclusion manifest under `Catalogue/exclusions/<id>.json`, or a rationale line in `Catalogue/exclusions/reviewed-safe-roots.json` |
 | A running-app warning for it | `relatedAppBundleIDs` on the target |
 | A command tool whose presence needs proving | `availabilityProbePattern` on its `CommandSpec` |
 | A new category | One case in `ToolCategory` (title + SF Symbol) + its `category.<id>.title` keys in both Kit catalogues |

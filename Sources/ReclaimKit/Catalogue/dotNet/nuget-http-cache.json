@@ -1,0 +1,22 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "nuget-http-cache",
+  "category": "dotNet",
+  "safety": "safe",
+  "paths": [
+    "~/.local/share/NuGet"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "NuGet download caches",
+    "nb": "NuGet-nedlastingscache"
+  },
+  "summary": {
+    "en": "HTTP responses and plugin output NuGet caches while restoring. Rebuilt on demand.",
+    "nb": "HTTP-svar og plugin-data NuGet mellomlagrer under restore. Bygges på nytt ved behov."
+  },
+  "note": {
+    "en": "Equivalent to `dotnet nuget locals http-cache --clear`.",
+    "nb": "Tilsvarer `dotnet nuget locals http-cache --clear`."
+  }
+}

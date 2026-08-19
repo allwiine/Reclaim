@@ -1,0 +1,22 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "vagrant-boxes",
+  "category": "containers",
+  "safety": "caution",
+  "paths": [
+    "~/.vagrant.d/boxes"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "Vagrant boxes",
+    "nb": "Vagrant-bokser"
+  },
+  "summary": {
+    "en": "Base box images downloaded by Vagrant. Each box re-downloads on the next `vagrant up` that needs it.",
+    "nb": "Basebokser lastet ned av Vagrant. Hver boks lastes ned på nytt ved neste `vagrant up` som trenger den."
+  },
+  "note": {
+    "en": "Running VMs live in your provider (VirtualBox, VMware) and are not touched.",
+    "nb": "Kjørende VM-er ligger hos provideren (VirtualBox, VMware) og røres ikke."
+  }
+}

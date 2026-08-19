@@ -1,0 +1,14 @@
+{
+  "$schema": "../schema/exclusion.schema.json",
+  "id": "codex-config",
+  "group": "aiTools",
+  "paths": [
+    "~/.codex/config.toml",
+    "~/.codex/AGENTS.md",
+    "~/.codex/prompts"
+  ],
+  "reason": {
+    "en": "settings",
+    "nb": "innstillinger"
+  }
+}

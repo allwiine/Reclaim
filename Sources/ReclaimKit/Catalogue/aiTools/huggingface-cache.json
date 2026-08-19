@@ -1,0 +1,24 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "huggingface-cache",
+  "category": "aiTools",
+  "safety": "caution",
+  "paths": [
+    "~/.cache/huggingface/hub",
+    "~/.cache/huggingface/datasets",
+    "~/.cache/huggingface/xet"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "Hugging Face cache",
+    "nb": "Hugging Face-cache"
+  },
+  "summary": {
+    "en": "Models and datasets cached by transformers, diffusers and the huggingface_hub.",
+    "nb": "Modeller og datasett cachet av transformers, diffusers og huggingface_hub."
+  },
+  "note": {
+    "en": "Anything still needed is re-downloaded on next use.",
+    "nb": "Alt som fortsatt trengs, lastes ned på nytt ved neste bruk."
+  }
+}

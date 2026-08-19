@@ -1,0 +1,22 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "azure-cli-logs",
+  "category": "cloudDevOps",
+  "safety": "safe",
+  "paths": [
+    "~/.azure/logs"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "Azure CLI logs",
+    "nb": "Azure CLI-logger"
+  },
+  "summary": {
+    "en": "Logs written by the Azure CLI.",
+    "nb": "Logger skrevet av Azure CLI."
+  },
+  "note": {
+    "en": "Auth in ~/.azure is never touched.",
+    "nb": "Auth i ~/.azure røres aldri."
+  }
+}

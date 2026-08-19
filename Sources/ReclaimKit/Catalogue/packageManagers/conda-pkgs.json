@@ -1,0 +1,26 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "conda-pkgs",
+  "category": "packageManagers",
+  "safety": "caution",
+  "paths": [
+    "~/miniconda3/pkgs",
+    "~/anaconda3/pkgs",
+    "~/miniforge3/pkgs",
+    "~/mambaforge/pkgs",
+    "~/.conda/pkgs"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "conda package cache",
+    "nb": "conda-pakkecache"
+  },
+  "summary": {
+    "en": "Downloaded and extracted packages shared by all conda environments.",
+    "nb": "Nedlastede og utpakkede pakker delt av alle conda-miljøer."
+  },
+  "note": {
+    "en": "Prefer `conda clean --all` to remove only unused packages. Environments hard-link into this cache.",
+    "nb": "Foretrekk `conda clean --all` for å fjerne bare ubrukte pakker. Miljøer hardlenker inn i denne cachen."
+  }
+}

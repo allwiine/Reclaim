@@ -1,0 +1,12 @@
+{
+  "$schema": "../schema/exclusion.schema.json",
+  "id": "gradle-properties",
+  "group": "toolchains",
+  "paths": [
+    "~/.gradle/gradle.properties"
+  ],
+  "reason": {
+    "en": "signing keys & tokens",
+    "nb": "signeringsnøkler og hemmeligheter"
+  }
+}

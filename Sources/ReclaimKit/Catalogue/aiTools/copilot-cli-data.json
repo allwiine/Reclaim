@@ -1,0 +1,24 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "copilot-cli-data",
+  "category": "aiTools",
+  "safety": "caution",
+  "paths": [
+    "~/.copilot/logs",
+    "~/.copilot/history-session-state",
+    "~/.copilot/session-state"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "GitHub Copilot CLI logs & sessions",
+    "nb": "GitHub Copilot CLI-logger og økter"
+  },
+  "summary": {
+    "en": "Logs and resumable session state kept by the GitHub Copilot CLI. Cleaning removes the ability to resume past sessions.",
+    "nb": "Logger og gjenopptakbar økttilstand fra GitHub Copilot CLI. Rydding fjerner muligheten til å gjenoppta tidligere økter."
+  },
+  "note": {
+    "en": "Copilot's config in ~/.copilot is never touched by Reclaim.",
+    "nb": "Copilots konfigurasjon i ~/.copilot røres aldri av Reclaim."
+  }
+}

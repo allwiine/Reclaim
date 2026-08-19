@@ -1,0 +1,13 @@
+{
+  "$schema": "../schema/exclusion.schema.json",
+  "id": "qwen-config",
+  "group": "aiTools",
+  "paths": [
+    "~/.qwen/settings.json",
+    "~/.qwen/oauth_creds.json"
+  ],
+  "reason": {
+    "en": "auth & config",
+    "nb": "pålogging og oppsett"
+  }
+}

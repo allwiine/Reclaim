@@ -1,9 +1,8 @@
 # Contributing to Reclaim
 
 Thanks for helping make Reclaim better! Contributions of every size are
-welcome — new cleanup targets are the sweet spot (one struct plus its name
-and summary strings in both language catalogues), and bug reports with good
-reproduction steps are gold.
+welcome — new cleanup targets are the sweet spot (one JSON manifest, no
+Swift required), and bug reports with good reproduction steps are gold.
 
 ## Development setup
 
@@ -40,29 +39,27 @@ Reclaim is three targets with a strict dependency rule — see
 
 ## Adding a cleanup target
 
-The most valuable contribution! One `CleanupTarget` struct in
-`Sources/ReclaimKit/Domain/TargetRegistry.swift`, plus `target.<id>.name` /
-`.summary` (and `.note` / `.instructions` when present) entries in **both**
-`Sources/ReclaimKit/Resources/en.lproj/Localizable.strings` and
-`nb.lproj/Localizable.strings`. Conventions (test-enforced — `swift test`
-fails if broken):
+The most valuable contribution — and it's one JSON file, no Swift.
 
-- Unique id; non-empty name/summary; path patterns start with `~/` or `/`,
-  no trailing slash; pathless targets use the `.command` strategy.
-- Prefer `.removeContents` for cache roots (tools expect the folder to
-  exist); `.removePaths` only when removing the item itself is the point.
-- Set `relatedAppBundleIDs` when a running app actively uses the data.
-- **Never register user data.** Anything a person created or configured
-  (settings, credentials, projects, chat history they'd miss) is off-limits.
-- **Look beside what you target.** If a target reaches into a folder that
-  also holds credentials, settings, or other user data (`~/.kube/cache`
-  sits next to `~/.kube/config`), register those sibling paths in
-  `Sources/ReclaimKit/Domain/ExclusionRegistry.swift` (with reason
-  strings in both catalogues), or add the folder to
-  `ExclusionRegistry.reviewedSafeRoots` if nothing sensitive lives
-  there. A test fails until you have made that call, and the exclusion
-  list is enforced twice: no target pattern may touch it, and the
-  cleanup engine refuses those paths at runtime.
+1. Copy a template from [docs/templates/](docs/templates/) into
+   `Sources/ReclaimKit/Catalogue/<category>/`, named `<id>.json`.
+2. Fill it in. The `$schema` line gives your editor autocomplete and
+   validation; the full field reference is
+   [docs/CATALOGUE.md](docs/CATALOGUE.md).
+3. Translate the text into Norwegian (`nb`). Machine translation is
+   welcome — mention it in the PR and we review it.
+4. Check what lives *beside* the paths you target. If credentials or
+   settings sit next to them (`~/.kube/cache` next to
+   `~/.kube/config`), add an exclusion manifest in
+   `Catalogue/exclusions/`, or add the root to
+   `Catalogue/exclusions/reviewed-safe-roots.json` with a rationale if
+   nothing sensitive lives there. A test fails until you have made
+   that call.
+5. `swift test` — the suite names anything missing or off-convention.
+
+**Never register user data.** Anything a person created or configured
+(settings, credentials, projects, chat history they'd miss) is
+off-limits.
 
 ## Localization
 
@@ -71,7 +68,9 @@ helper against the `{en,nb}.lproj` tables. English lives inline as the
 default value; both catalogues must carry every key (tests enforce parity).
 Don't use literal-key SwiftUI inits like `Text("some.key")` — resolve to
 `String` first. Numbers, bytes and dates go through locale-aware
-`.formatted(…)` APIs.
+`.formatted(…)` APIs. Catalogue text — target names, summaries, notes,
+instructions, exclusion reasons — lives inline in the JSON manifests
+instead, not in the `.lproj` catalogues.
 
 ## Safety invariants
 

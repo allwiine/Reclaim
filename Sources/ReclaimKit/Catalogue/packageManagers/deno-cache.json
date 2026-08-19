@@ -1,0 +1,18 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "deno-cache",
+  "category": "packageManagers",
+  "safety": "safe",
+  "paths": [
+    "~/Library/Caches/deno"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "Deno cache",
+    "nb": "Deno-cache"
+  },
+  "summary": {
+    "en": "Remote modules and generated code cached by Deno. Re-downloaded on demand.",
+    "nb": "Eksterne moduler og generert kode cachet av Deno. Lastes ned på nytt ved behov."
+  }
+}

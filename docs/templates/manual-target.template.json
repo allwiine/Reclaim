@@ -1,0 +1,17 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "toolname-data",
+  "category": "otherTools",
+  "safety": "caution",
+  "paths": ["~/path/reclaim/measures/but/never/deletes"],
+  "strategy": "manual",
+  "instructions": {
+    "en": "Run `tool prune` in Terminal.",
+    "nb": "Kjør `tool prune` i Terminal."
+  },
+  "name": { "en": "Toolname data", "nb": "Toolname-data" },
+  "summary": {
+    "en": "Why Reclaim only measures this and the owning tool must clean it.",
+    "nb": "Hvorfor Reclaim bare måler dette og eierverktøyet må rydde opp."
+  }
+}

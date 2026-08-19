@@ -1,0 +1,22 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "qwen-cli-scratch",
+  "category": "aiTools",
+  "safety": "caution",
+  "paths": [
+    "~/.qwen/tmp"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "Qwen Code scratch data",
+    "nb": "Qwen Code-scratchdata"
+  },
+  "summary": {
+    "en": "Per-project temp files, checkpoints and shell history from the Qwen Code CLI. Cleaning removes the ability to resume or rewind past sessions.",
+    "nb": "Midlertidige filer, sjekkpunkter og shell-historikk per prosjekt fra Qwen Code CLI. Rydding fjerner muligheten til å gjenoppta eller spole tilbake tidligere økter."
+  },
+  "note": {
+    "en": "Settings and auth in ~/.qwen are never touched by Reclaim.",
+    "nb": "Innstillinger og auth i ~/.qwen røres aldri av Reclaim."
+  }
+}

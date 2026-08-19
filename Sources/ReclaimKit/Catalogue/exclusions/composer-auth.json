@@ -1,0 +1,12 @@
+{
+  "$schema": "../schema/exclusion.schema.json",
+  "id": "composer-auth",
+  "group": "toolchains",
+  "paths": [
+    "~/.composer/auth.json"
+  ],
+  "reason": {
+    "en": "access tokens",
+    "nb": "tilgangsnøkler"
+  }
+}

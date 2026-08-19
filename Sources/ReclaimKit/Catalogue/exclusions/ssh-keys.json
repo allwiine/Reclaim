@@ -1,0 +1,12 @@
+{
+  "$schema": "../schema/exclusion.schema.json",
+  "id": "ssh-keys",
+  "group": "keysCertificates",
+  "paths": [
+    "~/.ssh"
+  ],
+  "reason": {
+    "en": "SSH keys",
+    "nb": "SSH-nøkler"
+  }
+}

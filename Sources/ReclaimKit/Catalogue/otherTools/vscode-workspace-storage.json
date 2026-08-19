@@ -1,0 +1,25 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "vscode-workspace-storage",
+  "category": "otherTools",
+  "safety": "caution",
+  "paths": [
+    "~/Library/Application Support/Code/User/workspaceStorage"
+  ],
+  "strategy": "removeContents",
+  "relatedApps": [
+    "com.microsoft.VSCode"
+  ],
+  "name": {
+    "en": "VS Code workspace storage",
+    "nb": "VS Code workspace-lagring"
+  },
+  "summary": {
+    "en": "Per-workspace UI state, history and extension data for every folder you have ever opened — entries for deleted projects linger forever.",
+    "nb": "UI-tilstand, historikk og utvidelsesdata per workspace for hver mappe du noen gang har åpnet. Oppføringer for slettede prosjekter blir liggende for alltid."
+  },
+  "note": {
+    "en": "Open workspaces recreate their entry, but per-workspace history and unsaved editor state are lost.",
+    "nb": "Åpne workspaces oppretter oppføringen sin på nytt, men historikk og ulagret editor-tilstand per workspace går tapt."
+  }
+}

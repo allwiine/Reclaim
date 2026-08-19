@@ -52,7 +52,7 @@ let package = Package(
     targets: [
         .target(
             name: "ReclaimKit",
-            resources: [.process("Resources")],
+            resources: [.process("Resources"), .copy("Catalogue")],
             swiftSettings: sharedSwiftSettings
         ),
         .target(
