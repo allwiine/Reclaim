@@ -1,0 +1,7 @@
+# Pre-commit gate: the 200-code-line file limit (.swiftlint.yml).
+# One-time setup after cloning: `lefthook install`.
+pre-commit:
+  commands:
+    swiftlint:
+      glob: "*.swift"
+      run: swiftlint lint --strict --quiet {staged_files}
