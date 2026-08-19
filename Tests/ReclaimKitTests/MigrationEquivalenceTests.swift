@@ -20,6 +20,8 @@ struct MigrationEquivalenceTests {
             from: root, preferring: CatalogueLoader.preferredLanguages)
         let legacy = Dictionary(uniqueKeysWithValues: TargetRegistry.all.map { ($0.id, $0) })
         #expect(loaded.count == legacy.count)
+        #expect(Set(loaded.map(\.id)).count == loaded.count,
+                "duplicate target ids in the loaded catalogue")
         for target in loaded {
             let original = try #require(legacy[target.id], "\(target.id) is not in the legacy registry")
             #expect(target.name == original.name, "\(target.id) name")
@@ -40,6 +42,8 @@ struct MigrationEquivalenceTests {
             from: root, preferring: CatalogueLoader.preferredLanguages)
         let legacy = Dictionary(uniqueKeysWithValues: ExclusionRegistry.all.map { ($0.id, $0) })
         #expect(loaded.count == legacy.count)
+        #expect(Set(loaded.map(\.id)).count == loaded.count,
+                "duplicate exclusion ids in the loaded catalogue")
         for exclusion in loaded {
             let original = try #require(legacy[exclusion.id], "\(exclusion.id) is not in the legacy registry")
             #expect(exclusion.paths == original.paths, "\(exclusion.id) paths")
