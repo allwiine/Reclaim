@@ -1,0 +1,13 @@
+# The 200-line file limit is the whole gate — by design (see
+# docs/superpowers/2026-08-19-app-model-decomposition-design.md).
+# Broaden the rule set only by explicit decision, never by drift.
+only_rules:
+  - file_length
+file_length:
+  warning: 200
+  error: 200
+  ignore_comment_only_lines: true
+included:
+  - Package.swift
+  - Sources
+  - Tests

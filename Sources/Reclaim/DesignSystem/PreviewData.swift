@@ -217,11 +217,13 @@ enum PreviewData {
     private static func makeModel() -> AppModel {
         AppModel(
             defaults: UserDefaults(suiteName: "previews-\(UUID().uuidString)")!,
-            scanExecutor: { _ in .notInstalled },
-            cleanExecutor: { _, _, _ in CleanOutcome() },
-            breakdownExecutor: { _ in nil },
-            fullDiskAccessProbe: { true },
-            volumeProbe: { nil },
+            executors: Executors(
+                scan: { _ in .notInstalled },
+                clean: { _, _, _ in CleanOutcome() },
+                breakdown: { _ in nil },
+                fullDiskAccess: { true },
+                volume: { nil }
+            ),
             historyStore: CleanHistoryStore(
                 fileURL: FileManager.default.temporaryDirectory
                     .appending(path: "previews-\(UUID().uuidString).json")

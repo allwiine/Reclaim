@@ -87,7 +87,9 @@ struct AppModelTests {
         let model = AppModel(
             targets: [target("cache"), target("missing")],
             defaults: store.defaults,
-            scanExecutor: { t in t.id == "cache" ? measured(100) : .notInstalled }
+            executors: Executors(
+                scan: { t in t.id == "cache" ? measured(100) : .notInstalled }
+            )
         )
 
         model.scanAll()
@@ -107,7 +109,9 @@ struct AppModelTests {
         let model = AppModel(
             targets: [target("cache")],
             defaults: store.defaults,
-            scanExecutor: { _ in measured(100) }
+            executors: Executors(
+                scan: { _ in measured(100) }
+            )
         )
 
         model.scanAll()
@@ -125,13 +129,15 @@ struct AppModelTests {
         let model = AppModel(
             targets: [fast, slow],
             defaults: store.defaults,
-            scanExecutor: { t in
-                guard t.id == "slow" else { return measured(100) }
-                // Block until the test has cancelled, then behave like
-                // the real scanner does on cancellation.
-                gate.wait()
-                return Task.isCancelled ? .idle : measured(100)
-            }
+            executors: Executors(
+                scan: { t in
+                    guard t.id == "slow" else { return measured(100) }
+                    // Block until the test has cancelled, then behave like
+                    // the real scanner does on cancellation.
+                    gate.wait()
+                    return Task.isCancelled ? .idle : measured(100)
+                }
+            )
         )
 
         model.scanAll()
@@ -150,8 +156,10 @@ struct AppModelTests {
         let model = AppModel(
             targets: [target("cache")],
             defaults: store.defaults,
-            scanExecutor: { _ in measured(100) },
-            fullDiskAccessProbe: { false }
+            executors: Executors(
+                scan: { _ in measured(100) },
+                fullDiskAccess: { false }
+            )
         )
         #expect(model.hasFullDiskAccess == nil, "no verdict before the first scan")
 
@@ -171,14 +179,16 @@ struct AppModelTests {
         let model = AppModel(
             targets: [manual, empty, full, command],
             defaults: store.defaults,
-            scanExecutor: { t in
-                switch t.id {
-                case "manual": measured(500)
-                case "empty": measured(0)
-                case "full": measured(100)
-                default: .unmeasurable
+            executors: Executors(
+                scan: { t in
+                    switch t.id {
+                    case "manual": measured(500)
+                    case "empty": measured(0)
+                    case "full": measured(100)
+                    default: .unmeasurable
+                    }
                 }
-            }
+            )
         )
 
         model.scanAll()
@@ -205,7 +215,9 @@ struct AppModelTests {
         let model = AppModel(
             targets: [safe, risky],
             defaults: store.defaults,
-            scanExecutor: { _ in measured(100) }
+            executors: Executors(
+                scan: { _ in measured(100) }
+            )
         )
 
         model.scanAll()
@@ -227,15 +239,17 @@ struct AppModelTests {
         let model = AppModel(
             targets: [cache],
             defaults: store.defaults,
-            scanExecutor: { _ in
-                // First scan sees 100 bytes; the post-clean rescan sees 0.
-                let calls = scanCount.withLock { $0 += 1; return $0 }
-                return calls == 1 ? measured(100, cleanupPaths: cleanupPaths) : measured(0)
-            },
-            cleanExecutor: { t, paths, disposal in
-                cleaned.withLock { $0.append((t.id, paths, disposal)) }
-                return CleanOutcome(removedItems: paths.count)
-            },
+            executors: Executors(
+                scan: { _ in
+                    // First scan sees 100 bytes; the post-clean rescan sees 0.
+                    let calls = scanCount.withLock { $0 += 1; return $0 }
+                    return calls == 1 ? measured(100, cleanupPaths: cleanupPaths) : measured(0)
+                },
+                clean: { t, paths, disposal in
+                    cleaned.withLock { $0.append((t.id, paths, disposal)) }
+                    return CleanOutcome(removedItems: paths.count)
+                }
+            ),
             historyStore: temporaryHistoryStore()
         )
 
@@ -264,15 +278,17 @@ struct AppModelTests {
         let model = AppModel(
             targets: [ok, broken],
             defaults: store.defaults,
-            scanExecutor: { _ in measured(100) },
-            cleanExecutor: { t, _, _ in
-                t.id == "ok"
-                    ? CleanOutcome(removedItems: 2)
-                    : CleanOutcome(
-                        removedItems: 0,
-                        failures: [CleanFailure(path: "/x", message: "locked")]
-                    )
-            },
+            executors: Executors(
+                scan: { _ in measured(100) },
+                clean: { t, _, _ in
+                    t.id == "ok"
+                        ? CleanOutcome(removedItems: 2)
+                        : CleanOutcome(
+                            removedItems: 0,
+                            failures: [CleanFailure(path: "/x", message: "locked")]
+                        )
+                }
+            ),
             historyStore: temporaryHistoryStore()
         )
 
@@ -298,19 +314,21 @@ struct AppModelTests {
         let model = AppModel(
             targets: [shrinker],
             defaults: store.defaults,
-            scanExecutor: { _ in
-                // First call is the initial scan (100). The post-clean
-                // rescan measures less, as if the tool pruned its own
-                // cache between scan and clean.
-                let n = scanCount.withLock { $0 += 1; return $0 }
-                return measured(n == 1 ? 100 : 10)
-            },
-            cleanExecutor: { _, _, _ in
-                CleanOutcome(
-                    removedItems: 0,
-                    failures: [CleanFailure(path: "/locked", message: "locked")]
-                )
-            },
+            executors: Executors(
+                scan: { _ in
+                    // First call is the initial scan (100). The post-clean
+                    // rescan measures less, as if the tool pruned its own
+                    // cache between scan and clean.
+                    let n = scanCount.withLock { $0 += 1; return $0 }
+                    return measured(n == 1 ? 100 : 10)
+                },
+                clean: { _, _, _ in
+                    CleanOutcome(
+                        removedItems: 0,
+                        failures: [CleanFailure(path: "/locked", message: "locked")]
+                    )
+                }
+            ),
             historyStore: temporaryHistoryStore()
         )
 
@@ -335,13 +353,15 @@ struct AppModelTests {
         let model = AppModel(
             targets: [partial],
             defaults: store.defaults,
-            scanExecutor: { _ in measured(100) },
-            cleanExecutor: { _, _, _ in
-                CleanOutcome(
-                    removedItems: 2,
-                    failures: [CleanFailure(path: "/locked", message: "locked")]
-                )
-            },
+            executors: Executors(
+                scan: { _ in measured(100) },
+                clean: { _, _, _ in
+                    CleanOutcome(
+                        removedItems: 2,
+                        failures: [CleanFailure(path: "/locked", message: "locked")]
+                    )
+                }
+            ),
             historyStore: temporaryHistoryStore()
         )
 
@@ -375,17 +395,19 @@ struct AppModelTests {
         let model = AppModel(
             targets: [swappable],
             defaults: store.defaults,
-            scanExecutor: { _ in
-                .measured(
-                    DiskMeasurement(bytes: 100, fileCount: 1),
-                    resolvedPaths: [realCache],
-                    cleanupPaths: [child]
-                )
-            },
-            cleanExecutor: { _, paths, _ in
-                received.withLock { $0 = paths }
-                return CleanOutcome(removedItems: paths.count)
-            },
+            executors: Executors(
+                scan: { _ in
+                    .measured(
+                        DiskMeasurement(bytes: 100, fileCount: 1),
+                        resolvedPaths: [realCache],
+                        cleanupPaths: [child]
+                    )
+                },
+                clean: { _, paths, _ in
+                    received.withLock { $0 = paths }
+                    return CleanOutcome(removedItems: paths.count)
+                }
+            ),
             historyStore: temporaryHistoryStore()
         )
 
@@ -419,12 +441,14 @@ struct AppModelTests {
         let model = AppModel(
             targets: [first, second],
             defaults: store.defaults,
-            scanExecutor: { _ in measured(100) },
-            cleanExecutor: { t, _, _ in
-                if t.id == "first" { gate.wait() }
-                cleaned.withLock { $0.append(t.id) }
-                return CleanOutcome(removedItems: 1)
-            },
+            executors: Executors(
+                scan: { _ in measured(100) },
+                clean: { t, _, _ in
+                    if t.id == "first" { gate.wait() }
+                    cleaned.withLock { $0.append(t.id) }
+                    return CleanOutcome(removedItems: 1)
+                }
+            ),
             historyStore: temporaryHistoryStore()
         )
 
@@ -461,7 +485,9 @@ struct AppModelTests {
         let model = AppModel(
             targets: [safe, risky, manual],
             defaults: store.defaults,
-            scanExecutor: { _ in measured(100) },
+            executors: Executors(
+                scan: { _ in measured(100) }
+            ),
             historyStore: temporaryHistoryStore()
         )
 
@@ -487,13 +513,15 @@ struct AppModelTests {
         let model = AppModel(
             targets: [cache],
             defaults: store.defaults,
-            scanExecutor: { _ in
-                measured(100, cleanupPaths: [URL(filePath: "/fixture/a"), URL(filePath: "/fixture/b")])
-            },
-            cleanExecutor: { _, _, _ in
-                cleanCalls.withLock { $0 += 1 }
-                return CleanOutcome(removedItems: 1)
-            },
+            executors: Executors(
+                scan: { _ in
+                    measured(100, cleanupPaths: [URL(filePath: "/fixture/a"), URL(filePath: "/fixture/b")])
+                },
+                clean: { _, _, _ in
+                    cleanCalls.withLock { $0 += 1 }
+                    return CleanOutcome(removedItems: 1)
+                }
+            ),
             historyStore: temporaryHistoryStore()
         )
         model.dryRun = true
@@ -521,11 +549,13 @@ struct AppModelTests {
         let model = AppModel(
             targets: [cache],
             defaults: store.defaults,
-            scanExecutor: { _ in
-                let calls = scanCount.withLock { $0 += 1; return $0 }
-                return calls == 1 ? measured(100) : measured(0)
-            },
-            cleanExecutor: { _, _, _ in CleanOutcome(removedItems: 3) },
+            executors: Executors(
+                scan: { _ in
+                    let calls = scanCount.withLock { $0 += 1; return $0 }
+                    return calls == 1 ? measured(100) : measured(0)
+                },
+                clean: { _, _, _ in CleanOutcome(removedItems: 3) }
+            ),
             historyStore: historyStore
         )
 
@@ -554,7 +584,9 @@ struct AppModelTests {
         let model = AppModel(
             targets: [target("a"), target("b")],
             defaults: store.defaults,
-            scanExecutor: { _ in measured(100) },
+            executors: Executors(
+                scan: { _ in measured(100) }
+            ),
             historyStore: temporaryHistoryStore()
         )
         #expect(model.scanProgress == nil)
@@ -572,7 +604,9 @@ struct AppModelTests {
         let model = AppModel(
             targets: [target("cache")],
             defaults: store.defaults,
-            scanExecutor: { _ in measured(100) },
+            executors: Executors(
+                scan: { _ in measured(100) }
+            ),
             historyStore: temporaryHistoryStore()
         )
 
@@ -604,11 +638,13 @@ struct AppModelTests {
         let model = AppModel(
             targets: [cache],
             defaults: store.defaults,
-            scanExecutor: { _ in measured(100) },
-            breakdownExecutor: { _ in
-                computeCalls.withLock { $0 += 1 }
-                return [BreakdownEntry(name: "big", bytes: 80)]
-            },
+            executors: Executors(
+                scan: { _ in measured(100) },
+                breakdown: { _ in
+                    computeCalls.withLock { $0 += 1 }
+                    return [BreakdownEntry(name: "big", bytes: 80)]
+                }
+            ),
             historyStore: temporaryHistoryStore()
         )
 
@@ -641,18 +677,20 @@ struct AppModelTests {
         let model = AppModel(
             targets: [found, missing, empty, lowerBound],
             defaults: store.defaults,
-            scanExecutor: { t in
-                switch t.id {
-                case "found": measured(100)
-                case "empty": measured(0)
-                case "lower": .measured(
-                    DiskMeasurement(bytes: 0, fileCount: 0, inaccessibleItems: 3),
-                    resolvedPaths: [URL(filePath: "/fixture")],
-                    cleanupPaths: []
-                )
-                default: .notInstalled
+            executors: Executors(
+                scan: { t in
+                    switch t.id {
+                    case "found": measured(100)
+                    case "empty": measured(0)
+                    case "lower": .measured(
+                        DiskMeasurement(bytes: 0, fileCount: 0, inaccessibleItems: 3),
+                        resolvedPaths: [URL(filePath: "/fixture")],
+                        cleanupPaths: []
+                    )
+                    default: .notInstalled
+                    }
                 }
-            },
+            ),
             historyStore: temporaryHistoryStore()
         )
 
@@ -679,7 +717,9 @@ struct AppModelTests {
         let model = AppModel(
             targets: [target("cache")],
             defaults: store.defaults,
-            scanExecutor: { _ in measured(100) },
+            executors: Executors(
+                scan: { _ in measured(100) }
+            ),
             historyStore: temporaryHistoryStore()
         )
 
@@ -705,7 +745,9 @@ struct AppModelTests {
         let model = AppModel(
             targets: [kept, excluded],
             defaults: store.defaults,
-            scanExecutor: { _ in measured(100) },
+            executors: Executors(
+                scan: { _ in measured(100) }
+            ),
             historyStore: temporaryHistoryStore()
         )
 
@@ -729,7 +771,9 @@ struct AppModelTests {
         let second = AppModel(
             targets: [kept, excluded],
             defaults: store.defaults,
-            scanExecutor: { _ in measured(100) },
+            executors: Executors(
+                scan: { _ in measured(100) }
+            ),
             historyStore: temporaryHistoryStore()
         )
         #expect(second.isExcludedFromAutoSelect(excluded), "exclusions survive a relaunch")
@@ -747,13 +791,15 @@ struct AppModelTests {
         let model = AppModel(
             targets: [cache],
             defaults: store.defaults,
-            scanExecutor: { _ in measured(100, cleanupPaths: cleanupPaths) },
-            breakdownExecutor: { _ in
-                [
-                    BreakdownEntry(id: "/fixture/a", name: "a", bytes: 60),
-                    BreakdownEntry(id: "/fixture/b", name: "b", bytes: 40),
-                ]
-            },
+            executors: Executors(
+                scan: { _ in measured(100, cleanupPaths: cleanupPaths) },
+                breakdown: { _ in
+                    [
+                        BreakdownEntry(id: "/fixture/a", name: "a", bytes: 60),
+                        BreakdownEntry(id: "/fixture/b", name: "b", bytes: 40),
+                    ]
+                }
+            ),
             historyStore: temporaryHistoryStore()
         )
 
@@ -810,20 +856,22 @@ struct AppModelTests {
         let model = AppModel(
             targets: [cache],
             defaults: store.defaults,
-            scanExecutor: { _ in
-                let calls = scanCount.withLock { $0 += 1; return $0 }
-                return calls == 1 ? measured(100, cleanupPaths: cleanupPaths) : measured(60)
-            },
-            cleanExecutor: { _, paths, _ in
-                cleanedPaths.withLock { $0 = paths }
-                return CleanOutcome(removedItems: paths.count)
-            },
-            breakdownExecutor: { _ in
-                [
-                    BreakdownEntry(id: "/fixture/a", name: "a", bytes: 60),
-                    BreakdownEntry(id: "/fixture/b", name: "b", bytes: 40),
-                ]
-            },
+            executors: Executors(
+                scan: { _ in
+                    let calls = scanCount.withLock { $0 += 1; return $0 }
+                    return calls == 1 ? measured(100, cleanupPaths: cleanupPaths) : measured(60)
+                },
+                clean: { _, paths, _ in
+                    cleanedPaths.withLock { $0 = paths }
+                    return CleanOutcome(removedItems: paths.count)
+                },
+                breakdown: { _ in
+                    [
+                        BreakdownEntry(id: "/fixture/a", name: "a", bytes: 60),
+                        BreakdownEntry(id: "/fixture/b", name: "b", bytes: 40),
+                    ]
+                }
+            ),
             historyStore: temporaryHistoryStore()
         )
 
@@ -865,11 +913,13 @@ struct AppModelTests {
         let model = AppModel(
             targets: [first, second],
             defaults: store.defaults,
-            scanExecutor: { _ in measured(100) },
-            cleanExecutor: { t, _, _ in
-                cleanedIDs.withLock { $0.append(t.id) }
-                return CleanOutcome(removedItems: 1)
-            },
+            executors: Executors(
+                scan: { _ in measured(100) },
+                clean: { t, _, _ in
+                    cleanedIDs.withLock { $0.append(t.id) }
+                    return CleanOutcome(removedItems: 1)
+                }
+            ),
             historyStore: temporaryHistoryStore()
         )
 
@@ -895,13 +945,15 @@ struct AppModelTests {
         let model = AppModel(
             targets: [command, broken],
             defaults: store.defaults,
-            scanExecutor: { t in
-                if t.id == "command" { return .unmeasurable }
-                // First scan measures; the post-clean rescan fails.
-                let calls = scanCount.withLock { $0 += 1; return $0 }
-                return calls == 1 ? measured(100) : .failed(message: "denied")
-            },
-            cleanExecutor: { _, _, _ in CleanOutcome(removedItems: 1) },
+            executors: Executors(
+                scan: { t in
+                    if t.id == "command" { return .unmeasurable }
+                    // First scan measures; the post-clean rescan fails.
+                    let calls = scanCount.withLock { $0 += 1; return $0 }
+                    return calls == 1 ? measured(100) : .failed(message: "denied")
+                },
+                clean: { _, _, _ in CleanOutcome(removedItems: 1) }
+            ),
             historyStore: temporaryHistoryStore()
         )
 
@@ -918,11 +970,13 @@ struct AppModelTests {
         let second = AppModel(
             targets: [broken],
             defaults: store.defaults,
-            scanExecutor: { _ in
-                let calls = scanCount.withLock { $0 += 1; return $0 }
-                return calls == 1 ? measured(100) : .failed(message: "denied")
-            },
-            cleanExecutor: { _, _, _ in CleanOutcome(removedItems: 1) },
+            executors: Executors(
+                scan: { _ in
+                    let calls = scanCount.withLock { $0 += 1; return $0 }
+                    return calls == 1 ? measured(100) : .failed(message: "denied")
+                },
+                clean: { _, _, _ in CleanOutcome(removedItems: 1) }
+            ),
             historyStore: temporaryHistoryStore()
         )
         scanCount.withLock { $0 = 0 }
@@ -947,14 +1001,16 @@ struct AppModelTests {
         let model = AppModel(
             targets: [cache],
             defaults: store.defaults,
-            scanExecutor: { _ in
-                let calls = scanCount.withLock { $0 += 1; return $0 }
-                return calls == 1 ? measured(100) : measured(0)
-            },
-            cleanExecutor: { _, _, _ in CleanOutcome(removedItems: 2) },
-            volumeProbe: {
-                VolumeSpace(totalBytes: 1_000, availableBytes: 400, localizedName: "Test")
-            },
+            executors: Executors(
+                scan: { _ in
+                    let calls = scanCount.withLock { $0 += 1; return $0 }
+                    return calls == 1 ? measured(100) : measured(0)
+                },
+                clean: { _, _, _ in CleanOutcome(removedItems: 2) },
+                volume: {
+                    VolumeSpace(totalBytes: 1_000, availableBytes: 400, localizedName: "Test")
+                }
+            ),
             historyStore: temporaryHistoryStore()
         )
 
@@ -982,11 +1038,13 @@ struct AppModelTests {
         let model = AppModel(
             targets: [cache],
             defaults: store.defaults,
-            scanExecutor: { _ in
-                let calls = scanCount.withLock { $0 += 1; return $0 }
-                return calls % 2 == 1 ? measured(100) : measured(0)
-            },
-            cleanExecutor: { _, _, _ in CleanOutcome(removedItems: 1) },
+            executors: Executors(
+                scan: { _ in
+                    let calls = scanCount.withLock { $0 += 1; return $0 }
+                    return calls % 2 == 1 ? measured(100) : measured(0)
+                },
+                clean: { _, _, _ in CleanOutcome(removedItems: 1) }
+            ),
             historyStore: historyStore
         )
 
@@ -1031,11 +1089,13 @@ struct AppModelTests {
         let model = AppModel(
             targets: [target("cache")],
             defaults: store.defaults,
-            scanExecutor: { _ in
-                let calls = scanCount.withLock { $0 += 1; return $0 }
-                return calls == 1 ? measured(100) : measured(0)
-            },
-            cleanExecutor: { _, _, _ in CleanOutcome(removedItems: 1) },
+            executors: Executors(
+                scan: { _ in
+                    let calls = scanCount.withLock { $0 += 1; return $0 }
+                    return calls == 1 ? measured(100) : measured(0)
+                },
+                clean: { _, _, _ in CleanOutcome(removedItems: 1) }
+            ),
             historyStore: historyStore
         )
 
@@ -1064,10 +1124,12 @@ struct AppModelTests {
         let model = AppModel(
             targets: [target("slow")],
             defaults: store.defaults,
-            scanExecutor: { _ in
-                gate.wait()
-                return .idle
-            },
+            executors: Executors(
+                scan: { _ in
+                    gate.wait()
+                    return .idle
+                }
+            ),
             historyStore: temporaryHistoryStore()
         )
         #expect(!model.isCancellingScan)
@@ -1090,11 +1152,13 @@ struct AppModelTests {
         let model = AppModel(
             targets: [cache],
             defaults: store.defaults,
-            scanExecutor: { _ in measured(100) },
-            cleanExecutor: { _, _, disposal in
-                usedDisposal.withLock { $0 = disposal }
-                return CleanOutcome(removedItems: 1)
-            },
+            executors: Executors(
+                scan: { _ in measured(100) },
+                clean: { _, _, disposal in
+                    usedDisposal.withLock { $0 = disposal }
+                    return CleanOutcome(removedItems: 1)
+                }
+            ),
             historyStore: temporaryHistoryStore()
         )
         model.disposal = .delete

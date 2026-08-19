@@ -115,10 +115,12 @@ struct AppModelProjectTests {
         let model = AppModel(
             targets: [target("cache")],
             defaults: store.defaults,
-            scanExecutor: { _ in measured(100) },
-            projectScanExecutor: { root in
-                DevRootScan(root: root, projects: [fixture, clean])
-            }
+            executors: Executors(
+                scan: { _ in measured(100) },
+                projectScan: { root in
+                    DevRootScan(root: root, projects: [fixture, clean])
+                }
+            )
         )
         model.addDevRoot(URL(filePath: "/dev"))
 
@@ -141,11 +143,13 @@ struct AppModelProjectTests {
         let model = AppModel(
             targets: [target("cache")],
             defaults: store.defaults,
-            scanExecutor: { _ in measured(100) },
-            projectScanExecutor: { root in
-                calls.withLock { $0 += 1 }
-                return DevRootScan(root: root, projects: [])
-            }
+            executors: Executors(
+                scan: { _ in measured(100) },
+                projectScan: { root in
+                    calls.withLock { $0 += 1 }
+                    return DevRootScan(root: root, projects: [])
+                }
+            )
         )
 
         model.scanAll()
@@ -162,9 +166,11 @@ struct AppModelProjectTests {
         let model = AppModel(
             targets: [],
             defaults: store.defaults,
-            projectScanExecutor: { root in
-                DevRootScan(root: root, projects: [], failureMessage: "gone")
-            }
+            executors: Executors(
+                projectScan: { root in
+                    DevRootScan(root: root, projects: [], failureMessage: "gone")
+                }
+            )
         )
         model.addDevRoot(URL(filePath: "/missing"))
 
@@ -184,7 +190,9 @@ struct AppModelProjectTests {
         let model = AppModel(
             targets: [],
             defaults: store.defaults,
-            projectScanExecutor: { root in DevRootScan(root: root, projects: [fixture]) }
+            executors: Executors(
+                projectScan: { root in DevRootScan(root: root, projects: [fixture]) }
+            )
         )
         model.addDevRoot(URL(filePath: "/dev"))
         model.scanAll()
@@ -208,7 +216,9 @@ struct AppModelProjectTests {
         let model = AppModel(
             targets: [],
             defaults: store.defaults,
-            projectScanExecutor: { root in DevRootScan(root: root, projects: [fixture]) }
+            executors: Executors(
+                projectScan: { root in DevRootScan(root: root, projects: [fixture]) }
+            )
         )
         model.addDevRoot(URL(filePath: "/dev"))
         model.scanAll()
@@ -242,8 +252,10 @@ struct AppModelProjectTests {
         let model = AppModel(
             targets: [target("cache")],
             defaults: store.defaults,
-            scanExecutor: { _ in measured(100) },
-            projectScanExecutor: { root in DevRootScan(root: root, projects: [fixture]) }
+            executors: Executors(
+                scan: { _ in measured(100) },
+                projectScan: { root in DevRootScan(root: root, projects: [fixture]) }
+            )
         )
         model.addDevRoot(URL(filePath: "/dev"))
         model.scanAll()
@@ -296,17 +308,19 @@ struct AppModelProjectTests {
         let model = AppModel(
             targets: [],
             defaults: store.defaults,
-            projectScanExecutor: { root in
-                let pass = scanCount.withLock { count in
-                    count += 1
-                    return count
+            executors: Executors(
+                projectScan: { root in
+                    let pass = scanCount.withLock { count in
+                        count += 1
+                        return count
+                    }
+                    return DevRootScan(root: root, projects: pass == 1 ? [before] : [after])
+                },
+                artifactClean: { paths, _ in
+                    cleanedPaths.withLock { $0.append(contentsOf: paths.map(\.path)) }
+                    return CleanOutcome(removedItems: paths.count)
                 }
-                return DevRootScan(root: root, projects: pass == 1 ? [before] : [after])
-            },
-            artifactCleanExecutor: { paths, _ in
-                cleanedPaths.withLock { $0.append(contentsOf: paths.map(\.path)) }
-                return CleanOutcome(removedItems: paths.count)
-            },
+            ),
             historyStore: temporaryHistoryStore()
         )
         model.addDevRoot(URL(filePath: "/dev"))
@@ -344,11 +358,13 @@ struct AppModelProjectTests {
         let model = AppModel(
             targets: [],
             defaults: store.defaults,
-            projectScanExecutor: { root in DevRootScan(root: root, projects: [fixture]) },
-            artifactCleanExecutor: { paths, _ in
-                cleanCalls.withLock { $0 += 1 }
-                return CleanOutcome(removedItems: paths.count)
-            },
+            executors: Executors(
+                projectScan: { root in DevRootScan(root: root, projects: [fixture]) },
+                artifactClean: { paths, _ in
+                    cleanCalls.withLock { $0 += 1 }
+                    return CleanOutcome(removedItems: paths.count)
+                }
+            ),
             historyStore: temporaryHistoryStore()
         )
         model.dryRun = true
@@ -377,13 +393,15 @@ struct AppModelProjectTests {
         let model = AppModel(
             targets: [target("cache")],
             defaults: store.defaults,
-            scanExecutor: { _ in measured(100) },
-            cleanExecutor: { _, _, _ in CleanOutcome(removedItems: 1) },
-            projectScanExecutor: { root in DevRootScan(root: root, projects: [fixture]) },
-            artifactCleanExecutor: { paths, _ in
-                cleanCalls.withLock { $0 += 1 }
-                return CleanOutcome(removedItems: paths.count)
-            },
+            executors: Executors(
+                scan: { _ in measured(100) },
+                clean: { _, _, _ in CleanOutcome(removedItems: 1) },
+                projectScan: { root in DevRootScan(root: root, projects: [fixture]) },
+                artifactClean: { paths, _ in
+                    cleanCalls.withLock { $0 += 1 }
+                    return CleanOutcome(removedItems: paths.count)
+                }
+            ),
             historyStore: temporaryHistoryStore()
         )
         model.addDevRoot(URL(filePath: "/dev"))
@@ -480,7 +498,9 @@ struct AppModelProjectTests {
         let model = AppModel(
             targets: [],
             defaults: store.defaults,
-            projectScanExecutor: { root in DevRootScan(root: root, projects: [fixture]) }
+            executors: Executors(
+                projectScan: { root in DevRootScan(root: root, projects: [fixture]) }
+            )
         )
         model.addDevRoot(link)
         model.scanAll()
@@ -511,9 +531,11 @@ struct AppModelProjectTests {
         let model = AppModel(
             targets: [],
             defaults: store.defaults,
-            projectScanExecutor: { root in
-                DevRootScan(root: root, projects: [small, empty, big])
-            }
+            executors: Executors(
+                projectScan: { root in
+                    DevRootScan(root: root, projects: [small, empty, big])
+                }
+            )
         )
         model.addDevRoot(URL(filePath: "/dev"))
         model.scanAll()
@@ -537,10 +559,12 @@ struct AppModelProjectTests {
         let model = AppModel(
             targets: [target("cache"), target("nothing")],
             defaults: store.defaults,
-            scanExecutor: { t in t.id == "cache" ? measured(100) : measured(0) },
-            projectScanExecutor: { root in
-                DevRootScan(root: root, projects: [big, small])
-            }
+            executors: Executors(
+                scan: { t in t.id == "cache" ? measured(100) : measured(0) },
+                projectScan: { root in
+                    DevRootScan(root: root, projects: [big, small])
+                }
+            )
         )
         model.addDevRoot(URL(filePath: "/dev"))
         model.scanAll()
@@ -564,7 +588,9 @@ struct AppModelProjectTests {
         let model = AppModel(
             targets: [],
             defaults: store.defaults,
-            projectScanExecutor: { root in DevRootScan(root: root, projects: [fixture]) }
+            executors: Executors(
+                projectScan: { root in DevRootScan(root: root, projects: [fixture]) }
+            )
         )
         model.addDevRoot(URL(filePath: "/dev"))
         model.scanAll()
@@ -609,9 +635,11 @@ struct AppModelProjectTests {
         let model = AppModel(
             targets: [],
             defaults: store.defaults,
-            projectScanExecutor: { root in
-                DevRootScan(root: root, projects: [bare, onlyEmpty])
-            }
+            executors: Executors(
+                projectScan: { root in
+                    DevRootScan(root: root, projects: [bare, onlyEmpty])
+                }
+            )
         )
         model.addDevRoot(URL(filePath: "/dev"))
         model.scanAll()
@@ -641,10 +669,12 @@ struct AppModelProjectTests {
         let model = AppModel(
             targets: [target("cache")],
             defaults: store.defaults,
-            scanExecutor: { _ in measured(100) },
-            projectScanExecutor: { root in
-                DevRootScan(root: root, projects: [app, lib])
-            }
+            executors: Executors(
+                scan: { _ in measured(100) },
+                projectScan: { root in
+                    DevRootScan(root: root, projects: [app, lib])
+                }
+            )
         )
         model.addDevRoot(URL(filePath: "/dev"))
         model.scanAll()
@@ -678,25 +708,27 @@ struct AppModelProjectTests {
         let model = AppModel(
             targets: [target("cache")],
             defaults: store.defaults,
-            scanExecutor: { _ in measured(100) },
-            cleanExecutor: { _, _, _ in
-                targetCleans.withLock { $0 += 1 }
-                return CleanOutcome(removedItems: 1)
-            },
-            projectScanExecutor: { root in
-                let pass = scanCount.withLock { count in
-                    count += 1
-                    return count
+            executors: Executors(
+                scan: { _ in measured(100) },
+                clean: { _, _, _ in
+                    targetCleans.withLock { $0 += 1 }
+                    return CleanOutcome(removedItems: 1)
+                },
+                projectScan: { root in
+                    let pass = scanCount.withLock { count in
+                        count += 1
+                        return count
+                    }
+                    return DevRootScan(
+                        root: root,
+                        projects: pass == 1 ? [appBefore, lib] : [appAfter, lib]
+                    )
+                },
+                artifactClean: { paths, _ in
+                    cleanedPaths.withLock { $0.append(contentsOf: paths.map(\.path)) }
+                    return CleanOutcome(removedItems: paths.count)
                 }
-                return DevRootScan(
-                    root: root,
-                    projects: pass == 1 ? [appBefore, lib] : [appAfter, lib]
-                )
-            },
-            artifactCleanExecutor: { paths, _ in
-                cleanedPaths.withLock { $0.append(contentsOf: paths.map(\.path)) }
-                return CleanOutcome(removedItems: paths.count)
-            },
+            ),
             historyStore: temporaryHistoryStore()
         )
         model.addDevRoot(URL(filePath: "/dev"))
@@ -733,13 +765,15 @@ struct AppModelProjectTests {
         let model = AppModel(
             targets: [],
             defaults: store.defaults,
-            projectScanExecutor: { root in
-                DevRootScan(root: root, projects: [app, lib])
-            },
-            artifactCleanExecutor: { paths, _ in
-                cleanCalls.withLock { $0 += 1 }
-                return CleanOutcome(removedItems: paths.count)
-            },
+            executors: Executors(
+                projectScan: { root in
+                    DevRootScan(root: root, projects: [app, lib])
+                },
+                artifactClean: { paths, _ in
+                    cleanCalls.withLock { $0 += 1 }
+                    return CleanOutcome(removedItems: paths.count)
+                }
+            ),
             historyStore: temporaryHistoryStore()
         )
         model.dryRun = true
@@ -770,11 +804,13 @@ struct AppModelProjectTests {
         let model = AppModel(
             targets: [],
             defaults: store.defaults,
-            projectScanExecutor: { root in DevRootScan(root: root, projects: [fixture]) },
-            artifactCleanExecutor: { paths, _ in
-                cleanCalls.withLock { $0 += 1 }
-                return CleanOutcome(removedItems: paths.count)
-            },
+            executors: Executors(
+                projectScan: { root in DevRootScan(root: root, projects: [fixture]) },
+                artifactClean: { paths, _ in
+                    cleanCalls.withLock { $0 += 1 }
+                    return CleanOutcome(removedItems: paths.count)
+                }
+            ),
             historyStore: temporaryHistoryStore()
         )
         model.addDevRoot(URL(filePath: "/dev"))
@@ -801,11 +837,13 @@ struct AppModelProjectTests {
         let model = AppModel(
             targets: [target("cache")],
             defaults: store.defaults,
-            scanExecutor: { _ in
-                while !gate.withLock({ $0 }) { usleep(10_000) }
-                return measured(100)
-            },
-            projectScanExecutor: { root in DevRootScan(root: root, projects: [fixture]) }
+            executors: Executors(
+                scan: { _ in
+                    while !gate.withLock({ $0 }) { usleep(10_000) }
+                    return measured(100)
+                },
+                projectScan: { root in DevRootScan(root: root, projects: [fixture]) }
+            )
         )
         model.addDevRoot(URL(filePath: "/dev"))
         #expect(model.isProjectSelectable(fixture))    // idle: selectable

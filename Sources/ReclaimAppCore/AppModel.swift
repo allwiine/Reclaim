@@ -25,20 +25,6 @@ import ReclaimKit
 @MainActor
 @Observable
 public final class AppModel {
-    // MARK: - Seams
-
-    /// Produces a status for one target. Blocking; called off-main.
-    public typealias ScanExecutor = @Sendable (CleanupTarget) -> TargetStatus
-    /// Cleans one target's scan-time paths. Blocking; called off-main.
-    public typealias CleanExecutor = @Sendable (CleanupTarget, [URL], Disposal) -> CleanOutcome
-    /// Sizes a measured target's individual contents. Blocking; called
-    /// off-main. `nil` means the computation was cancelled.
-    public typealias BreakdownExecutor = @Sendable (TargetStatus) -> [BreakdownEntry]?
-    /// Scans one configured dev folder. Blocking; called off-main.
-    public typealias ProjectScanExecutor = @Sendable (URL) -> DevRootScan
-    /// Disposes discovered artifact paths. Blocking; called off-main.
-    public typealias ArtifactCleanExecutor = @Sendable ([URL], Disposal) -> CleanOutcome
-
     // MARK: - Constants
 
     /// Maximum directory walks in flight at once. Disk-bound work gains
@@ -314,39 +300,18 @@ public final class AppModel {
     public init(
         targets: [CleanupTarget] = TargetRegistry.all,
         defaults: UserDefaults = .standard,
-        scanExecutor: @escaping ScanExecutor = { TargetScanner().scan($0) },
-        cleanExecutor: @escaping CleanExecutor = {
-            CleanupEngine().clean($0, cleanupPaths: $1, disposal: $2)
-        },
-        breakdownExecutor: @escaping BreakdownExecutor = {
-            // Every entry, not a top-5-plus-aggregate: cherry-picking
-            // needs each cleanup path individually; the inspector does
-            // its own top-5 collapsing.
-            try? BreakdownSizer().largestContents(of: $0, limit: Int.max)
-        },
-        projectScanExecutor: @escaping ProjectScanExecutor = {
-            ProjectDiscovery().scan(root: $0)
-        },
-        artifactCleanExecutor: @escaping ArtifactCleanExecutor = {
-            CleanupEngine().remove(paths: $0, disposal: $1)
-        },
-        fullDiskAccessProbe: @escaping @Sendable () -> Bool? = {
-            FullDiskAccessProbe().check()
-        },
-        volumeProbe: @escaping @Sendable () -> VolumeSpace? = {
-            VolumeSpaceProbe().measure()
-        },
+        executors: Executors = Executors(),
         historyStore: CleanHistoryStore = CleanHistoryStore()
     ) {
         self.targets = targets
         self.defaults = defaults
-        self.scanExecutor = scanExecutor
-        self.cleanExecutor = cleanExecutor
-        self.breakdownExecutor = breakdownExecutor
-        self.projectScanExecutor = projectScanExecutor
-        self.artifactCleanExecutor = artifactCleanExecutor
-        self.fullDiskAccessProbe = fullDiskAccessProbe
-        self.volumeProbe = volumeProbe
+        self.scanExecutor = executors.scan
+        self.cleanExecutor = executors.clean
+        self.breakdownExecutor = executors.breakdown
+        self.projectScanExecutor = executors.projectScan
+        self.artifactCleanExecutor = executors.artifactClean
+        self.fullDiskAccessProbe = executors.fullDiskAccess
+        self.volumeProbe = executors.volume
         self.historyStore = historyStore
         self.history = historyStore.load().sorted { $0.date > $1.date }
         self.autoSelectExclusions = Set(
@@ -522,7 +487,7 @@ public final class AppModel {
         let token = UUID()
         breakdownTokens[target.id] = token
         breakdownTasks[target.id] = Task {
-            let entries = await Self.offMain { compute(current) }
+            let entries = await offMain { compute(current) }
             // A computation that finished just before an invalidation
             // cancelled it must not publish its (stale) result.
             guard self.breakdownTokens[target.id] == token else { return }
@@ -553,7 +518,7 @@ public final class AppModel {
     private func refreshVolumeSpace() {
         let probe = volumeProbe
         Task {
-            self.volumeSpace = await Self.offMain { probe() }
+            self.volumeSpace = await offMain { probe() }
         }
     }
 
@@ -1008,7 +973,7 @@ public final class AppModel {
                 options: [.userInitiated], reason: "Scanning for reclaimable storage"
             )
             defer { ProcessInfo.processInfo.endActivity(activity) }
-            self.hasFullDiskAccess = await Self.offMain { probe() }
+            self.hasFullDiskAccess = await offMain { probe() }
             await self.runScan(of: targets)
             // Any rows still marked scanning were cancelled mid-flight.
             for target in targets where self.statuses[target.id] == .scanning {
@@ -1370,14 +1335,14 @@ public final class AppModel {
                 } else {
                     pathsAreChildren = false
                 }
-                let (safePaths, refusedPaths) = await Self.offMain {
+                let (safePaths, refusedPaths) = await offMain {
                     Self.partitionSafe(
                         job.paths,
                         allowedRealRoots: allowedRoots,
                         pathsAreChildren: pathsAreChildren
                     )
                 }
-                var outcome = await Self.offMain {
+                var outcome = await offMain {
                     clean(job.target, safePaths, chosenDisposal)
                 }
                 for refused in refusedPaths {
@@ -1402,7 +1367,7 @@ public final class AppModel {
                     )
                 })
 
-                let refreshed = await Self.offMain { scan(job.target) }
+                let refreshed = await offMain { scan(job.target) }
                 self.statuses[job.target.id] = refreshed
                 self.invalidateBreakdown(of: job.target.id)
                 // Freed space is only credited when this pass actually
@@ -1450,12 +1415,12 @@ public final class AppModel {
                 // of the artifact while its parent still resolves inside
                 // a scanned dev root.
                 let devRootsSnapshot = self.scanRealDevRoots
-                let pinHolds = await Self.offMain {
+                let pinHolds = await offMain {
                     Self.artifactPinHolds(url, allowedRealDevRoots: devRootsSnapshot)
                 }
                 let outcome: CleanOutcome
                 if pinHolds {
-                    outcome = await Self.offMain {
+                    outcome = await offMain {
                         removeArtifacts([url], chosenDisposal)
                     }
                 } else {
@@ -1481,7 +1446,7 @@ public final class AppModel {
                 // scan and clean (a build tool, another cleaner) fails
                 // the removal — its bytes are not space Reclaim freed.
                 if outcome.removedItems > 0 {
-                    let gone = await Self.offMain {
+                    let gone = await offMain {
                         !FileManager.default.fileExists(atPath: url.path)
                     }
                     let freed: Int64? = gone ? job.artifact.measurement.bytes : nil
@@ -1503,7 +1468,7 @@ public final class AppModel {
             // truthful — reclaimed space is measured, never assumed.
             let rescan = self.projectScanExecutor
             for root in cleanedRoots {
-                let refreshed = await Self.offMain { rescan(root) }
+                let refreshed = await offMain { rescan(root) }
                 if let index = self.projectScans.firstIndex(where: {
                     $0.root.path == root.path
                 }) {
@@ -1518,7 +1483,7 @@ public final class AppModel {
             self.cleanTask = nil
             // Volume space is measured before recording, so the entry
             // carries the honest "free after this clean" figure.
-            let space = await Self.offMain { volume() }
+            let space = await offMain { volume() }
             self.volumeSpace = space
             self.recordHistory(
                 from: summary,
@@ -1584,21 +1549,11 @@ public final class AppModel {
         let previous = historyPersistTask
         historyPersistTask = Task {
             await previous?.value
-            await Self.offMain { store.save(snapshot) }
+            await offMain { store.save(snapshot) }
         }
     }
 
     // MARK: - Background helpers
-
-    /// Runs blocking work off the main actor. With this package's
-    /// settings a `nonisolated` async function hops to the global
-    /// concurrent executor. If `NonisolatedNonsendingByDefault` is ever
-    /// enabled, annotate this `@concurrent` to preserve that behavior.
-    private nonisolated static func offMain<T: Sendable>(
-        _ work: @Sendable @escaping () -> T
-    ) async -> T {
-        work()
-    }
 
     /// Split scan-time cleanup paths into those still safe to dispose
     /// and those whose ancestry changed since the scan.
