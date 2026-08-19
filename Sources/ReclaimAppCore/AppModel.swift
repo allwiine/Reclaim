@@ -3,12 +3,12 @@
 //  ReclaimAppCore
 //
 //  The composition root the UI observes. It holds no session state of
-//  its own: it builds the sub-models in dependency order — settings,
-//  activity, history, results, breakdowns, selection, projects — plus
-//  the two coordinators that drive them (scanner, cleaner), and hands
-//  the whole graph to the views as one object. Lives in a UI-free
-//  library target so the orchestration layer stays unit-testable; the
-//  scan/clean seams are injected as `Executors`.
+//  its own: it wires the sub-models in dependency order, initializing
+//  activity at its property declaration, then settings, results,
+//  breakdowns, selection, projects, history, and the two coordinators
+//  (scanner, cleaner) in the init. Lives in a UI-free library target
+//  so the orchestration layer stays unit-testable; the scan/clean seams
+//  are injected as `Executors`.
 //
 //  Only the handful of things no single sub-model owns live here: the
 //  termination handshake, the "safe only" selection reset, and the
@@ -25,7 +25,7 @@ import ReclaimKit
 @MainActor
 @Observable
 public final class AppModel {
-    // MARK: - Session state
+    // MARK: - Sub-models
 
     /// Per-target scan results and the totals derived from them.
     public let results: TargetResultsModel
@@ -53,7 +53,7 @@ public final class AppModel {
     /// The clean pass and its scan-time safety pins.
     public let cleaner: CleanCoordinator
 
-    // MARK: - Persisted settings
+    // MARK: - Settings
 
     /// UserDefaults-backed settings, split out of this model.
     public let settings: SettingsStore

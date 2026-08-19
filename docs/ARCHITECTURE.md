@@ -108,7 +108,7 @@ Swift Testing (`swift test`), three test targets:
 - **AppModelTests** — the composition root's cross-model overview aggregates (`selectedBytes`, `largestFindings(limit:)`), including dev-folder artifacts alongside registry targets. The termination handshake (`prepareForTermination()`) is exercised by the app lifecycle, not a unit test.
 - **LocalizationTests** — parity and coverage of the app-core catalogues.
 
-All of the above (aside from `LocalizationTests`) run against stubbed `Executors` (`Sources/ReclaimAppCore/Executors.swift`), never the real filesystem.
+All of the above (aside from `LocalizationTests`) run against stubbed `Executors` (`Sources/ReclaimAppCore/Executors.swift`); only the safety-pin and history-persistence suites touch the filesystem, in throwaway temp directories.
 
 `Tests/LocalizationLintTests`:
 
