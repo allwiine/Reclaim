@@ -31,6 +31,10 @@ brew install swiftlint lefthook
 lefthook install
 ```
 
+CI pins SwiftLint 0.59.1 (its `file_length` counting defines the gate);
+keep your local install on the same minor version — `brew install
+swiftlint` currently matches.
+
 Every Swift file is capped at 200 lines of code — `.swiftlint.yml`'s
 `file_length` rule (`ignore_comment_only_lines: true`), which the hook
 enforces on staged files via `swiftlint lint --strict`. `.swiftlint.yml`
