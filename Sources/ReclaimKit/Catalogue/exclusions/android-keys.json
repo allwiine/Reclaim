@@ -1,0 +1,13 @@
+{
+  "$schema": "../schema/exclusion.schema.json",
+  "id": "android-keys",
+  "group": "toolchains",
+  "paths": [
+    "~/.android/adbkey",
+    "~/.android/debug.keystore"
+  ],
+  "reason": {
+    "en": "device key & debug signing",
+    "nb": "enhetsnøkkel og debug-signering"
+  }
+}

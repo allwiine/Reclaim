@@ -1,0 +1,25 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "kiro-caches",
+  "category": "aiTools",
+  "safety": "safe",
+  "paths": [
+    "~/Library/Application Support/Kiro/Cache",
+    "~/Library/Application Support/Kiro/CachedData",
+    "~/Library/Application Support/Kiro/Code Cache",
+    "~/Library/Application Support/Kiro/GPUCache"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "Kiro caches",
+    "nb": "Kiro-cacher"
+  },
+  "summary": {
+    "en": "Extension host, rendering and code caches for AWS's Kiro IDE.",
+    "nb": "Extension host-, gjengivelses- og kodecacher for AWS sin Kiro-IDE."
+  },
+  "note": {
+    "en": "The Kiro CLI's own data (~/Library/Application Support/kiro-cli) is a separate folder and is never touched.",
+    "nb": "Kiro CLI-ens egne data (~/Library/Application Support/kiro-cli) ligger i en egen mappe og røres aldri."
+  }
+}

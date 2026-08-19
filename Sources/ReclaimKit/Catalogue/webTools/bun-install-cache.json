@@ -1,0 +1,18 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "bun-install-cache",
+  "category": "webTools",
+  "safety": "safe",
+  "paths": [
+    "~/.bun/install/cache"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "Bun install cache",
+    "nb": "Bun-installcache"
+  },
+  "summary": {
+    "en": "Packages cached by Bun's installer. Re-downloaded on demand.",
+    "nb": "Pakker cachet av Buns installer. Lastes ned på nytt ved behov."
+  }
+}

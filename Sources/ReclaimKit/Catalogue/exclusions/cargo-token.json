@@ -1,0 +1,13 @@
+{
+  "$schema": "../schema/exclusion.schema.json",
+  "id": "cargo-token",
+  "group": "toolchains",
+  "paths": [
+    "~/.cargo/credentials.toml",
+    "~/.cargo/credentials"
+  ],
+  "reason": {
+    "en": "registry token",
+    "nb": "registernøkkel"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "opencode-data",
+  "category": "aiTools",
+  "safety": "safe",
+  "paths": [
+    "~/.cache/opencode",
+    "~/.local/share/opencode/log"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "OpenCode caches & logs",
+    "nb": "OpenCode-cacher og -logger"
+  },
+  "summary": {
+    "en": "Downloaded provider bundles and logs kept by the OpenCode agent.",
+    "nb": "Nedlastede leverandørpakker og logger fra OpenCode-agenten."
+  },
+  "note": {
+    "en": "Auth and session storage in ~/.local/share/opencode are never touched by Reclaim.",
+    "nb": "Autentisering og øktlagring i ~/.local/share/opencode røres aldri av Reclaim."
+  }
+}

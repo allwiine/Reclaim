@@ -1,0 +1,22 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "xcode-simulator-caches",
+  "category": "xcode",
+  "safety": "safe",
+  "paths": [
+    "~/Library/Developer/CoreSimulator/Caches"
+  ],
+  "strategy": "removeContents",
+  "relatedApps": [
+    "com.apple.dt.Xcode",
+    "com.apple.iphonesimulator"
+  ],
+  "name": {
+    "en": "Simulator caches",
+    "nb": "Simulatorcacher"
+  },
+  "summary": {
+    "en": "CoreSimulator's cache directory, including dyld caches for simulator runtimes.",
+    "nb": "CoreSimulators cachemappe, inkludert dyld-cacher for simulator-runtimes."
+  }
+}

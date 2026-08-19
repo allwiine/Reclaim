@@ -1,0 +1,12 @@
+{
+  "$schema": "../schema/exclusion.schema.json",
+  "id": "keychains",
+  "group": "keysCertificates",
+  "paths": [
+    "~/Library/Keychains"
+  ],
+  "reason": {
+    "en": "keychains",
+    "nb": "nøkkelringer"
+  }
+}

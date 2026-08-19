@@ -1,0 +1,18 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "cocoapods-spec-repos",
+  "category": "packageManagers",
+  "safety": "caution",
+  "paths": [
+    "~/.cocoapods/repos"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "CocoaPods spec repos",
+    "nb": "CocoaPods spec-repoer"
+  },
+  "summary": {
+    "en": "Cloned podspec repositories. The legacy master repo is multi-gigabyte and unused since the trunk CDN; re-cloned on demand.",
+    "nb": "Klonede podspec-repoer. Det gamle master-repoet er flere gigabyte stort og ubrukt etter trunk-CDN-en; klones på nytt ved behov."
+  }
+}

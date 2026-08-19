@@ -1,0 +1,12 @@
+{
+  "$schema": "../schema/exclusion.schema.json",
+  "id": "nuget-plugins",
+  "group": "toolchains",
+  "paths": [
+    "~/.nuget/plugins"
+  ],
+  "reason": {
+    "en": "credential providers",
+    "nb": "påloggingsleverandører"
+  }
+}

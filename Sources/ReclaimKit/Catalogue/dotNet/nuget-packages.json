@@ -1,0 +1,26 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "nuget-packages",
+  "category": "dotNet",
+  "safety": "safe",
+  "paths": [
+    "~/.nuget/packages"
+  ],
+  "strategy": "removeContents",
+  "relatedApps": [
+    "com.jetbrains.rider",
+    "com.microsoft.VSCode"
+  ],
+  "name": {
+    "en": "NuGet global packages",
+    "nb": "Globale NuGet-pakker"
+  },
+  "summary": {
+    "en": "Every package version any .NET project has ever restored, kept forever. Projects re-restore what they still use on the next build.",
+    "nb": "Hver pakkeversjon noe .NET-prosjekt noen gang har hentet, lagret for alltid. Prosjekter henter det de fortsatt bruker på nytt ved neste bygg."
+  },
+  "note": {
+    "en": "Equivalent to `dotnet nuget locals global-packages --clear` — the next restore re-downloads what is needed.",
+    "nb": "Tilsvarer `dotnet nuget locals global-packages --clear`. Neste restore laster ned det som trengs."
+  }
+}

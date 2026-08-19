@@ -1,0 +1,12 @@
+{
+  "$schema": "../schema/exclusion.schema.json",
+  "id": "opencode-auth",
+  "group": "aiTools",
+  "paths": [
+    "~/.local/share/opencode/auth.json"
+  ],
+  "reason": {
+    "en": "auth token",
+    "nb": "påloggingsnøkkel"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "pulumi-plugins",
+  "category": "cloudDevOps",
+  "safety": "safe",
+  "paths": [
+    "~/.pulumi/plugins"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "Pulumi plugins",
+    "nb": "Pulumi-plugins"
+  },
+  "summary": {
+    "en": "Provider plugins downloaded by Pulumi. Re-downloaded on the next `pulumi up`.",
+    "nb": "Provider-plugins lastet ned av Pulumi. Lastes ned på nytt ved neste `pulumi up`."
+  },
+  "note": {
+    "en": "Credentials and workspaces in ~/.pulumi are never touched.",
+    "nb": "Legitimasjon og workspaces i ~/.pulumi røres aldri."
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "$schema": "../schema/exclusion.schema.json",
+  "id": "claude-plugins",
+  "group": "claudeCode",
+  "paths": [
+    "~/.claude/plugins"
+  ],
+  "reason": {
+    "en": "plugins",
+    "nb": "programtillegg"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "jetbrains-logs",
+  "category": "otherTools",
+  "safety": "safe",
+  "paths": [
+    "~/Library/Logs/JetBrains"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "JetBrains IDE logs",
+    "nb": "JetBrains IDE-logger"
+  },
+  "summary": {
+    "en": "Log files for IntelliJ, PyCharm, WebStorm and friends, kept per IDE version.",
+    "nb": "Loggfiler for IntelliJ, PyCharm, WebStorm og venner, lagret per IDE-versjon."
+  }
+}

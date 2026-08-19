@@ -1,0 +1,22 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "zed-caches",
+  "category": "otherTools",
+  "safety": "safe",
+  "paths": [
+    "~/Library/Caches/Zed",
+    "~/Library/Application Support/Zed/languages"
+  ],
+  "strategy": "removeContents",
+  "relatedApps": [
+    "dev.zed.Zed"
+  ],
+  "name": {
+    "en": "Zed caches & language servers",
+    "nb": "Zed-cacher og språkservere"
+  },
+  "summary": {
+    "en": "Caches and auto-downloaded language servers kept by the Zed editor. Re-downloaded on demand.",
+    "nb": "Cacher og automatisk nedlastede språkservere fra Zed-editoren. Lastes ned på nytt ved behov."
+  }
+}

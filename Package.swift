@@ -55,6 +55,13 @@ let package = Package(
             resources: [.process("Resources")],
             swiftSettings: sharedSwiftSettings
         ),
+        // TEMPORARY — one-shot migration of the Swift registries to the
+        // JSON catalogue. Deleted once the migration lands.
+        .executableTarget(
+            name: "catalogue-migrate",
+            dependencies: ["ReclaimKit"],
+            swiftSettings: sharedSwiftSettings
+        ),
         .target(
             name: "ReclaimAppCore",
             dependencies: ["ReclaimKit"],

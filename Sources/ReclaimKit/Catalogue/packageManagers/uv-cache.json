@@ -1,0 +1,19 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "uv-cache",
+  "category": "packageManagers",
+  "safety": "safe",
+  "paths": [
+    "~/Library/Caches/uv",
+    "~/.cache/uv"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "uv cache",
+    "nb": "uv-cache"
+  },
+  "summary": {
+    "en": "The uv package manager's wheel and source cache.",
+    "nb": "Wheel- og kildecachen til pakkebehandleren uv."
+  }
+}

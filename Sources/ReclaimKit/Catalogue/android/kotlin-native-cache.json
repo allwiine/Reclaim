@@ -1,0 +1,22 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "kotlin-native-cache",
+  "category": "android",
+  "safety": "safe",
+  "paths": [
+    "~/.konan"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "Kotlin/Native toolchains",
+    "nb": "Kotlin/Native-verktøykjeder"
+  },
+  "summary": {
+    "en": "Toolchains and dependency caches for Kotlin/Native builds. Each version is hundreds of megabytes.",
+    "nb": "Verktøykjeder og avhengighetscacher for Kotlin/Native-bygg. Hver versjon er flere hundre megabyte."
+  },
+  "note": {
+    "en": "Gradle re-downloads what it needs on the next Kotlin/Native build.",
+    "nb": "Gradle laster ned det som trengs på nytt ved neste Kotlin/Native-bygg."
+  }
+}

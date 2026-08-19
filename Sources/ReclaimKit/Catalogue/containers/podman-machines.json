@@ -1,0 +1,22 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "podman-machines",
+  "category": "containers",
+  "safety": "caution",
+  "paths": [
+    "~/.local/share/containers"
+  ],
+  "strategy": "manual",
+  "instructions": {
+    "en": "Run `podman system prune -a` in Terminal, or `podman machine rm <name>` to remove a machine.",
+    "nb": "Kjør `podman system prune -a` i Terminal, eller `podman machine rm <navn>` for å fjerne en maskin."
+  },
+  "name": {
+    "en": "Podman machines",
+    "nb": "Podman-maskiner"
+  },
+  "summary": {
+    "en": "Machines, containers and images managed by Podman.",
+    "nb": "Maskiner, containere og images forvaltet av Podman."
+  }
+}

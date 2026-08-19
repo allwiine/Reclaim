@@ -1,0 +1,14 @@
+{
+  "$schema": "../schema/exclusion.schema.json",
+  "id": "windsurf-settings",
+  "group": "editorSettings",
+  "paths": [
+    "~/Library/Application Support/Windsurf/User/settings.json",
+    "~/Library/Application Support/Windsurf/User/keybindings.json",
+    "~/Library/Application Support/Windsurf/User/snippets"
+  ],
+  "reason": {
+    "en": "user settings",
+    "nb": "brukerinnstillinger"
+  }
+}

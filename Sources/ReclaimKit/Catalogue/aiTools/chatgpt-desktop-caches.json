@@ -1,0 +1,21 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "chatgpt-desktop-caches",
+  "category": "aiTools",
+  "safety": "safe",
+  "paths": [
+    "~/Library/Caches/com.openai.chat"
+  ],
+  "strategy": "removeContents",
+  "relatedApps": [
+    "com.openai.chat"
+  ],
+  "name": {
+    "en": "ChatGPT Desktop caches",
+    "nb": "ChatGPT Desktop-cacher"
+  },
+  "summary": {
+    "en": "Rendering and update caches for OpenAI's ChatGPT desktop app. Rebuilt on next launch.",
+    "nb": "Gjengivelses- og oppdateringscacher for OpenAIs ChatGPT-skrivebordsapp. Bygges på nytt ved neste oppstart."
+  }
+}

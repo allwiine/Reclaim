@@ -1,0 +1,23 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "docker-vm-disk",
+  "category": "containers",
+  "safety": "caution",
+  "paths": [
+    "~/Library/Containers/com.docker.docker/Data/vms/0/data/Docker.raw",
+    "~/Library/Containers/com.docker.docker/Data/vms/0/data/Docker.qcow2"
+  ],
+  "strategy": "manual",
+  "instructions": {
+    "en": "Run `docker system prune -a` (and optionally `--volumes`) in Terminal, then let Docker Desktop compact the disk.",
+    "nb": "Kjør `docker system prune -a` (og eventuelt `--volumes`) i Terminal, og la Docker Desktop komprimere disken etterpå."
+  },
+  "name": {
+    "en": "Docker VM disk",
+    "nb": "Docker VM-disk"
+  },
+  "summary": {
+    "en": "The virtual disk holding all Docker images, containers and volumes. It only shrinks when Docker itself prunes.",
+    "nb": "Den virtuelle disken som rommer alle Docker-images, -containere og -volumer. Den krymper bare når Docker selv kjører prune."
+  }
+}

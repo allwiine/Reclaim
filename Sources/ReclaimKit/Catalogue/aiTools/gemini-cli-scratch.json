@@ -1,0 +1,22 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "gemini-cli-scratch",
+  "category": "aiTools",
+  "safety": "caution",
+  "paths": [
+    "~/.gemini/tmp"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "Gemini CLI scratch data",
+    "nb": "Gemini CLI-scratch-data"
+  },
+  "summary": {
+    "en": "Per-project temp files, logs and checkpoints written by Google's Gemini CLI. Cleaning removes the ability to resume or rewind past sessions.",
+    "nb": "Midlertidige filer, logger og sjekkpunkter per prosjekt fra Googles Gemini CLI. Rydding fjerner muligheten til å gjenoppta eller spole tilbake tidligere økter."
+  },
+  "note": {
+    "en": "Settings and auth in ~/.gemini are never touched by Reclaim.",
+    "nb": "Innstillinger og autentisering i ~/.gemini røres aldri av Reclaim."
+  }
+}

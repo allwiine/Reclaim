@@ -1,0 +1,23 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "pub-cache",
+  "category": "packageManagers",
+  "safety": "caution",
+  "paths": [
+    "~/.pub-cache/hosted",
+    "~/.pub-cache/git"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "pub cache",
+    "nb": "pub-cache"
+  },
+  "summary": {
+    "en": "Downloaded Dart and Flutter packages (hosted and git). Re-downloaded by `flutter pub get` per project.",
+    "nb": "Nedlastede Dart- og Flutter-pakker (hosted og git). Lastes ned på nytt av `flutter pub get` per prosjekt."
+  },
+  "note": {
+    "en": "Globally activated packages (`dart pub global`) and any pub.dev credentials elsewhere in ~/.pub-cache are left untouched.",
+    "nb": "Globalt aktiverte pakker (`dart pub global`) og eventuell pub.dev-påloggingsinformasjon ellers i ~/.pub-cache røres ikke."
+  }
+}

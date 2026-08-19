@@ -1,0 +1,19 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "vsmac-leftovers",
+  "category": "dotNet",
+  "safety": "safe",
+  "paths": [
+    "~/Library/Caches/VisualStudio",
+    "~/Library/Logs/VisualStudio"
+  ],
+  "strategy": "removePaths",
+  "name": {
+    "en": "Visual Studio for Mac leftovers",
+    "nb": "Rester etter Visual Studio for Mac"
+  },
+  "summary": {
+    "en": "Caches and logs from Visual Studio for Mac, retired in 2024. Nothing reads them anymore.",
+    "nb": "Cacher og logger fra Visual Studio for Mac, avviklet i 2024. Ingenting leser dem lenger."
+  }
+}

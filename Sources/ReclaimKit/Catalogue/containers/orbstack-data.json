@@ -1,0 +1,23 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "orbstack-data",
+  "category": "containers",
+  "safety": "caution",
+  "paths": [
+    "~/.orbstack",
+    "~/Library/Group Containers/HUAQ24HBR6.dev.orbstack/data"
+  ],
+  "strategy": "manual",
+  "instructions": {
+    "en": "Run `docker system prune -a` in Terminal, or delete machines and volumes in the OrbStack app.",
+    "nb": "Kjør `docker system prune -a` i Terminal, eller slett maskiner og volumer i OrbStack-appen."
+  },
+  "name": {
+    "en": "OrbStack data",
+    "nb": "OrbStack-data"
+  },
+  "summary": {
+    "en": "The disk holding all OrbStack containers, images, volumes and Linux machines.",
+    "nb": "Disken som holder alle OrbStack-containere, images, volumer og Linux-maskiner."
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "pnpm-store",
+  "category": "packageManagers",
+  "safety": "safe",
+  "paths": [
+    "~/Library/pnpm/store",
+    "~/.pnpm-store"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "pnpm store",
+    "nb": "pnpm-store"
+  },
+  "summary": {
+    "en": "pnpm's global content-addressable store. Packages are re-fetched per project as needed.",
+    "nb": "pnpms globale innholdsadresserbare store. Pakker hentes på nytt per prosjekt ved behov."
+  },
+  "note": {
+    "en": "Prefer `pnpm store prune` to drop only unreferenced packages.",
+    "nb": "Foretrekk `pnpm store prune` for å fjerne bare pakker uten referanser."
+  }
+}

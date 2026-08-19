@@ -1,0 +1,23 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "claude-code-transcripts",
+  "category": "aiTools",
+  "safety": "caution",
+  "paths": [
+    "~/.claude/projects",
+    "~/.claude/file-history"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "Claude Code session history",
+    "nb": "Claude Code-økthistorikk"
+  },
+  "summary": {
+    "en": "Conversation transcripts for every project (~/.claude/projects). Cleaning removes the ability to resume or rewind past sessions.",
+    "nb": "Samtaleutskrifter for hvert prosjekt (~/.claude/projects). Rydding fjerner muligheten til å gjenoppta eller spole tilbake tidligere økter."
+  },
+  "note": {
+    "en": "Prefer setting \"cleanupPeriodDays\" in ~/.claude/settings.json so Claude Code prunes old transcripts automatically.",
+    "nb": "Foretrekk å sette «cleanupPeriodDays» i ~/.claude/settings.json, slik at Claude Code rydder gamle utskrifter automatisk."
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "npm-cache",
+  "category": "packageManagers",
+  "safety": "safe",
+  "paths": [
+    "~/.npm/_cacache"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "npm cache",
+    "nb": "npm-cache"
+  },
+  "summary": {
+    "en": "npm's content-addressable package cache.",
+    "nb": "npms innholdsadresserbare pakkecache."
+  }
+}

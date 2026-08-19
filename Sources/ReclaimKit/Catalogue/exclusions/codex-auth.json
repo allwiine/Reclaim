@@ -1,0 +1,12 @@
+{
+  "$schema": "../schema/exclusion.schema.json",
+  "id": "codex-auth",
+  "group": "aiTools",
+  "paths": [
+    "~/.codex/auth.json"
+  ],
+  "reason": {
+    "en": "auth token",
+    "nb": "påloggingsnøkkel"
+  }
+}

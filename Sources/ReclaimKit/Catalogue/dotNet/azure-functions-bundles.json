@@ -1,0 +1,18 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "azure-functions-bundles",
+  "category": "dotNet",
+  "safety": "safe",
+  "paths": [
+    "~/.azure-functions-core-tools"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "Azure Functions extension bundles",
+    "nb": "Extension bundles for Azure Functions"
+  },
+  "summary": {
+    "en": "Extension bundles and templates downloaded by Azure Functions Core Tools. Re-downloaded the next time `func` runs.",
+    "nb": "Extension bundles og maler lastet ned av Azure Functions Core Tools. Lastes ned på nytt neste gang `func` kjører."
+  }
+}

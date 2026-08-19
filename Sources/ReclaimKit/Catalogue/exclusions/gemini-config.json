@@ -1,0 +1,13 @@
+{
+  "$schema": "../schema/exclusion.schema.json",
+  "id": "gemini-config",
+  "group": "aiTools",
+  "paths": [
+    "~/.gemini/settings.json",
+    "~/.gemini/GEMINI.md"
+  ],
+  "reason": {
+    "en": "settings",
+    "nb": "innstillinger"
+  }
+}

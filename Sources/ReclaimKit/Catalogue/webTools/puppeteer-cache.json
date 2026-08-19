@@ -1,0 +1,22 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "puppeteer-cache",
+  "category": "webTools",
+  "safety": "caution",
+  "paths": [
+    "~/.cache/puppeteer"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "Puppeteer browsers",
+    "nb": "Puppeteer-nettlesere"
+  },
+  "summary": {
+    "en": "Chrome builds downloaded by Puppeteer.",
+    "nb": "Chrome-bygg lastet ned av Puppeteer."
+  },
+  "note": {
+    "en": "Re-downloaded the next time Puppeteer installs its browser.",
+    "nb": "Lastes ned på nytt neste gang Puppeteer installerer nettleseren sin."
+  }
+}

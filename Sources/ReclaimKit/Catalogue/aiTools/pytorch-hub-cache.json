@@ -1,0 +1,22 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "pytorch-hub-cache",
+  "category": "aiTools",
+  "safety": "caution",
+  "paths": [
+    "~/.cache/torch"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "PyTorch caches",
+    "nb": "PyTorch-cacher"
+  },
+  "summary": {
+    "en": "Model weights and datasets downloaded by PyTorch Hub and torchvision.",
+    "nb": "Modellvekter og datasett lastet ned av PyTorch Hub og torchvision."
+  },
+  "note": {
+    "en": "Weights are re-downloaded on next use.",
+    "nb": "Vekter lastes ned på nytt ved neste bruk."
+  }
+}

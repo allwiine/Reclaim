@@ -1,0 +1,22 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "gcloud-logs",
+  "category": "cloudDevOps",
+  "safety": "safe",
+  "paths": [
+    "~/.config/gcloud/logs"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "Google Cloud CLI logs",
+    "nb": "Google Cloud CLI-logger"
+  },
+  "summary": {
+    "en": "Logs written by every gcloud invocation. They are never pruned.",
+    "nb": "Logger skrevet av hver gcloud-kjøring. De ryddes aldri."
+  },
+  "note": {
+    "en": "Auth and config in ~/.config/gcloud are never touched.",
+    "nb": "Auth og konfig i ~/.config/gcloud røres aldri."
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "android-build-cache",
+  "category": "android",
+  "safety": "safe",
+  "paths": [
+    "~/.android/build-cache",
+    "~/.android/cache"
+  ],
+  "strategy": "removeContents",
+  "relatedApps": [
+    "com.google.android.studio"
+  ],
+  "name": {
+    "en": "Android build cache",
+    "nb": "Android-byggcache"
+  },
+  "summary": {
+    "en": "The legacy Android build cache and temporary SDK files.",
+    "nb": "Den eldre Android-byggcachen og midlertidige SDK-filer."
+  }
+}

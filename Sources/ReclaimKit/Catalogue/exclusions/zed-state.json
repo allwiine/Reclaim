@@ -1,0 +1,12 @@
+{
+  "$schema": "../schema/exclusion.schema.json",
+  "id": "zed-state",
+  "group": "editorSettings",
+  "paths": [
+    "~/Library/Application Support/Zed/db"
+  ],
+  "reason": {
+    "en": "editor state",
+    "nb": "editortilstand"
+  }
+}

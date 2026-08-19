@@ -1,0 +1,18 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "helm-caches",
+  "category": "cloudDevOps",
+  "safety": "safe",
+  "paths": [
+    "~/Library/Caches/helm"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "Helm caches",
+    "nb": "Helm-cacher"
+  },
+  "summary": {
+    "en": "Chart repository indexes and downloaded charts cached by Helm.",
+    "nb": "Chart-repoindekser og nedlastede charts cachet av Helm."
+  }
+}

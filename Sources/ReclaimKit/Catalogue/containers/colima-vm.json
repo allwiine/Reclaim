@@ -1,0 +1,22 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "colima-vm",
+  "category": "containers",
+  "safety": "caution",
+  "paths": [
+    "~/.colima"
+  ],
+  "strategy": "manual",
+  "instructions": {
+    "en": "Run `docker system prune -a` while Colima is running, or `colima delete` to remove an instance entirely.",
+    "nb": "Kjør `docker system prune -a` mens Colima kjører, eller `colima delete` for å fjerne en instans helt."
+  },
+  "name": {
+    "en": "Colima VMs",
+    "nb": "Colima-VM-er"
+  },
+  "summary": {
+    "en": "Virtual machine disks holding all containers and images for Colima instances.",
+    "nb": "VM-disker som holder alle containere og images for Colima-instanser."
+  }
+}

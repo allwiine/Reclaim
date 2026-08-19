@@ -1,0 +1,14 @@
+{
+  "$schema": "../schema/exclusion.schema.json",
+  "id": "cursor-settings",
+  "group": "editorSettings",
+  "paths": [
+    "~/Library/Application Support/Cursor/User/settings.json",
+    "~/Library/Application Support/Cursor/User/keybindings.json",
+    "~/Library/Application Support/Cursor/User/snippets"
+  ],
+  "reason": {
+    "en": "user settings",
+    "nb": "brukerinnstillinger"
+  }
+}

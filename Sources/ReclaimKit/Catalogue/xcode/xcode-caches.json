@@ -1,0 +1,22 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "xcode-caches",
+  "category": "xcode",
+  "safety": "safe",
+  "paths": [
+    "~/Library/Caches/com.apple.dt.Xcode",
+    "~/Library/Caches/com.apple.dt.Xcode.DocumentationCache"
+  ],
+  "strategy": "removeContents",
+  "relatedApps": [
+    "com.apple.dt.Xcode"
+  ],
+  "name": {
+    "en": "Xcode caches",
+    "nb": "Xcode-cacher"
+  },
+  "summary": {
+    "en": "Xcode's general cache folder, including the documentation cache.",
+    "nb": "Xcodes generelle cachemappe, inkludert dokumentasjonscachen."
+  }
+}

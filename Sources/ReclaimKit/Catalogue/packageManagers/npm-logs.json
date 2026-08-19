@@ -1,0 +1,18 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "npm-logs",
+  "category": "packageManagers",
+  "safety": "safe",
+  "paths": [
+    "~/.npm/_logs"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "npm logs",
+    "nb": "npm-logger"
+  },
+  "summary": {
+    "en": "Debug logs npm writes for every invocation. They are never pruned.",
+    "nb": "Debuglogger npm skriver for hver kjøring. De ryddes aldri."
+  }
+}

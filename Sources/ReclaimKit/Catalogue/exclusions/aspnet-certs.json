@@ -1,0 +1,12 @@
+{
+  "$schema": "../schema/exclusion.schema.json",
+  "id": "aspnet-certs",
+  "group": "keysCertificates",
+  "paths": [
+    "~/.aspnet"
+  ],
+  "reason": {
+    "en": "dev certs & keys",
+    "nb": "utviklingssertifikater og nøkler"
+  }
+}

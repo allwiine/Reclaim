@@ -1,0 +1,22 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "firebase-emulators",
+  "category": "cloudDevOps",
+  "safety": "safe",
+  "paths": [
+    "~/.cache/firebase/emulators"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "Firebase emulators",
+    "nb": "Firebase-emulatorer"
+  },
+  "summary": {
+    "en": "Emulator binaries (Firestore, Auth, Pub/Sub and friends) downloaded by the Firebase CLI.",
+    "nb": "Emulator-binærer (Firestore, Auth, Pub/Sub og venner) lastet ned av Firebase CLI."
+  },
+  "note": {
+    "en": "Re-downloaded on the next `firebase emulators:start`.",
+    "nb": "Lastes ned på nytt ved neste `firebase emulators:start`."
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "uv-python-toolchains",
+  "category": "packageManagers",
+  "safety": "caution",
+  "paths": [
+    "~/.local/share/uv/python"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "uv Python toolchains",
+    "nb": "uv Python-verktøykjeder"
+  },
+  "summary": {
+    "en": "Python versions installed and managed by uv. Re-downloaded on demand.",
+    "nb": "Python-versjoner installert og forvaltet av uv. Lastes ned på nytt ved behov."
+  },
+  "note": {
+    "en": "Existing virtual environments link into these toolchains and break until the version is reinstalled.",
+    "nb": "Eksisterende virtuelle miljøer lenker inn i disse verktøykjedene og slutter å virke til versjonen er reinstallert."
+  }
+}

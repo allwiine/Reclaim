@@ -1,0 +1,12 @@
+{
+  "$schema": "../schema/exclusion.schema.json",
+  "id": "gnupg-keys",
+  "group": "keysCertificates",
+  "paths": [
+    "~/.gnupg"
+  ],
+  "reason": {
+    "en": "GPG keys",
+    "nb": "GPG-nøkler"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "yarn-berry-cache",
+  "category": "packageManagers",
+  "safety": "safe",
+  "paths": [
+    "~/.yarn/berry/cache"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "Yarn Berry cache",
+    "nb": "Yarn Berry-cache"
+  },
+  "summary": {
+    "en": "Yarn Berry's global compressed package cache.",
+    "nb": "Yarn Berrys globale komprimerte pakkecache."
+  }
+}

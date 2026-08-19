@@ -1,0 +1,21 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "gradle-build-scan",
+  "category": "android",
+  "safety": "safe",
+  "paths": [
+    "~/.gradle/build-scan-data"
+  ],
+  "strategy": "removeContents",
+  "relatedApps": [
+    "com.google.android.studio"
+  ],
+  "name": {
+    "en": "Gradle build-scan data",
+    "nb": "Gradle build scan-data"
+  },
+  "summary": {
+    "en": "Build-scan payloads staged locally by the Gradle build scan plugin.",
+    "nb": "Build scan-data mellomlagret lokalt av Gradles build scan-plugin."
+  }
+}

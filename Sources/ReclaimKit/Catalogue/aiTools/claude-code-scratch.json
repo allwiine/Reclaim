@@ -1,0 +1,24 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "claude-code-scratch",
+  "category": "aiTools",
+  "safety": "safe",
+  "paths": [
+    "~/.claude/debug",
+    "~/.claude/shell-snapshots",
+    "~/.claude/statsig"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "Claude Code logs & scratch data",
+    "nb": "Claude Code-logger og scratch-data"
+  },
+  "summary": {
+    "en": "Debug logs, shell snapshots and telemetry scratch data. Recreated on the next run.",
+    "nb": "Debuglogger, shell-snapshots og midlertidige telemetridata. Opprettes på nytt ved neste kjøring."
+  },
+  "note": {
+    "en": "Auth (~/.claude.json), settings and plugins are never touched by Reclaim.",
+    "nb": "Autentisering (~/.claude.json), innstillinger og plugins røres aldri av Reclaim."
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "pre-commit-cache",
+  "category": "otherTools",
+  "safety": "safe",
+  "paths": [
+    "~/.cache/pre-commit"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "pre-commit environments",
+    "nb": "pre-commit-miljøer"
+  },
+  "summary": {
+    "en": "Hook environments built by pre-commit. Recreated on the next run in each repository.",
+    "nb": "Hook-miljøer bygget av pre-commit. Opprettes på nytt ved neste kjøring i hvert repo."
+  }
+}

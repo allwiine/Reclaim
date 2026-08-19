@@ -1,0 +1,18 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "poetry-cache",
+  "category": "packageManagers",
+  "safety": "safe",
+  "paths": [
+    "~/Library/Caches/pypoetry"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "Poetry cache",
+    "nb": "Poetry-cache"
+  },
+  "summary": {
+    "en": "Package artifacts and metadata cached by the Poetry package manager.",
+    "nb": "Pakkeartefakter og metadata cachet av pakkebehandleren Poetry."
+  }
+}

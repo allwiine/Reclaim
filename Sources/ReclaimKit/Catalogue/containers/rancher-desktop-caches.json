@@ -1,0 +1,21 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "rancher-desktop-caches",
+  "category": "containers",
+  "safety": "safe",
+  "paths": [
+    "~/Library/Caches/rancher-desktop"
+  ],
+  "strategy": "removeContents",
+  "relatedApps": [
+    "io.rancherdesktop.app"
+  ],
+  "name": {
+    "en": "Rancher Desktop caches",
+    "nb": "Rancher Desktop-cacher"
+  },
+  "summary": {
+    "en": "Downloaded Kubernetes images and update caches for Rancher Desktop.",
+    "nb": "Nedlastede Kubernetes-images og oppdateringscacher for Rancher Desktop."
+  }
+}

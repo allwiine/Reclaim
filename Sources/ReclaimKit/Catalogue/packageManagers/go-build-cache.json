@@ -1,0 +1,18 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "go-build-cache",
+  "category": "packageManagers",
+  "safety": "safe",
+  "paths": [
+    "~/Library/Caches/go-build"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "Go build cache",
+    "nb": "Go-byggcache"
+  },
+  "summary": {
+    "en": "Compiled Go build artifacts.",
+    "nb": "Kompilerte Go-byggartefakter."
+  }
+}

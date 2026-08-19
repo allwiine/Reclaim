@@ -1,0 +1,25 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "gradle-caches",
+  "category": "android",
+  "safety": "safe",
+  "paths": [
+    "~/.gradle/caches"
+  ],
+  "strategy": "removeContents",
+  "relatedApps": [
+    "com.google.android.studio"
+  ],
+  "name": {
+    "en": "Gradle caches",
+    "nb": "Gradle-cacher"
+  },
+  "summary": {
+    "en": "Downloaded dependencies and transformed artifacts shared by all Gradle builds. Re-downloaded on demand.",
+    "nb": "Nedlastede avhengigheter og transformerte artefakter delt av alle Gradle-bygg. Lastes ned på nytt ved behov."
+  },
+  "note": {
+    "en": "The next build re-downloads what it needs — expect it to be slower once.",
+    "nb": "Neste bygg laster ned det det trenger på nytt, så forvent at det går tregere én gang."
+  }
+}

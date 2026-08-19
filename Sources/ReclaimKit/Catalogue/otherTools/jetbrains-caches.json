@@ -1,0 +1,22 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "jetbrains-caches",
+  "category": "otherTools",
+  "safety": "safe",
+  "paths": [
+    "~/Library/Caches/JetBrains"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "JetBrains IDE caches",
+    "nb": "JetBrains IDE-cacher"
+  },
+  "summary": {
+    "en": "Caches and indexes for IntelliJ, PyCharm, WebStorm and friends, kept per IDE version.",
+    "nb": "Cacher og indekser for IntelliJ, PyCharm, WebStorm og venner, lagret per IDE-versjon."
+  },
+  "note": {
+    "en": "Each IDE rebuilds its index on next launch.",
+    "nb": "Hver IDE bygger indeksen sin på nytt ved neste oppstart."
+  }
+}

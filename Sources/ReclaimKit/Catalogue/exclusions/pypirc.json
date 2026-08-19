@@ -1,0 +1,12 @@
+{
+  "$schema": "../schema/exclusion.schema.json",
+  "id": "pypirc",
+  "group": "toolchains",
+  "paths": [
+    "~/.pypirc"
+  ],
+  "reason": {
+    "en": "registry token",
+    "nb": "registernøkkel"
+  }
+}

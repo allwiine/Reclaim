@@ -1,0 +1,18 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "homebrew-cache",
+  "category": "packageManagers",
+  "safety": "safe",
+  "paths": [
+    "~/Library/Caches/Homebrew"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "Homebrew downloads",
+    "nb": "Homebrew-nedlastinger"
+  },
+  "summary": {
+    "en": "Downloaded bottles and old formula versions kept by Homebrew.",
+    "nb": "Nedlastede bottles og gamle formula-versjoner som Homebrew tar vare på."
+  }
+}

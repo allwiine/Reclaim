@@ -1,0 +1,20 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "pipx-cache",
+  "category": "packageManagers",
+  "safety": "safe",
+  "paths": [
+    "~/.cache/pipx",
+    "~/.local/pipx/logs",
+    "~/.local/share/pipx/logs"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "pipx cache & logs",
+    "nb": "pipx-cache og -logger"
+  },
+  "summary": {
+    "en": "Temporary environments and logs kept by pipx. Installed tools are not touched.",
+    "nb": "Midlertidige miljøer og logger fra pipx. Installerte verktøy røres ikke."
+  }
+}

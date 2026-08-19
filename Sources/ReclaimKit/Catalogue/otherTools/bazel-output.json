@@ -1,0 +1,22 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "bazel-output",
+  "category": "otherTools",
+  "safety": "caution",
+  "paths": [
+    "/private/var/tmp/_bazel_*"
+  ],
+  "strategy": "manual",
+  "instructions": {
+    "en": "Run `bazel clean --expunge` in each workspace, or `bazel shutdown` followed by deleting its output tree.",
+    "nb": "Kjør `bazel clean --expunge` i hvert workspace, eller `bazel shutdown` etterfulgt av å slette output-treet."
+  },
+  "name": {
+    "en": "Bazel output trees",
+    "nb": "Bazel-output-trær"
+  },
+  "summary": {
+    "en": "Build outputs and repository caches for every Bazel workspace, kept in /private/var/tmp. A running Bazel server holds locks here.",
+    "nb": "Byggresultater og repo-cacher for hvert Bazel-workspace, lagret i /private/var/tmp. En kjørende Bazel-server holder låser her."
+  }
+}

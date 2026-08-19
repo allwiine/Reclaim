@@ -1,0 +1,18 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "terraform-plugin-cache",
+  "category": "cloudDevOps",
+  "safety": "safe",
+  "paths": [
+    "~/.terraform.d/plugin-cache"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "Terraform plugin cache",
+    "nb": "Terraform-plugincache"
+  },
+  "summary": {
+    "en": "Provider plugins cached when the plugin cache is enabled in .terraformrc. Re-downloaded on the next `terraform init`.",
+    "nb": "Provider-plugins cachet når plugincachen er slått på i .terraformrc. Lastes ned på nytt ved neste `terraform init`."
+  }
+}

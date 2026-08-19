@@ -1,0 +1,12 @@
+{
+  "$schema": "../schema/exclusion.schema.json",
+  "id": "dotnet-tools",
+  "group": "toolchains",
+  "paths": [
+    "~/.dotnet/tools"
+  ],
+  "reason": {
+    "en": "installed tools",
+    "nb": "installerte verktøy"
+  }
+}

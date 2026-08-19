@@ -1,0 +1,21 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "xcode-previews",
+  "category": "xcode",
+  "safety": "safe",
+  "paths": [
+    "~/Library/Developer/Xcode/UserData/Previews"
+  ],
+  "strategy": "removeContents",
+  "relatedApps": [
+    "com.apple.dt.Xcode"
+  ],
+  "name": {
+    "en": "SwiftUI Previews data",
+    "nb": "SwiftUI Previews-data"
+  },
+  "summary": {
+    "en": "Simulator devices and build artifacts created by the SwiftUI preview canvas.",
+    "nb": "Simulatorenheter og byggartefakter opprettet av SwiftUI preview-canvasen."
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "goose-data",
+  "category": "aiTools",
+  "safety": "caution",
+  "paths": [
+    "~/.local/share/goose/sessions",
+    "~/.local/state/goose/logs"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "Goose sessions & logs",
+    "nb": "Goose-økter og -logger"
+  },
+  "summary": {
+    "en": "Session transcripts and logs from Block's Goose agent. Cleaning removes the ability to resume past sessions.",
+    "nb": "Øktutskrifter og logger fra Blocks Goose-agent. Rydding fjerner muligheten til å gjenoppta tidligere økter."
+  }
+}

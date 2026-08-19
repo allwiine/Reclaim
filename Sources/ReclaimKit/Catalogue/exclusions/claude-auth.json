@@ -1,0 +1,12 @@
+{
+  "$schema": "../schema/exclusion.schema.json",
+  "id": "claude-auth",
+  "group": "claudeCode",
+  "paths": [
+    "~/.claude.json"
+  ],
+  "reason": {
+    "en": "auth & app state",
+    "nb": "pålogging og apptilstand"
+  }
+}

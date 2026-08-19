@@ -1,0 +1,28 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "dotnet-workload-packs",
+  "category": "dotNet",
+  "safety": "safe",
+  "strategy": "command",
+  "command": {
+    "executable": "/usr/local/share/dotnet/dotnet",
+    "arguments": [
+      "workload",
+      "clean"
+    ],
+    "display": "dotnet workload clean",
+    "availabilityProbe": "/usr/local/share/dotnet/sdk"
+  },
+  "name": {
+    "en": "Orphaned workload packs",
+    "nb": "Foreldreløse workload-pakker"
+  },
+  "summary": {
+    "en": "SDK workload packs (MAUI, wasm-tools and friends) left behind by updated or uninstalled SDKs. The .NET CLI removes them itself.",
+    "nb": "Workload-pakker fra SDK-en (MAUI, wasm-tools og venner) etterlatt av oppdaterte eller avinstallerte SDK-er. .NET CLI-en fjerner dem selv."
+  },
+  "note": {
+    "en": "Size is only known after cleaning — the .NET CLI decides what is orphaned. SDKs installed via Homebrew are not detected.",
+    "nb": "Størrelsen er først kjent etter rydding; .NET CLI-en avgjør hva som er foreldreløst. SDK-er installert via Homebrew oppdages ikke."
+  }
+}

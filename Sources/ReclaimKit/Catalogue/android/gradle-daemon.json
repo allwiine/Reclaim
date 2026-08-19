@@ -1,0 +1,21 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "gradle-daemon",
+  "category": "android",
+  "safety": "safe",
+  "paths": [
+    "~/.gradle/daemon"
+  ],
+  "strategy": "removeContents",
+  "relatedApps": [
+    "com.google.android.studio"
+  ],
+  "name": {
+    "en": "Gradle daemon logs",
+    "nb": "Gradle-daemonlogger"
+  },
+  "summary": {
+    "en": "Logs and registry files written by every Gradle daemon that ever ran.",
+    "nb": "Logger og registerfiler skrevet av hver Gradle-daemon som noen gang har kjørt."
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "xcode-device-logs",
+  "category": "xcode",
+  "safety": "safe",
+  "paths": [
+    "~/Library/Developer/Xcode/iOS Device Logs"
+  ],
+  "strategy": "removeContents",
+  "relatedApps": [
+    "com.apple.dt.Xcode"
+  ],
+  "name": {
+    "en": "Device logs",
+    "nb": "Enhetslogger"
+  },
+  "summary": {
+    "en": "Console logs collected from physical devices in Xcode's Devices window.",
+    "nb": "Konsollogger samlet inn fra fysiske enheter i Xcodes Enheter-vindu."
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "xcode-xctest-devices",
+  "category": "xcode",
+  "safety": "safe",
+  "paths": [
+    "~/Library/Developer/XCTestDevices"
+  ],
+  "strategy": "removeContents",
+  "relatedApps": [
+    "com.apple.dt.Xcode"
+  ],
+  "name": {
+    "en": "Test simulator clones",
+    "nb": "Simulatorkloner for testing"
+  },
+  "summary": {
+    "en": "Simulator clones created for parallel testing. Recreated on the next test run.",
+    "nb": "Simulatorkloner opprettet for parallell testing. Opprettes på nytt ved neste testkjøring."
+  }
+}

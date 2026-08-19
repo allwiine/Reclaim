@@ -1,0 +1,18 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "cocoapods-cache",
+  "category": "packageManagers",
+  "safety": "safe",
+  "paths": [
+    "~/Library/Caches/CocoaPods"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "CocoaPods cache",
+    "nb": "CocoaPods-cache"
+  },
+  "summary": {
+    "en": "Downloaded pod releases and spec data.",
+    "nb": "Nedlastede pod-utgivelser og spec-data."
+  }
+}

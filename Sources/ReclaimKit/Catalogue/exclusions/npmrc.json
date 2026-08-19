@@ -1,0 +1,12 @@
+{
+  "$schema": "../schema/exclusion.schema.json",
+  "id": "npmrc",
+  "group": "toolchains",
+  "paths": [
+    "~/.npmrc"
+  ],
+  "reason": {
+    "en": "registry token",
+    "nb": "registernøkkel"
+  }
+}

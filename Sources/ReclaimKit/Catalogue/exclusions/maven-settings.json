@@ -1,0 +1,13 @@
+{
+  "$schema": "../schema/exclusion.schema.json",
+  "id": "maven-settings",
+  "group": "toolchains",
+  "paths": [
+    "~/.m2/settings.xml",
+    "~/.m2/settings-security.xml"
+  ],
+  "reason": {
+    "en": "repository credentials",
+    "nb": "pålogging for pakkeregistre"
+  }
+}

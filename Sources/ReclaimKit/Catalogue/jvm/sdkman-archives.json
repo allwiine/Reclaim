@@ -1,0 +1,19 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "sdkman-archives",
+  "category": "jvm",
+  "safety": "safe",
+  "paths": [
+    "~/.sdkman/archives",
+    "~/.sdkman/tmp"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "SDKMAN archives",
+    "nb": "SDKMAN-arkiver"
+  },
+  "summary": {
+    "en": "Downloaded SDK archives and temp files kept by SDKMAN. Installed SDKs are not touched.",
+    "nb": "Nedlastede SDK-arkiver og midlertidige filer fra SDKMAN. Installerte SDK-er røres ikke."
+  }
+}

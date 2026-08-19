@@ -1,0 +1,19 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "node-gyp-cache",
+  "category": "packageManagers",
+  "safety": "safe",
+  "paths": [
+    "~/Library/Caches/node-gyp",
+    "~/.node-gyp"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "node-gyp headers",
+    "nb": "node-gyp-headere"
+  },
+  "summary": {
+    "en": "Node.js headers and libraries downloaded for building native addons.",
+    "nb": "Node.js-headere og biblioteker lastet ned for å bygge native addons."
+  }
+}

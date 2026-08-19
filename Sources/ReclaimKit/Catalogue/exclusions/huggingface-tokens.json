@@ -1,0 +1,13 @@
+{
+  "$schema": "../schema/exclusion.schema.json",
+  "id": "huggingface-tokens",
+  "group": "aiTools",
+  "paths": [
+    "~/.cache/huggingface/token",
+    "~/.cache/huggingface/stored_tokens"
+  ],
+  "reason": {
+    "en": "access tokens",
+    "nb": "tilgangsnøkler"
+  }
+}

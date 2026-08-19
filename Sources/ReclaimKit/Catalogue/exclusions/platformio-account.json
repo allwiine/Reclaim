@@ -1,0 +1,12 @@
+{
+  "$schema": "../schema/exclusion.schema.json",
+  "id": "platformio-account",
+  "group": "toolchains",
+  "paths": [
+    "~/.platformio/appstate.json"
+  ],
+  "reason": {
+    "en": "account state",
+    "nb": "kontotilstand"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "$schema": "../schema/exclusion.schema.json",
+  "id": "copilot-auth",
+  "group": "aiTools",
+  "paths": [
+    "~/.copilot/config.json"
+  ],
+  "reason": {
+    "en": "auth & config",
+    "nb": "pålogging og oppsett"
+  }
+}

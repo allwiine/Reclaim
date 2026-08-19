@@ -1,0 +1,21 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "godot-caches",
+  "category": "gameEngines",
+  "safety": "safe",
+  "paths": [
+    "~/Library/Caches/Godot"
+  ],
+  "strategy": "removeContents",
+  "relatedApps": [
+    "org.godotengine.godot"
+  ],
+  "name": {
+    "en": "Godot caches",
+    "nb": "Godot-cacher"
+  },
+  "summary": {
+    "en": "Editor and shader caches kept by Godot. Rebuilt on demand.",
+    "nb": "Editor- og shadercacher fra Godot. Bygges på nytt ved behov."
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "$schema": "../schema/exclusion.schema.json",
+  "id": "continue-config",
+  "group": "aiTools",
+  "paths": [
+    "~/.continue/config.json",
+    "~/.continue/config.yaml",
+    "~/.continue/config.ts"
+  ],
+  "reason": {
+    "en": "config, may hold API keys",
+    "nb": "oppsett, kan inneholde API-nøkler"
+  }
+}

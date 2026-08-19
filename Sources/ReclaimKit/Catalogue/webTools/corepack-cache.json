@@ -1,0 +1,18 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "corepack-cache",
+  "category": "webTools",
+  "safety": "safe",
+  "paths": [
+    "~/.cache/node/corepack"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "Corepack cache",
+    "nb": "Corepack-cache"
+  },
+  "summary": {
+    "en": "Package manager versions (pnpm, Yarn) downloaded by Corepack.",
+    "nb": "Pakkebehandlerversjoner (pnpm, Yarn) lastet ned av Corepack."
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "lima-cache",
+  "category": "containers",
+  "safety": "safe",
+  "paths": [
+    "~/Library/Caches/lima"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "Lima image cache",
+    "nb": "Lima-imagecache"
+  },
+  "summary": {
+    "en": "Base images downloaded for Lima virtual machines. Re-downloaded when a VM is recreated.",
+    "nb": "Baseimages lastet ned for Lima-VM-er. Lastes ned på nytt når en VM gjenopprettes."
+  }
+}

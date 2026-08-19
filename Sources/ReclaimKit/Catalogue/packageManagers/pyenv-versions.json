@@ -1,0 +1,22 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "pyenv-versions",
+  "category": "packageManagers",
+  "safety": "destructive",
+  "paths": [
+    "~/.pyenv/versions"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "pyenv Python versions",
+    "nb": "pyenv Python-versjoner"
+  },
+  "summary": {
+    "en": "Every Python version installed through pyenv, including virtualenvs created by pyenv-virtualenv.",
+    "nb": "Hver Python-versjon installert via pyenv, inkludert virtualenvs opprettet av pyenv-virtualenv."
+  },
+  "note": {
+    "en": "Reinstall with `pyenv install <version>`.",
+    "nb": "Installer på nytt med `pyenv install <versjon>`."
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "continue-index",
+  "category": "aiTools",
+  "safety": "safe",
+  "paths": [
+    "~/.continue/index"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "Continue codebase index",
+    "nb": "Continue-kodebaseindeks"
+  },
+  "summary": {
+    "en": "Codebase index built by the Continue extension for @codebase context. Rebuilt on next indexing.",
+    "nb": "Kodebaseindeksen Continue-utvidelsen bygger for @codebase-kontekst. Bygges på nytt ved neste indeksering."
+  },
+  "note": {
+    "en": "Config and session history in ~/.continue are never touched by Reclaim.",
+    "nb": "Konfigurasjon og økthistorikk i ~/.continue røres aldri av Reclaim."
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "minikube-cache",
+  "category": "containers",
+  "safety": "safe",
+  "paths": [
+    "~/.minikube/cache"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "minikube cache",
+    "nb": "minikube-cache"
+  },
+  "summary": {
+    "en": "Kubernetes images and ISOs cached by minikube. Re-downloaded on the next `minikube start`.",
+    "nb": "Kubernetes-images og ISO-er cachet av minikube. Lastes ned på nytt ved neste `minikube start`."
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "$schema": "../schema/exclusion.schema.json",
+  "id": "docker-auth",
+  "group": "cloudContainers",
+  "paths": [
+    "~/.docker/config.json"
+  ],
+  "reason": {
+    "en": "registry auth",
+    "nb": "registerpålogging"
+  }
+}

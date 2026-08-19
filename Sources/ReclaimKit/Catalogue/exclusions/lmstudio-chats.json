@@ -1,0 +1,12 @@
+{
+  "$schema": "../schema/exclusion.schema.json",
+  "id": "lmstudio-chats",
+  "group": "aiTools",
+  "paths": [
+    "~/.lmstudio/conversations"
+  ],
+  "reason": {
+    "en": "chat history",
+    "nb": "samtalehistorikk"
+  }
+}

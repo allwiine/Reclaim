@@ -1,0 +1,22 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "ollama-models",
+  "category": "aiTools",
+  "safety": "caution",
+  "paths": [
+    "~/.ollama/models"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "Ollama models",
+    "nb": "Ollama-modeller"
+  },
+  "summary": {
+    "en": "Local LLM weights pulled with `ollama pull`. Often tens of gigabytes.",
+    "nb": "Lokale LLM-vekter hentet med `ollama pull`. Ofte titalls gigabyte."
+  },
+  "note": {
+    "en": "Models must be re-downloaded to use them again. To remove selectively, use `ollama rm <model>`.",
+    "nb": "Modeller må lastes ned på nytt for å brukes igjen. Bruk `ollama rm <modell>` for å fjerne enkeltvis."
+  }
+}

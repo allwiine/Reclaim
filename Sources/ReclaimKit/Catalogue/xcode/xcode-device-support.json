@@ -1,0 +1,24 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "xcode-device-support",
+  "category": "xcode",
+  "safety": "safe",
+  "paths": [
+    "~/Library/Developer/Xcode/iOS DeviceSupport",
+    "~/Library/Developer/Xcode/watchOS DeviceSupport",
+    "~/Library/Developer/Xcode/tvOS DeviceSupport",
+    "~/Library/Developer/Xcode/visionOS DeviceSupport"
+  ],
+  "strategy": "removeContents",
+  "relatedApps": [
+    "com.apple.dt.Xcode"
+  ],
+  "name": {
+    "en": "Device support files",
+    "nb": "Device support-filer"
+  },
+  "summary": {
+    "en": "Debug symbols copied from every iPhone, iPad, Watch and Apple TV you have ever plugged in. Re-copied automatically when a device reconnects.",
+    "nb": "Debugsymboler kopiert fra hver iPhone, iPad, Watch og Apple TV du noen gang har koblet til. Kopieres automatisk på nytt når en enhet kobles til igjen."
+  }
+}

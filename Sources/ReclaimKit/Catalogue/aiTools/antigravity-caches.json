@@ -1,0 +1,24 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "antigravity-caches",
+  "category": "aiTools",
+  "safety": "safe",
+  "paths": [
+    "~/Library/Application Support/Antigravity/Cache",
+    "~/Library/Application Support/Antigravity/CachedData",
+    "~/Library/Application Support/Antigravity/Code Cache",
+    "~/Library/Application Support/Antigravity/GPUCache"
+  ],
+  "strategy": "removeContents",
+  "relatedApps": [
+    "com.google.antigravity"
+  ],
+  "name": {
+    "en": "Antigravity caches",
+    "nb": "Antigravity-cacher"
+  },
+  "summary": {
+    "en": "Extension host, rendering and code caches for Google's Antigravity IDE.",
+    "nb": "Extension host-, gjengivelses- og kodecacher for Googles Antigravity-IDE."
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "spm-cache",
+  "category": "packageManagers",
+  "safety": "safe",
+  "paths": [
+    "~/Library/Caches/org.swift.swiftpm"
+  ],
+  "strategy": "removeContents",
+  "name": {
+    "en": "Swift Package Manager cache",
+    "nb": "Swift Package Manager-cache"
+  },
+  "summary": {
+    "en": "Checked-out repositories and manifests cached by SwiftPM (shared by Xcode and the CLI).",
+    "nb": "Utsjekkede repoer og manifester cachet av SwiftPM (delt av Xcode og CLI-en)."
+  }
+}
