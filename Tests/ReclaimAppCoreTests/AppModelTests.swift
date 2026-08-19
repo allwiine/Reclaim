@@ -648,22 +648,22 @@ struct AppModelTests {
             historyStore: temporaryHistoryStore()
         )
 
-        model.loadBreakdown(for: cache)
-        #expect(model.breakdowns["cache"] == nil, "nothing to break down before a scan")
+        model.breakdowns.load(for: cache)
+        #expect(model.breakdowns.entries["cache"] == nil, "nothing to break down before a scan")
 
         model.scanAll()
         await model.scanTask?.value
-        model.loadBreakdown(for: cache)
-        for _ in 0..<10_000 where model.breakdowns["cache"] == nil {
+        model.breakdowns.load(for: cache)
+        for _ in 0..<10_000 where model.breakdowns.entries["cache"] == nil {
             await Task.yield()
         }
-        #expect(model.breakdowns["cache"]?.first?.name == "big")
+        #expect(model.breakdowns.entries["cache"]?.first?.name == "big")
 
-        model.loadBreakdown(for: cache)
+        model.breakdowns.load(for: cache)
         #expect(computeCalls.withLock { $0 } == 1, "cached breakdowns are not recomputed")
 
         model.scanAll()
-        #expect(model.breakdowns.isEmpty, "a new scan invalidates every breakdown")
+        #expect(model.breakdowns.entries.isEmpty, "a new scan invalidates every breakdown")
         await model.scanTask?.value
     }
 
@@ -806,8 +806,8 @@ struct AppModelTests {
         model.scanAll()
         await model.scanTask?.value
         #expect(model.isSelected(cache), "safe target arrives fully selected")
-        model.loadBreakdown(for: cache)
-        for _ in 0..<10_000 where model.breakdowns["cache"] == nil {
+        model.breakdowns.load(for: cache)
+        for _ in 0..<10_000 where model.breakdowns.entries["cache"] == nil {
             await Task.yield()
         }
 
@@ -877,8 +877,8 @@ struct AppModelTests {
 
         model.scanAll()
         await model.scanTask?.value
-        model.loadBreakdown(for: cache)
-        for _ in 0..<10_000 where model.breakdowns["cache"] == nil {
+        model.breakdowns.load(for: cache)
+        for _ in 0..<10_000 where model.breakdowns.entries["cache"] == nil {
             await Task.yield()
         }
         model.setPathSelected(cache, path: "/fixture/a", false)

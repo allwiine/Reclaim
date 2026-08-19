@@ -62,8 +62,8 @@ public final class AppModel {
     /// manually still works. Persisted across launches.
     public private(set) var autoSelectExclusions: Set<CleanupTarget.ID>
 
-    /// On-demand "largest contents" per target, cached per scan.
-    public private(set) var breakdowns: [CleanupTarget.ID: [BreakdownEntry]] = [:]
+    /// On-demand "largest contents" cache per target.
+    public let breakdowns: BreakdownModel
 
     /// User-configured development folders (the dev-folder feature is
     /// inert until this is non-empty). Persisted.
@@ -79,20 +79,11 @@ public final class AppModel {
     private(set) var scanTask: Task<Void, Never>?
     @ObservationIgnored
     private(set) var cleanTask: Task<Void, Never>?
-    @ObservationIgnored
-    private var breakdownTasks: [CleanupTarget.ID: Task<Void, Never>] = [:]
-    /// Invalidation tokens for in-flight breakdown computations. A task
-    /// may only publish its result while its token is still current —
-    /// a result computed for an old scan must never overwrite fresh state.
-    @ObservationIgnored
-    private var breakdownTokens: [CleanupTarget.ID: UUID] = [:]
 
     @ObservationIgnored
     private let scanExecutor: ScanExecutor
     @ObservationIgnored
     private let cleanExecutor: CleanExecutor
-    @ObservationIgnored
-    private let breakdownExecutor: BreakdownExecutor
     @ObservationIgnored
     private let projectScanExecutor: ProjectScanExecutor
     @ObservationIgnored
@@ -137,9 +128,9 @@ public final class AppModel {
         self.results = TargetResultsModel(
             targets: targets, settings: settings, volumeProbe: executors.volume
         )
+        self.breakdowns = BreakdownModel(results: results, executor: executors.breakdown)
         self.scanExecutor = executors.scan
         self.cleanExecutor = executors.clean
-        self.breakdownExecutor = executors.breakdown
         self.projectScanExecutor = executors.projectScan
         self.artifactCleanExecutor = executors.artifactClean
         self.fullDiskAccessProbe = executors.fullDiskAccess
@@ -195,47 +186,6 @@ public final class AppModel {
         guard settings.weeklyScanEnabled, !activity.isScanning, !activity.isCleaning, !activity.isReviewingSelection else { return }
         guard let next = nextBackgroundScanDate else { return }
         if now >= next { scanAll() }
-    }
-
-    // MARK: - Contents breakdown
-
-    /// Kick off (or reuse) the "largest contents" computation for a
-    /// measured target. Results land in ``breakdowns``.
-    public func loadBreakdown(for target: CleanupTarget) {
-        guard breakdowns[target.id] == nil, breakdownTasks[target.id] == nil else { return }
-        let current = results.status(of: target.id)
-        guard case .measured = current else { return }
-
-        let compute = breakdownExecutor
-        let token = UUID()
-        breakdownTokens[target.id] = token
-        breakdownTasks[target.id] = Task {
-            let entries = await offMain { compute(current) }
-            // A computation that finished just before an invalidation
-            // cancelled it must not publish its (stale) result.
-            guard self.breakdownTokens[target.id] == token else { return }
-            if let entries {
-                self.breakdowns[target.id] = entries
-            }
-            self.breakdownTasks[target.id] = nil
-            self.breakdownTokens[target.id] = nil
-        }
-    }
-
-    /// Drop cached breakdowns (statuses changed, they may be stale).
-    private func invalidateBreakdowns() {
-        for task in breakdownTasks.values { task.cancel() }
-        breakdownTasks.removeAll()
-        breakdownTokens.removeAll()
-        breakdowns.removeAll()
-    }
-
-    /// Invalidate one target's breakdown (after cleaning re-measured it).
-    private func invalidateBreakdown(of id: CleanupTarget.ID) {
-        breakdownTasks[id]?.cancel()
-        breakdownTasks[id] = nil
-        breakdownTokens[id] = nil
-        breakdowns[id] = nil
     }
 
     // MARK: - Dev-folder projects
@@ -627,7 +577,7 @@ public final class AppModel {
             // Sizes come from the contents breakdown, which is loaded
             // whenever the inspector (the only place that ticks paths)
             // is showing the target.
-            let entries = breakdowns[target.id] ?? []
+            let entries = breakdowns.entries[target.id] ?? []
             partialSelections[target.id] = chosen.reduce(into: [:]) { map, chosenPath in
                 map[chosenPath] = entries.first { $0.id == chosenPath }?.bytes ?? 0
             }
@@ -653,7 +603,7 @@ public final class AppModel {
     /// Scan-time size of one cleanup path, when the breakdown measured it.
     public func breakdownBytes(of target: CleanupTarget, path: String) -> Int64? {
         if let bytes = partialSelections[target.id]?[path] { return bytes }
-        return breakdowns[target.id]?.first { $0.id == path }?.bytes
+        return breakdowns.entries[target.id]?.first { $0.id == path }?.bytes
     }
 
     // MARK: - Scanning
@@ -666,7 +616,7 @@ public final class AppModel {
         selection.removeAll()
         partialSelections.removeAll()
         activity.lastCleanSummary = nil
-        invalidateBreakdowns()
+        breakdowns.invalidateAll()
         projectScans = []
         artifactSelection.removeAll()
         results.scanRealRoots.removeAll()
@@ -1086,7 +1036,7 @@ public final class AppModel {
 
                 let refreshed = await offMain { scan(job.target) }
                 self.results.setStatus(refreshed, for: job.target.id)
-                self.invalidateBreakdown(of: job.target.id)
+                self.breakdowns.invalidate(job.target.id)
                 // Freed space is only credited when this pass actually
                 // removed something *and* the rescan could measure it.
                 // A target the tool pruned itself between scan and clean
@@ -1266,7 +1216,7 @@ public final class AppModel {
         self.results.statuses = statuses
         self.selection = selection
         self.history.seed(entries: history)
-        self.breakdowns = breakdowns
+        self.breakdowns.seed(entries: breakdowns)
         self.results.volumeSpace = volumeSpace
         self.results.hasFullDiskAccess = hasFullDiskAccess
         self.activity.lastCleanSummary = lastCleanSummary

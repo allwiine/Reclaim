@@ -120,7 +120,7 @@ struct InspectorPanel: View {
             // Reset per-target view state that lives on the (stable) panel.
             showAllContents = false
             copied = false
-            model.loadBreakdown(for: target)
+            model.breakdowns.load(for: target)
         }
     }
 
@@ -270,7 +270,7 @@ struct InspectorPanel: View {
     private func breakdown(for target: CleanupTarget, status: TargetStatus) -> some View {
         if case .measured(let measurement, _, let cleanupPaths) = status, measurement.bytes > 0 {
             let pickable = target.strategy.isCleanable && !cleanupPaths.isEmpty
-            let entries = model.breakdowns[target.id] ?? []
+            let entries = model.breakdowns.entries[target.id] ?? []
 
             HStack(alignment: .firstTextBaseline, spacing: 10) {
                 SectionLabel(localized("inspector.largestContents", defaultValue: "Largest contents"))
