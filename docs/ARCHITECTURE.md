@@ -16,9 +16,14 @@ Reclaim is deliberately small and layered. The core insight is that a storage cl
 ┌────────────────────▼─────────────────────────────────────┐
 │ ReclaimAppCore (library target — no UI imports)          │
 │                                                          │
-│  AppModel (@MainActor @Observable, owns all state,       │
-│            injectable Scan/CleanExecutor seams)          │
-│  CleanSummary · CleanHistory                             │
+│  AppModel  composition root (@MainActor @Observable);    │
+│            builds the sub-models, injects `Executors`    │
+│  Models    SettingsStore · ActivityModel ·               │
+│            TargetResultsModel · BreakdownModel ·         │
+│            SelectionModel · ProjectsModel ·              │
+│            ScanCoordinator · CleanCoordinator ·          │
+│            HistoryModel                                  │
+│  Support   CleanSummary · CleanHistory                   │
 └────────────────────┼─────────────────────────────────────┘
                      │ calls into (off the main actor)
 ┌────────────────────▼─────────────────────────────────────┐
@@ -52,26 +57,28 @@ This shape is deliberate as the project's primary contribution surface: a new to
 
 ## Data flow
 
-1. **Scan.** `AppModel.scanAll()` marks every target `.scanning`, evaluates the `FullDiskAccessProbe`, and fans work out through a `withTaskGroup` bounded to 4 concurrent walks. Each child task runs `TargetScanner.scan(_:)`:
-   `pathPatterns` → `PathResolver` (tilde + glob expansion, drops non-existent paths) → a **cleanup-path snapshot** (for `.removeContents`, the directories' children at this moment) → `DiskSizer` (allocated-size walk of the snapshot; unreadable entries are counted, an unreadable root fails the target) → a `TargetStatus`. Dev-folder discovery runs in the same pass when folders are configured: a single-pass `getattrlistbulk(2)` walk per root that discovers projects, tracks newest mtimes, and sizes artifacts, reading each directory exactly once and no file contents except the reflog tail.
-2. **Display.** Statuses land in `AppModel.statuses`; every view derives from that dictionary plus the registry. There is no duplicated state. A scan stopped early is flagged (`lastScanWasComplete == false`) and the Overview says so; missing Full Disk Access surfaces as a banner.
-3. **Select.** The user ticks targets. Selectability is computed (`isSelectable`): only cleanable strategies with a non-zero measurement (or command targets whose availability probe passes) can be ticked.
-4. **Clean.** After an explicit confirmation (which also warns if a related app is running), `cleanSelected()` runs the `CleanupEngine` per target — sequentially, cancellable between targets — passing **the scan-time cleanup snapshot**. The engine never lists directories itself, so nothing created after the scan can be deleted. Disposal is Trash or permanent delete depending on Settings.
+1. **Scan.** `model.scanner.scanAll()` (`ScanCoordinator`) marks every target `.scanning`, evaluates the `FullDiskAccessProbe`, and fans work out through a `withTaskGroup` bounded to 4 concurrent walks. Each child task runs `TargetScanner.scan(_:)`:
+   `pathPatterns` → `PathResolver` (tilde + glob expansion, drops non-existent paths) → a **cleanup-path snapshot** (for `.removeContents`, the directories' children at this moment) → `DiskSizer` (allocated-size walk of the snapshot; unreadable entries are counted, an unreadable root fails the target) → a `TargetStatus`. Dev-folder discovery runs in the same pass when folders are configured (`ProjectsModel`, via `ScanCoordinator`): a single-pass `getattrlistbulk(2)` walk per root that discovers projects, tracks newest mtimes, and sizes artifacts, reading each directory exactly once and no file contents except the reflog tail.
+2. **Display.** Statuses land in `model.results.statuses` (`TargetResultsModel`); every view derives from that dictionary plus the registry. There is no duplicated state. A scan stopped early is flagged (`lastScanWasComplete == false`) and the Overview says so; missing Full Disk Access surfaces as a banner.
+3. **Select.** The user ticks targets, tracked by `model.selection` (`SelectionModel`). Selectability is computed (`isSelectable`): only cleanable strategies with a non-zero measurement (or command targets whose availability probe passes) can be ticked.
+4. **Clean.** After an explicit confirmation (which also warns if a related app is running), `model.cleaner.cleanSelected(scope:)` (`CleanCoordinator`) runs the `CleanupEngine` per target — sequentially, cancellable between targets — passing **the scan-time cleanup snapshot**. The engine never lists directories itself, so nothing created after the scan can be deleted. Disposal is Trash or permanent delete depending on Settings.
 5. **Verify.** Each cleaned target is immediately re-scanned; reclaimed space is reported as *measured before − measured after*, never assumed. The summary reports items actually removed, and counts a target as cleaned only when at least one removal succeeded.
+
+This flow has one dependency cycle that would otherwise exist: `SelectionModel` needs to know whether a pass is running (selectability changes mid-scan and mid-clean), while `ScanCoordinator`/`CleanCoordinator` need to know the current selection to act on it. `ActivityModel` (`model.activity`) breaks the cycle by owning only the "what is the app doing right now" state — the pass flags (`isScanning`, `isCleaning`, `isCancellingScan`, `isCancellingClean`, `isReviewingSelection`) and live progress (`scanProgress`, `cleanProgress`, `lastCleanSummary`). The coordinators write it; `SelectionModel`, `ProjectsModel`, and the UI only read it, so no sub-model needs a direct reference to a coordinator.
 
 ## Concurrency model
 
 The package compiles in Swift 6 language mode (strict data-race safety). Isolation is **explicit**, not defaulted:
 
-- `AppModel` is `@MainActor @Observable`. All UI-visible state lives there.
+- `AppModel` and each of the nine sub-models it composes (`settings`, `activity`, `results`, `breakdowns`, `selection`, `projects`, `scanner`, `cleaner`, `history`) are `@MainActor @Observable`. UI-visible state lives on whichever sub-model owns it, never duplicated onto `AppModel` itself.
 - Everything in `ReclaimKit` is nonisolated, `Sendable`, and synchronous. Services are stateless structs — cheap to create per call, trivially thread-safe.
 - Blocking filesystem work reaches the background two ways:
   - scan fan-out: `group.addTask { … scan(target) }` — child tasks run nonisolated on the global executor;
-  - single operations: the `nonisolated static func offMain` trampoline in `AppModel`.
+  - single operations: the free `offMain` function (`Sources/ReclaimAppCore/Support/OffMain.swift`), awaited from the coordinators and other sub-models that touch the filesystem (`BreakdownModel`, `HistoryModel`, `TargetResultsModel`).
 - The scan group is **width-limited** (4) because directory walking is disk-bound: more parallelism gains nothing and would occupy cooperative-pool threads with blocking I/O.
 - Cancellation is cooperative: `DiskSizer` calls `Task.checkCancellation()` every 512 entries, so the Stop button reacts promptly even mid-walk. A cancelled scan keeps completed measurements but is flagged partial. A clean pass checks cancellation between targets — the in-flight target always finishes, so nothing is left half-cleaned.
 
-**Why not `.defaultIsolation(MainActor.self)`?** Swift 6.2's "single-threaded by default" mode is great for apps that are mostly UI. Reclaim has a genuine concurrency boundary at its heart — scans must never touch the main thread — and annotating that boundary explicitly (`@MainActor` above it, plain `Sendable` code below it) documents the design better than a module-wide default plus scattered opt-outs. If the default is ever adopted, the background helpers in `AppModel` should gain `@concurrent` to preserve their off-main execution.
+**Why not `.defaultIsolation(MainActor.self)`?** Swift 6.2's "single-threaded by default" mode is great for apps that are mostly UI. Reclaim has a genuine concurrency boundary at its heart — scans must never touch the main thread — and annotating that boundary explicitly (`@MainActor` above it, plain `Sendable` code below it) documents the design better than a module-wide default plus scattered opt-outs. If the default is ever adopted, the background helpers across `ReclaimAppCore` should gain `@concurrent` to preserve their off-main execution.
 
 ## Error handling
 
@@ -94,15 +101,20 @@ Swift Testing (`swift test`), three test targets:
 
 `Tests/ReclaimAppCoreTests`:
 
-- **AppModelTests / AppModelProjectTests** — scan lifecycle (including cancellation → partial), selection rules, cleanup-path plumbing, summary math, disposal snapshotting, dev-folder project orchestration — all against stubbed `ScanExecutor`/`CleanExecutor` closures.
-- **CleanHistoryTests** — the persisted clean-history store.
+- **SettingsStoreTests / SelectionTests / SelectionCherryPickingTests / TargetResultsTests / BreakdownTests** — one suite per sub-model: settings persistence, whole-target and cherry-picked selection rules, visibility and aggregates, breakdown caching.
+- **ScanTests / CleanTests / CleanDryRunTests / CleanSafetyTests** — `ScanCoordinator`/`CleanCoordinator`: scan lifecycle (including cancellation → partial), the clean pass, dry-run projections, and scan-time safety pins.
+- **ProjectsTests / ProjectDiscoveryTests / ProjectSelectionTests / ProjectCleanTests / ProjectCleanScopeTests** — `ProjectsModel`: dev-folder roots and discovery, artifact/project selection, and cleanup-path plumbing for dev-folder artifacts.
+- **HistoryTests / CleanHistoryTests** — `HistoryModel` and the persisted clean-history store.
+- **AppModelTests** — the composition root: cross-model overview aggregates and the termination handshake.
 - **LocalizationTests** — parity and coverage of the app-core catalogues.
+
+All of the above (aside from `LocalizationTests`) run against stubbed `Executors` (`Sources/ReclaimAppCore/Executors.swift`), never the real filesystem.
 
 `Tests/LocalizationLintTests`:
 
 - **LocalizationLintTests** — a source-tree lint: every `localized(…)` reference exists in both of its module's catalogues, en/nb key sets are identical, and the view layer never uses literal-key SwiftUI inits (`Text("some.key")`).
 
-UI is kept logic-free (views derive everything from `AppModel`), so model-level tests give high coverage without UI tests; add XCUITest via the XcodeGen project if flows grow.
+UI is kept logic-free (views derive everything from `AppModel`'s sub-models), so model-level tests give high coverage without UI tests; add XCUITest via the XcodeGen project if flows grow.
 
 ## Extension points
 

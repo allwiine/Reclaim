@@ -20,6 +20,23 @@ Xcode users can `open Package.swift` directly. Building a distributable
 `.app` uses [XcodeGen](https://github.com/yonaskolb/XcodeGen) (`brew install
 xcodegen && xcodegen`), but day-to-day work never needs it.
 
+## Tooling
+
+Install [SwiftLint](https://github.com/realm/SwiftLint) and
+[lefthook](https://github.com/evilmartians/lefthook), then set up the
+pre-commit hook once after cloning:
+
+```bash
+brew install swiftlint lefthook
+lefthook install
+```
+
+Every Swift file is capped at 200 lines of code — `.swiftlint.yml`'s
+`file_length` rule (`ignore_comment_only_lines: true`), which the hook
+enforces on staged files via `swiftlint lint --strict`. `.swiftlint.yml`
+deliberately sets `only_rules: [file_length]`: the gate's scope is exact
+by design, not a starting point for accumulating unrelated style rules.
+
 ## Architecture ground rules
 
 Reclaim is three targets with a strict dependency rule — see
