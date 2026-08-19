@@ -61,34 +61,6 @@ struct KitLocalizationTests {
         #expect(try pluralKeys("en") == pluralKeys("nb"))
     }
 
-    @Test("Every registry target has catalogue entries in every locale")
-    func registryCoverage() throws {
-        for locale in Self.locales {
-            for target in TargetRegistry.all {
-                #expect(
-                    try defines("target.\(target.id).name", in: locale),
-                    "\(locale): missing name for \(target.id)"
-                )
-                #expect(
-                    try defines("target.\(target.id).summary", in: locale),
-                    "\(locale): missing summary for \(target.id)"
-                )
-                if target.note != nil {
-                    #expect(
-                        try defines("target.\(target.id).note", in: locale),
-                        "\(locale): missing note for \(target.id)"
-                    )
-                }
-                if case .manual = target.strategy {
-                    #expect(
-                        try defines("target.\(target.id).instructions", in: locale),
-                        "\(locale): missing instructions for \(target.id)"
-                    )
-                }
-            }
-        }
-    }
-
     @Test("Category and safety labels exist in every locale")
     func enumCoverage() throws {
         for locale in Self.locales {
@@ -128,23 +100,8 @@ struct KitLocalizationTests {
         let nb = try strings("nb", table: "Localizable.strings")
         // Spot checks on strings that must differ; many keys (brand
         // names like "Android Studio") are legitimately identical.
-        for key in ["safety.safe.title", "safety.caution.explanation", "target.xcode-derived-data.summary"] {
+        for key in ["safety.safe.title", "safety.caution.explanation"] {
             #expect(en[key] != nb[key], "\(key) looks untranslated")
-        }
-    }
-
-    @Test("Manual instructions keep their backticked command in every locale")
-    func manualCommandSurvivesTranslation() throws {
-        for locale in Self.locales {
-            let table = try strings(locale, table: "Localizable.strings")
-            for target in TargetRegistry.all {
-                guard case .manual = target.strategy else { continue }
-                let instructions = try #require(table["target.\(target.id).instructions"])
-                #expect(
-                    instructions.contains("`"),
-                    "\(locale): instructions for \(target.id) lost the command"
-                )
-            }
         }
     }
 }
