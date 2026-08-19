@@ -202,7 +202,7 @@ struct ToolbarView: View {
                 defaultValue: "\(targets.count) items · \(bytes.formattedBytesCompact)"
             )
         case .history:
-            let recent = model.history.count
+            let recent = model.history.entries.count
             guard recent > 0 else { return "" }
             return localized(
                 "toolbar.historySubtitle",

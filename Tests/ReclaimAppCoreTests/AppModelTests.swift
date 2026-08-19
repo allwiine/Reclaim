@@ -537,7 +537,7 @@ struct AppModelTests {
         #expect(model.activity.lastCleanSummary?.itemsRemoved == 2)
         #expect(model.isSelected(cache), "the selection survives a dry run")
         #expect(model.status(of: "cache").bytes == 100, "measurements stay untouched")
-        #expect(model.history.isEmpty, "dry runs are not history")
+        #expect(model.history.entries.isEmpty, "dry runs are not history")
     }
 
     @Test("A real clean pass is recorded in persistent history")
@@ -564,11 +564,11 @@ struct AppModelTests {
         model.cleanSelected()
         await model.cleanTask?.value
 
-        #expect(model.history.count == 1)
-        #expect(model.history.first?.targetNames == ["cache"])
-        #expect(model.history.first?.itemsRemoved == 3)
-        #expect(model.history.first?.reclaimedBytes == 100)
-        #expect(model.reclaimedAllTimeBytes == 100)
+        #expect(model.history.entries.count == 1)
+        #expect(model.history.entries.first?.targetNames == ["cache"])
+        #expect(model.history.entries.first?.itemsRemoved == 3)
+        #expect(model.history.entries.first?.reclaimedBytes == 100)
+        #expect(model.history.reclaimedAllTimeBytes == 100)
         #expect(model.activity.lastCleanSummary?.cleaned.map(\.name) == ["cache"])
 
         // The entry must survive a fresh model (i.e. an app restart).
@@ -898,10 +898,10 @@ struct AppModelTests {
         #expect(!model.isPartiallySelected(cache), "picks are consumed by the pass")
         #expect(model.activity.lastCleanSummary?.reclaimedBytes == 40, "freed is measured by the rescan")
         #expect(
-            model.history.first?.items?.first?.bytesAfter == 60,
+            model.history.entries.first?.items?.first?.bytesAfter == 60,
             "the remainder is recorded so it never counts as regrowth"
         )
-        #expect(model.history.first?.items?.first?.bytesFreed == 40)
+        #expect(model.history.entries.first?.items?.first?.bytesFreed == 40)
     }
 
     @Test("A target-scoped clean cleans one target, the rest stays selected")
@@ -1019,7 +1019,7 @@ struct AppModelTests {
         model.cleanSelected()
         await model.cleanTask?.value
 
-        let entry = model.history.first
+        let entry = model.history.entries.first
         #expect(entry?.items?.map(\.targetID) == ["cache"])
         #expect(entry?.items?.first?.bytesFreed == 100)
         #expect(entry?.items?.first?.bytesAfter == 0, "a full clean leaves a zero baseline")
@@ -1052,16 +1052,16 @@ struct AppModelTests {
         await model.scanTask?.value
         model.cleanSelected()
         await model.cleanTask?.value
-        #expect(model.history.first?.trashEmptiedDate == nil)
+        #expect(model.history.entries.first?.trashEmptiedDate == nil)
 
         // Whole seconds: the store's ISO8601 coding drops fractions.
         let emptied = Date(timeIntervalSince1970: Date.now.timeIntervalSince1970.rounded())
-        model.markTrashEmptied(at: emptied)
-        #expect(model.history.first?.trashEmptiedDate == emptied)
+        model.history.markTrashEmptied(at: emptied)
+        #expect(model.history.entries.first?.trashEmptiedDate == emptied)
 
         // Idempotent: a later emptying never rewrites an earlier stamp.
-        model.markTrashEmptied(at: emptied.addingTimeInterval(3_600))
-        #expect(model.history.first?.trashEmptiedDate == emptied)
+        model.history.markTrashEmptied(at: emptied.addingTimeInterval(3_600))
+        #expect(model.history.entries.first?.trashEmptiedDate == emptied)
 
         // Permanent-delete passes are never stamped.
         model.settings.disposal = .delete
@@ -1070,9 +1070,9 @@ struct AppModelTests {
         model.setSelected(cache, true)
         model.cleanSelected()
         await model.cleanTask?.value
-        model.markTrashEmptied()
-        #expect(model.history.first?.disposal == .delete)
-        #expect(model.history.first?.trashEmptiedDate == nil)
+        model.history.markTrashEmptied()
+        #expect(model.history.entries.first?.disposal == .delete)
+        #expect(model.history.entries.first?.trashEmptiedDate == nil)
 
         // The stamps persist.
         for _ in 0..<10_000 where historyStore.load().count < 2 {
@@ -1103,13 +1103,13 @@ struct AppModelTests {
         await model.scanTask?.value
         model.cleanSelected()
         await model.cleanTask?.value
-        #expect(model.history.count == 1)
+        #expect(model.history.entries.count == 1)
 
         // Clearing immediately after the pass must win against the
         // pass's own save still in flight.
-        model.clearHistory()
-        #expect(model.history.isEmpty)
-        #expect(model.reclaimedAllTimeBytes == 0)
+        model.history.clear()
+        #expect(model.history.entries.isEmpty)
+        #expect(model.history.reclaimedAllTimeBytes == 0)
 
         for _ in 0..<10_000 where !historyStore.load().isEmpty {
             await Task.yield()

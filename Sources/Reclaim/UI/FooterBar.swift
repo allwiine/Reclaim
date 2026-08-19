@@ -20,11 +20,11 @@ struct FooterBar: View {
         HStack(spacing: 0) {
             item(
                 label: localized("overview.reclaimedAllTime", defaultValue: "Reclaimed (all time)"),
-                value: model.reclaimedAllTimeBytes > 0
-                    ? model.reclaimedAllTimeBytes.formattedBytesCompact : "—",
-                help: model.history.isEmpty
+                value: model.history.reclaimedAllTimeBytes > 0
+                    ? model.history.reclaimedAllTimeBytes.formattedBytesCompact : "—",
+                help: model.history.entries.isEmpty
                     ? localized("overview.noCleansYet", defaultValue: "no cleans recorded yet")
-                    : localized("overview.acrossCleans", defaultValue: "across \(model.history.count) cleans")
+                    : localized("overview.acrossCleans", defaultValue: "across \(model.history.entries.count) cleans")
             )
             Spacer(minLength: 16)
             item(
@@ -62,12 +62,12 @@ struct FooterBar: View {
     }
 
     private var lastCleanValue: String {
-        guard let last = model.history.first else { return "—" }
+        guard let last = model.history.entries.first else { return "—" }
         return last.date.formatted(date: .abbreviated, time: .omitted)
     }
 
     private var lastCleanHelp: String {
-        guard let last = model.history.first else {
+        guard let last = model.history.entries.first else {
             return localized("overview.nothingCleanedYet", defaultValue: "nothing cleaned yet")
         }
         let freed = last.reclaimedBytes.formattedBytesCompact

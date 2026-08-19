@@ -344,7 +344,7 @@ struct AppModelProjectTests {
         #expect(model.projects.first?.artifacts.isEmpty == true)
         // Selection cleared; history recorded the artifact.
         #expect(model.artifactSelection.isEmpty)
-        #expect(model.history.first?.items?.contains {
+        #expect(model.history.entries.first?.items?.contains {
             $0.targetID == "artifact:/dev/app/node_modules"
         } == true)
     }

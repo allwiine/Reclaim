@@ -73,8 +73,8 @@ public final class AppModel {
     /// card. Refreshed around scans and cleans.
     public private(set) var volumeSpace: VolumeSpace?
 
-    /// Past clean passes, newest first.
-    public private(set) var history: [CleanHistoryEntry]
+    /// Persistent clean history.
+    public let history: HistoryModel
 
     /// Target ids the user chose to keep out of automatic selection
     /// (the post-scan preselection and "select all safe"). Ticking them
@@ -105,10 +105,6 @@ public final class AppModel {
     /// a result computed for an old scan must never overwrite fresh state.
     @ObservationIgnored
     private var breakdownTokens: [CleanupTarget.ID: UUID] = [:]
-    /// Chains history saves so a later write can never lose to an
-    /// earlier one still in flight.
-    @ObservationIgnored
-    private var historyPersistTask: Task<Void, Never>?
 
     @ObservationIgnored
     private let scanExecutor: ScanExecutor
@@ -124,8 +120,6 @@ public final class AppModel {
     private let fullDiskAccessProbe: @Sendable () -> Bool?
     @ObservationIgnored
     private let volumeProbe: @Sendable () -> VolumeSpace?
-    @ObservationIgnored
-    private let historyStore: CleanHistoryStore
 
     /// Symlink-resolved (real) form of each target's roots, captured at
     /// scan time. Cleaning refuses any cleanup path whose ancestry no
@@ -173,8 +167,7 @@ public final class AppModel {
         self.artifactCleanExecutor = executors.artifactClean
         self.fullDiskAccessProbe = executors.fullDiskAccess
         self.volumeProbe = executors.volume
-        self.historyStore = historyStore
-        self.history = historyStore.load().sorted { $0.date > $1.date }
+        self.history = HistoryModel(store: historyStore)
         self.autoSelectExclusions = Set(
             defaults.stringArray(forKey: DefaultsKey.autoSelectExclusions) ?? []
         )
@@ -308,11 +301,6 @@ public final class AppModel {
     /// attention" cards.
     public var manualTargets: [CleanupTarget] {
         targets.filter { !$0.strategy.isCleanable && bytes(of: $0) > 0 }
-    }
-
-    /// All-time reclaimed space across recorded cleans.
-    public var reclaimedAllTimeBytes: Int64 {
-        history.reduce(0) { $0 + $1.reclaimedBytes }
     }
 
     // MARK: - Background scanning
@@ -898,9 +886,10 @@ public final class AppModel {
             cleanTask?.cancel()
             _ = await cleanTask?.value
         }
-        // recordHistory (run at the end of the pass) schedules the
-        // persist; await it so the on-disk history is up to date.
-        _ = await historyPersistTask?.value
+        // record(from:duration:freeAfterBytes:) (run at the end of the
+        // pass) schedules the persist; await it so the on-disk history
+        // is up to date.
+        await history.flush()
     }
 
     /// Fan out scans through a width-limited task group. Runs on the
@@ -1346,71 +1335,11 @@ public final class AppModel {
             // carries the honest "free after this clean" figure.
             let space = await offMain { volume() }
             self.volumeSpace = space
-            self.recordHistory(
+            self.history.record(
                 from: summary,
                 duration: Date.now.timeIntervalSince(passStart),
                 freeAfterBytes: space?.availableBytes
             )
-        }
-    }
-
-    /// Append a real pass with removals to the persistent history.
-    private func recordHistory(
-        from summary: CleanSummary, duration: TimeInterval, freeAfterBytes: Int64?
-    ) {
-        guard !summary.isDryRun, summary.itemsRemoved > 0 else { return }
-        let entry = CleanHistoryEntry(
-            date: .now,
-            targetNames: summary.cleaned.map(\.name) + summary.cleanedArtifacts.map(\.name),
-            itemsRemoved: summary.itemsRemoved,
-            reclaimedBytes: summary.reclaimedBytes,
-            items: summary.cleaned.map {
-                CleanedHistoryItem(
-                    targetID: $0.id, name: $0.name,
-                    bytesFreed: $0.bytesFreed, bytesAfter: $0.bytesAfter
-                )
-            } + summary.cleanedArtifacts.map {
-                CleanedHistoryItem(
-                    targetID: "artifact:\($0.id)", name: $0.name,
-                    bytesFreed: $0.bytesFreed
-                )
-            },
-            disposal: summary.disposal,
-            duration: duration,
-            freeAfterBytes: freeAfterBytes
-        )
-        history.insert(entry, at: 0)
-        persistHistory()
-    }
-
-    /// Record that the user emptied the Trash through Reclaim. Emptying
-    /// is global, so every trash-disposal pass still unmarked gets the
-    /// stamp — their files all left the Trash together.
-    public func markTrashEmptied(at date: Date = .now) {
-        var changed = false
-        for index in history.indices
-        where history[index].disposal == .trash && history[index].trashEmptiedDate == nil {
-            history[index].trashEmptiedDate = date
-            changed = true
-        }
-        if changed { persistHistory() }
-    }
-
-    /// Erase the recorded clean history. Files on disk are unaffected.
-    public func clearHistory() {
-        history.removeAll()
-        persistHistory()
-    }
-
-    /// Saves are chained so a clear issued right after a clean pass can
-    /// never lose the race against the pass's own (earlier) save.
-    private func persistHistory() {
-        let store = historyStore
-        let snapshot = history
-        let previous = historyPersistTask
-        historyPersistTask = Task {
-            await previous?.value
-            await offMain { store.save(snapshot) }
         }
     }
 
@@ -1469,7 +1398,7 @@ public final class AppModel {
     ) {
         self.statuses = statuses
         self.selection = selection
-        self.history = history
+        self.history.seed(entries: history)
         self.breakdowns = breakdowns
         self.volumeSpace = volumeSpace
         self.hasFullDiskAccess = hasFullDiskAccess

@@ -374,7 +374,7 @@ struct DoneView: View {
                 switch outcome {
                 case .emptied:
                     trashState = .emptied
-                    model.markTrashEmptied()
+                    model.history.markTrashEmptied()
                 case .failed(let message):
                     trashState = .failed(message)
                 }
