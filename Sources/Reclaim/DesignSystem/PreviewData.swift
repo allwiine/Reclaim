@@ -107,7 +107,7 @@ enum PreviewData {
     static func scanned() -> AppModel {
         let model = makeModel()
         var statuses: [CleanupTarget.ID: TargetStatus] = [:]
-        for target in model.targets {
+        for target in model.results.targets {
             if let size = sizes[target.id] {
                 let root = URL(filePath: "/Users/dev/Library/\(target.id)")
                 statuses[target.id] = .measured(
@@ -123,7 +123,7 @@ enum PreviewData {
                 statuses[target.id] = .notInstalled
             }
         }
-        let selection = Set(model.targets.filter {
+        let selection = Set(model.results.targets.filter {
             $0.safety == .safe && $0.strategy.isCleanable && sizes[$0.id] != nil
         }.map(\.id))
 

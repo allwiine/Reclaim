@@ -200,7 +200,7 @@ struct ProjectsView: View {
                     failedRootRow(scan)
                 }
 
-                if model.lastScan == nil {
+                if model.results.lastScan == nil {
                     hintText(localized(
                         "projects.notScanned",
                         defaultValue: "Run a scan to find projects and artifacts."

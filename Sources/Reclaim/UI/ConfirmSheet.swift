@@ -23,7 +23,7 @@ struct ConfirmSheet: View {
     /// what this sheet covers.
     private var singleTarget: CleanupTarget? {
         guard case .single(let id) = scope else { return nil }
-        return model.targets.first { $0.id == id }
+        return model.results.targets.first { $0.id == id }
     }
 
     /// The one project of a per-project confirmation, if that is what
@@ -378,7 +378,7 @@ struct ConfirmSheet: View {
     }
 
     private func sizeLabel(for target: CleanupTarget) -> String {
-        if case .unmeasurable = model.status(of: target.id) {
+        if case .unmeasurable = model.results.status(of: target.id) {
             return localized("confirm.sizeUnknown", defaultValue: "size unknown")
         }
         return model.selectedBytes(of: target).formattedBytesCompact

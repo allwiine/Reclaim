@@ -133,7 +133,7 @@ private struct MenuBarSummary: View {
 
     var body: some View {
         Group {
-            if model.lastScan != nil {
+            if model.results.lastScan != nil {
                 // Only what Reclaim itself can clean — tool-managed
                 // items (Docker, Go modules) don't count as reclaimable.
                 Text(localized(
@@ -142,7 +142,7 @@ private struct MenuBarSummary: View {
                 ))
                 Text(localized(
                     "menu.safeToRemove",
-                    defaultValue: "Safe to remove: \(model.safeReclaimableBytes.formattedBytesCompact)"
+                    defaultValue: "Safe to remove: \(model.results.safeReclaimableBytes.formattedBytesCompact)"
                 ))
             } else {
                 Text(localized("toolbar.noScanYet", defaultValue: "No scan yet"))

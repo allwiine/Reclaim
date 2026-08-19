@@ -435,7 +435,7 @@ private struct HistoryDetailPanel: View {
                 .monospacedDigit()
                 .foregroundStyle(Color(hex: 0x8E8E95))
             }
-            if let total = model.volumeSpace?.totalBytes, total > 0 {
+            if let total = model.results.volumeSpace?.totalBytes, total > 0 {
                 ProgressBar(fraction: Double(freeAfter) / Double(total), height: 6)
                     .padding(.top, 9)
             }
@@ -455,7 +455,7 @@ private struct HistoryDetailPanel: View {
             SectionLabel(localized("history.detail.whatWasRemoved", defaultValue: "What was removed"))
                 .padding(.bottom, 4)
             ForEach(items, id: \.targetID) { item in
-                let target = model.targets.first { $0.id == item.targetID }
+                let target = model.results.targets.first { $0.id == item.targetID }
                 VStack(alignment: .leading, spacing: 8) {
                     HStack(spacing: 10) {
                         if let target {
@@ -553,8 +553,8 @@ private struct HistoryDetailPanel: View {
 
     /// Today's measured size of the target, when a scan can tell.
     private func currentBytes(for item: CleanedHistoryItem) -> Int64? {
-        guard let target = model.targets.first(where: { $0.id == item.targetID }),
-              case .measured(let measurement, _, _) = model.status(of: target.id)
+        guard let target = model.results.targets.first(where: { $0.id == item.targetID }),
+              case .measured(let measurement, _, _) = model.results.status(of: target.id)
         else { return nil }
         return measurement.bytes
     }

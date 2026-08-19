@@ -133,7 +133,7 @@ struct AppModelProjectTests {
         #expect(model.projectsWithArtifactsCount == 1)   // artifact-free "tidy" not counted
         #expect(model.totalFoundBytes == 600)   // 100 target + 500 artifacts
         #expect(model.cleanableBytes == 600)
-        #expect(model.lastScanWasComplete)
+        #expect(model.results.lastScanWasComplete)
     }
 
     @Test("Without dev roots the scan runs exactly as before")

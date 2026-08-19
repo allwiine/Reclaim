@@ -72,13 +72,13 @@ struct BrowserView: View {
     private var visibleTargets: [CleanupTarget] {
         switch mode {
         case .category(let category):
-            return model.visibleTargets(in: category)
+            return model.results.visibleTargets(in: category)
         case .all:
-            return model.allVisibleTargets
+            return model.results.allVisibleTargets
         case .search(let query):
             let trimmed = query.trimmingCharacters(in: .whitespaces)
             guard !trimmed.isEmpty else { return [] }
-            return model.targets.filter { target in
+            return model.results.targets.filter { target in
                 target.name.localizedCaseInsensitiveContains(trimmed)
                     || target.summary.localizedCaseInsensitiveContains(trimmed)
                     || target.category.title.localizedCaseInsensitiveContains(trimmed)
@@ -154,7 +154,7 @@ struct BrowserView: View {
                         TargetRow(
                             target: target,
                             isInspected: inspectedTarget(in: targets)?.id == target.id,
-                            maxBytes: targets.map { model.bytes(of: $0) }.max() ?? 0
+                            maxBytes: targets.map { model.results.bytes(of: $0) }.max() ?? 0
                         ) {
                             inspectedID = target.id
                         }
@@ -236,7 +236,7 @@ private struct TargetRow: View {
     let maxBytes: Int64
     let inspect: () -> Void
 
-    private var status: TargetStatus { model.status(of: target.id) }
+    private var status: TargetStatus { model.results.status(of: target.id) }
 
     var body: some View {
         Button(action: inspect) {

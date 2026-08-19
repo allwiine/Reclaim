@@ -39,7 +39,7 @@ struct DoneView: View {
             VStack(spacing: 0) {
                 checkmark
                 headline
-                if let space = model.volumeSpace {
+                if let space = model.results.volumeSpace {
                     diskAfter(space)
                         .padding(.top, 36)
                         .entrance(appeared, delay: 0.25)
@@ -297,7 +297,7 @@ struct DoneView: View {
                 .themeFont(.caption)
                 .foregroundStyle(Theme.textTertiary)
             }
-            if model.hasFullDiskAccess == false {
+            if model.results.hasFullDiskAccess == false {
                 Text(localized(
                     "done.fullDiskAccessHint",
                     defaultValue: "If access was denied, grant Reclaim Full Disk Access in System Settings → Privacy & Security."

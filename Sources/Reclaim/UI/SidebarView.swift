@@ -83,7 +83,7 @@ struct SidebarView: View {
     // MARK: - Headline
 
     private var hasMeasurements: Bool {
-        model.lastScan != nil || model.activity.isScanning
+        model.results.lastScan != nil || model.activity.isScanning
     }
 
     private var headline: some View {
@@ -133,7 +133,7 @@ struct SidebarView: View {
     // the bar carries their share too — otherwise the composition
     // would silently attribute the projects' bytes to the categories.
     private var categorySegments: [MeterSegment] {
-        let totals = model.categoryTotals(cleanableOnly: true)
+        let totals = model.results.categoryTotals(cleanableOnly: true)
         let projectBytes = model.projectArtifactBytes
         let sum = max(1, totals.reduce(Int64(0)) { $0 + $1.bytes } + projectBytes)
         var segments = totals.map { total in
@@ -156,7 +156,7 @@ struct SidebarView: View {
     // MARK: - Category rows
 
     private func categoryRow(_ category: ToolCategory) -> some View {
-        let bytes = model.categoryTotals().first { $0.category == category }?.bytes ?? 0
+        let bytes = model.results.categoryTotals().first { $0.category == category }?.bytes ?? 0
         let isSelected = destination == .category(category)
 
         return Button {

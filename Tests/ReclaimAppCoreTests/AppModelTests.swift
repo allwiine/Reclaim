@@ -97,9 +97,9 @@ struct AppModelTests {
         await model.scanTask?.value
 
         #expect(model.activity.isScanning == false)
-        #expect(model.lastScan != nil)
-        #expect(model.status(of: "cache").bytes == 100)
-        #expect(model.status(of: "missing") == .notInstalled)
+        #expect(model.results.lastScan != nil)
+        #expect(model.results.status(of: "cache").bytes == 100)
+        #expect(model.results.status(of: "missing") == .notInstalled)
         #expect(model.totalFoundBytes == 100)
     }
 
@@ -117,7 +117,7 @@ struct AppModelTests {
         model.scanAll()
         await model.scanTask?.value
 
-        #expect(model.lastScanWasComplete)
+        #expect(model.results.lastScanWasComplete)
     }
 
     @Test("A cancelled scan keeps partial results but is marked incomplete")
@@ -145,9 +145,9 @@ struct AppModelTests {
         gate.signal()
         await model.scanTask?.value
 
-        #expect(model.lastScan != nil, "partial data is real data — the scan still happened")
-        #expect(model.status(of: "fast").bytes == 100, "completed measurements survive")
-        #expect(!model.lastScanWasComplete, "a stopped scan must not present itself as complete")
+        #expect(model.results.lastScan != nil, "partial data is real data — the scan still happened")
+        #expect(model.results.status(of: "fast").bytes == 100, "completed measurements survive")
+        #expect(!model.results.lastScanWasComplete, "a stopped scan must not present itself as complete")
     }
 
     @Test("The Full Disk Access verdict is refreshed when scanning")
@@ -161,12 +161,12 @@ struct AppModelTests {
                 fullDiskAccess: { false }
             )
         )
-        #expect(model.hasFullDiskAccess == nil, "no verdict before the first scan")
+        #expect(model.results.hasFullDiskAccess == nil, "no verdict before the first scan")
 
         model.scanAll()
         await model.scanTask?.value
 
-        #expect(model.hasFullDiskAccess == false)
+        #expect(model.results.hasFullDiskAccess == false)
     }
 
     @Test("Only measured non-empty cleanable targets are selectable")
@@ -266,7 +266,7 @@ struct AppModelTests {
         #expect(model.activity.isCleaning == false)
         #expect(model.selection.isEmpty)
         #expect(model.activity.lastCleanSummary?.reclaimedBytes == 100)
-        #expect(model.status(of: "cache").bytes == 0, "post-clean rescan must be reflected")
+        #expect(model.results.status(of: "cache").bytes == 0, "post-clean rescan must be reflected")
     }
 
     @Test("Summary counts only targets that actually had removals")
@@ -473,7 +473,7 @@ struct AppModelTests {
         #expect(model.activity.cleanProgress == nil)
         #expect(model.activity.lastCleanSummary?.wasStopped == true)
         #expect(model.isSelected(second), "skipped targets stay selected")
-        #expect(model.status(of: "second").bytes == 100, "skipped targets keep their measurement")
+        #expect(model.results.status(of: "second").bytes == 100, "skipped targets keep their measurement")
     }
 
     @Test("A finished scan preselects Safe items, honoring the Caution setting")
@@ -536,7 +536,7 @@ struct AppModelTests {
         #expect(model.activity.lastCleanSummary?.reclaimedBytes == 100)
         #expect(model.activity.lastCleanSummary?.itemsRemoved == 2)
         #expect(model.isSelected(cache), "the selection survives a dry run")
-        #expect(model.status(of: "cache").bytes == 100, "measurements stay untouched")
+        #expect(model.results.status(of: "cache").bytes == 100, "measurements stay untouched")
         #expect(model.history.entries.isEmpty, "dry runs are not history")
     }
 
@@ -694,20 +694,20 @@ struct AppModelTests {
             historyStore: temporaryHistoryStore()
         )
 
-        #expect(model.allVisibleTargets.count == 4,
+        #expect(model.results.allVisibleTargets.count == 4,
                 "everything is listed before a scan")
 
         model.scanAll()
         await model.scanTask?.value
-        #expect(model.allVisibleTargets.map(\.id) == ["found", "lower"],
+        #expect(model.results.allVisibleTargets.map(\.id) == ["found", "lower"],
                 "not-installed and provably empty targets hide by default; a lower-bound zero stays")
 
         model.settings.showNotInstalled = true
-        #expect(model.allVisibleTargets.map(\.id) == ["found", "missing", "lower"])
+        #expect(model.results.allVisibleTargets.map(\.id) == ["found", "missing", "lower"])
 
         model.settings.showEmpty = true
-        #expect(model.allVisibleTargets.count == 4, "both settings bring everything back")
-        #expect(model.visibleTargets(in: .otherTools).count == 4,
+        #expect(model.results.allVisibleTargets.count == 4, "both settings bring everything back")
+        #expect(model.results.visibleTargets(in: .otherTools).count == 4,
                 "the category list follows the same rules")
     }
 

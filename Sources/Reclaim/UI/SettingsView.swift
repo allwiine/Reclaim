@@ -363,7 +363,7 @@ struct SettingsView: View {
     }
 
     private var fdaStatusText: String {
-        switch model.hasFullDiskAccess {
+        switch model.results.hasFullDiskAccess {
         case .some(true):
             localized("settings.fdaStatusGranted", defaultValue: "Granted")
         case .some(false):
@@ -374,7 +374,7 @@ struct SettingsView: View {
     }
 
     private var fdaStatusColor: Color {
-        switch model.hasFullDiskAccess {
+        switch model.results.hasFullDiskAccess {
         case .some(true): Theme.safe
         case .some(false): Theme.dangerWarn
         case .none: Theme.textQuaternary

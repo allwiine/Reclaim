@@ -31,15 +31,10 @@ public final class AppModel {
     /// little from more parallelism and would block cooperative threads.
     private static let maxConcurrentScans = 4
 
-    // MARK: - Catalogue
-
-    /// All known targets, in registry order.
-    public let targets: [CleanupTarget]
-
     // MARK: - Session state
 
-    /// Scan status per target id. Missing entry ⇒ `.idle`.
-    public private(set) var statuses: [CleanupTarget.ID: TargetStatus] = [:]
+    /// Per-target scan results and the totals derived from them.
+    public let results: TargetResultsModel
 
     /// Targets the user has ticked for cleaning.
     public private(set) var selection: Set<CleanupTarget.ID> = []
@@ -50,7 +45,6 @@ public final class AppModel {
     /// selected target without an entry cleans everything.
     public private(set) var partialSelections: [CleanupTarget.ID: [String: Int64]] = [:]
 
-    public private(set) var lastScan: Date?
     /// When the last *completed* (non-cancelled) scan finished. Anchors
     /// the weekly background schedule and, being observable, keeps the
     /// footer's "next background scan" line live.
@@ -59,19 +53,6 @@ public final class AppModel {
     /// What the app is doing right now — pass flags, progress, and the
     /// latest pass outcome.
     public let activity = ActivityModel()
-
-    /// Whether the most recent scan ran to completion. `false` means it
-    /// was stopped early: measurements on screen are real but partial.
-    /// Meaningful only once `lastScan` is non-nil.
-    public private(set) var lastScanWasComplete = true
-
-    /// Whether the process can read TCC-protected locations. Evaluated
-    /// at scan time; `nil` before the first scan or when indeterminate.
-    public private(set) var hasFullDiskAccess: Bool?
-
-    /// Capacity of the volume holding the user's data, for the disk
-    /// card. Refreshed around scans and cleans.
-    public private(set) var volumeSpace: VolumeSpace?
 
     /// Persistent clean history.
     public let history: HistoryModel
@@ -121,13 +102,6 @@ public final class AppModel {
     @ObservationIgnored
     private let volumeProbe: @Sendable () -> VolumeSpace?
 
-    /// Symlink-resolved (real) form of each target's roots, captured at
-    /// scan time. Cleaning refuses any cleanup path whose ancestry no
-    /// longer resolves to one of these — the defence against a cache
-    /// directory being swapped for a symlink between scan and clean,
-    /// which would otherwise redirect deletion outside the target.
-    @ObservationIgnored
-    private var scanRealRoots: [CleanupTarget.ID: Set<String>] = [:]
     /// The same pin for dev-folder roots: an artifact is only disposed
     /// of while its parent still resolves inside a scanned dev root.
     @ObservationIgnored
@@ -157,9 +131,12 @@ public final class AppModel {
         executors: Executors = Executors(),
         historyStore: CleanHistoryStore = CleanHistoryStore()
     ) {
-        self.targets = targets
         self.defaults = defaults
-        self.settings = SettingsStore(defaults: defaults)
+        let settings = SettingsStore(defaults: defaults)
+        self.settings = settings
+        self.results = TargetResultsModel(
+            targets: targets, settings: settings, volumeProbe: executors.volume
+        )
         self.scanExecutor = executors.scan
         self.cleanExecutor = executors.clean
         self.breakdownExecutor = executors.breakdown
@@ -174,133 +151,30 @@ public final class AppModel {
         self.devRoots = (defaults.stringArray(forKey: DefaultsKey.devRoots) ?? [])
             .map { URL(filePath: $0) }
         self.lastCompletedScanDate = defaults.object(forKey: DefaultsKey.lastScanDate) as? Date
-        refreshVolumeSpace()
+        results.refreshVolumeSpace()
     }
 
     // MARK: - Derived state
 
-    public func status(of id: CleanupTarget.ID) -> TargetStatus {
-        statuses[id] ?? .idle
-    }
-
-    /// Targets shown for a category, honoring the "show not installed"
-    /// and "show empty" settings once a scan has happened.
-    public func visibleTargets(in category: ToolCategory) -> [CleanupTarget] {
-        let all = targets.filter { $0.category == category }
-        guard lastScan != nil else { return all }
-        return all.filter(isVisibleAfterScan)
-    }
-
-    /// Every visible target across all categories, in registry order —
-    /// what the "Review everything" browser lists.
-    public var allVisibleTargets: [CleanupTarget] {
-        guard lastScan != nil else { return targets }
-        return targets.filter(isVisibleAfterScan)
-    }
-
-    private func isVisibleAfterScan(_ target: CleanupTarget) -> Bool {
-        switch status(of: target.id) {
-        case .notInstalled:
-            return settings.showNotInstalled
-        case .measured(let measurement, _, _)
-            where measurement.bytes == 0 && measurement.inaccessibleItems == 0:
-            // Provably empty. A lower-bound zero (unreadable entries)
-            // stays visible — it may not actually be empty.
-            return settings.showEmpty
-        default:
-            return true
-        }
-    }
-
     /// Everything measured, including manual-only items like Docker and
     /// dev-folder artifacts.
     public var totalFoundBytes: Int64 {
-        targets.reduce(0) { $0 + (status(of: $1.id).bytes ?? 0) } + projectArtifactBytes
+        results.targets.reduce(0) { $0 + (results.status(of: $1.id).bytes ?? 0) }
+            + projectArtifactBytes
     }
 
     /// Only what Reclaim itself can clean, including dev-folder artifacts.
     public var cleanableBytes: Int64 {
-        targets.reduce(0) { sum, target in
+        results.targets.reduce(0) { sum, target in
             guard target.strategy.isCleanable else { return sum }
-            return sum + (status(of: target.id).bytes ?? 0)
+            return sum + (results.status(of: target.id).bytes ?? 0)
         } + projectArtifactBytes
     }
 
     /// Bytes covered by the current selection, partial picks and
     /// selected dev-folder artifacts included.
     public var selectedBytes: Int64 {
-        targets.reduce(0) { $0 + selectedBytes(of: $1) } + selectedArtifactBytes
-    }
-
-    public struct CategoryTotal: Identifiable {
-        public let category: ToolCategory
-        public let bytes: Int64
-        public var id: ToolCategory.ID { category.id }
-    }
-
-    /// Per-category measured totals in category display order.
-    /// `cleanableOnly` restricts the sum to what Reclaim itself can
-    /// clean — the honest figure for anything labeled "reclaimable".
-    public func categoryTotals(cleanableOnly: Bool = false) -> [CategoryTotal] {
-        ToolCategory.allCases.map { category in
-            let bytes = targets
-                .filter { $0.category == category && (!cleanableOnly || $0.strategy.isCleanable) }
-                .reduce(Int64(0)) { $0 + (status(of: $1.id).bytes ?? 0) }
-            return CategoryTotal(category: category, bytes: bytes)
-        }
-    }
-
-    /// Measured total for a sidebar badge, or `nil` before any scan or
-    /// when nothing in the category was measured.
-    public func categoryTotalBytes(_ category: ToolCategory) -> Int64? {
-        guard lastScan != nil else { return nil }
-        let bytes = categoryTotals().first { $0.category == category }?.bytes ?? 0
-        return bytes > 0 ? bytes : nil
-    }
-
-    /// The largest measured targets, for the overview list.
-    public func largestTargets(limit: Int) -> [CleanupTarget] {
-        targets
-            .filter { (status(of: $0.id).bytes ?? 0) > 0 }
-            .sorted { (status(of: $0.id).bytes ?? 0) > (status(of: $1.id).bytes ?? 0) }
-            .prefix(limit)
-            .map { $0 }
-    }
-
-    /// Measured bytes of one target (0 while unmeasured).
-    public func bytes(of target: CleanupTarget) -> Int64 {
-        status(of: target.id).bytes ?? 0
-    }
-
-    /// What the one-click "reclaim safe space" action covers: measured,
-    /// cleanable, Safe-rated bytes.
-    public var safeReclaimableBytes: Int64 {
-        targets.reduce(0) {
-            $1.safety == .safe && $1.strategy.isCleanable ? $0 + bytes(of: $1) : $0
-        }
-    }
-
-    /// Number of Safe-rated targets with something to clean.
-    public var safeReclaimableCount: Int {
-        targets.count { $0.safety == .safe && $0.strategy.isCleanable && bytes(of: $0) > 0 }
-    }
-
-    /// Measured bytes needing a decision first (Caution + Destructive,
-    /// including tool-managed items like Docker).
-    public var reviewBytes: Int64 {
-        targets.reduce(0) { $1.safety == .safe ? $0 : $0 + bytes(of: $1) }
-    }
-
-    /// Number of measured targets needing a decision first.
-    public var reviewCount: Int {
-        targets.count { $0.safety != .safe && bytes(of: $0) > 0 }
-    }
-
-    /// Measured targets Reclaim will not delete itself — their own tool
-    /// has to do it (Docker, the Go toolchain). Drives the "needs your
-    /// attention" cards.
-    public var manualTargets: [CleanupTarget] {
-        targets.filter { !$0.strategy.isCleanable && bytes(of: $0) > 0 }
+        results.targets.reduce(0) { $0 + selectedBytes(of: $1) } + selectedArtifactBytes
     }
 
     // MARK: - Background scanning
@@ -329,7 +203,7 @@ public final class AppModel {
     /// measured target. Results land in ``breakdowns``.
     public func loadBreakdown(for target: CleanupTarget) {
         guard breakdowns[target.id] == nil, breakdownTasks[target.id] == nil else { return }
-        let current = status(of: target.id)
+        let current = results.status(of: target.id)
         guard case .measured = current else { return }
 
         let compute = breakdownExecutor
@@ -362,13 +236,6 @@ public final class AppModel {
         breakdownTasks[id] = nil
         breakdownTokens[id] = nil
         breakdowns[id] = nil
-    }
-
-    private func refreshVolumeSpace() {
-        let probe = volumeProbe
-        Task {
-            self.volumeSpace = await offMain { probe() }
-        }
     }
 
     // MARK: - Dev-folder projects
@@ -425,8 +292,8 @@ public final class AppModel {
     /// The largest measured findings across registry targets and
     /// dev-folder projects, by size.
     public func largestFindings(limit: Int) -> [OverviewFinding] {
-        let targetFindings: [OverviewFinding] = targets.compactMap { target in
-            let bytes = status(of: target.id).bytes ?? 0
+        let targetFindings: [OverviewFinding] = results.targets.compactMap { target in
+            let bytes = results.status(of: target.id).bytes ?? 0
             return bytes > 0 ? .target(target, bytes: bytes) : nil
         }
         let projectFindings: [OverviewFinding] = projects
@@ -621,7 +488,7 @@ public final class AppModel {
     /// Whether the row's checkbox is enabled.
     public func isSelectable(_ target: CleanupTarget) -> Bool {
         guard target.strategy.isCleanable, !activity.isScanning, !activity.isCleaning else { return false }
-        switch status(of: target.id) {
+        switch results.status(of: target.id) {
         case .measured(let measurement, _, _): return measurement.bytes > 0
         case .unmeasurable: return true
         default: return false
@@ -634,20 +501,20 @@ public final class AppModel {
 
     /// The selected targets, in registry order.
     public var selectedTargets: [CleanupTarget] {
-        targets.filter { selection.contains($0.id) }
+        results.targets.filter { selection.contains($0.id) }
     }
 
     /// How many targets could be ticked right now — the denominator for
     /// "N of M selected". Manual-only targets never count.
     public var selectableItemCount: Int {
-        selectableItemCount(among: targets)
+        selectableItemCount(among: results.targets)
     }
 
     /// The same count restricted to a subset (one browser view's list).
     public func selectableItemCount(among candidates: [CleanupTarget]) -> Int {
         candidates.count { target in
             guard target.strategy.isCleanable else { return false }
-            switch status(of: target.id) {
+            switch results.status(of: target.id) {
             case .measured(let measurement, _, _): return measurement.bytes > 0
             case .unmeasurable: return true
             default: return false
@@ -686,7 +553,7 @@ public final class AppModel {
     /// Select every selectable target rated ``SafetyLevel/safe``,
     /// honoring the user's auto-select exclusions.
     public func selectAllSafe() {
-        for target in targets where target.safety == .safe
+        for target in results.targets where target.safety == .safe
             && isSelectable(target)
             && !autoSelectExclusions.contains(target.id) {
             selection.insert(target.id)
@@ -719,7 +586,7 @@ public final class AppModel {
     /// (ticked, total) cleanup-path counts, when partially selected.
     public func partialSelectionCounts(of target: CleanupTarget) -> (selected: Int, total: Int)? {
         guard let partial = partialSelections[target.id] else { return nil }
-        return (partial.count, status(of: target.id).cleanupPaths.count)
+        return (partial.count, results.status(of: target.id).cleanupPaths.count)
     }
 
     /// Whether one scan-time cleanup path is in the effective clean scope.
@@ -734,7 +601,7 @@ public final class AppModel {
     /// ticked one deselects the target entirely.
     public func setPathSelected(_ target: CleanupTarget, path: String, _ on: Bool) {
         guard target.strategy.isCleanable, !activity.isScanning, !activity.isCleaning else { return }
-        let allPaths = status(of: target.id).cleanupPaths.map(\.path)
+        let allPaths = results.status(of: target.id).cleanupPaths.map(\.path)
         guard allPaths.contains(path) else { return }
 
         var chosen: Set<String>
@@ -769,7 +636,7 @@ public final class AppModel {
 
     /// The exact paths a clean pass would dispose for this target now.
     public func selectedCleanupPaths(of target: CleanupTarget) -> [URL] {
-        let all = status(of: target.id).cleanupPaths
+        let all = results.status(of: target.id).cleanupPaths
         guard let partial = partialSelections[target.id] else { return all }
         return all.filter { partial.keys.contains($0.path) }
     }
@@ -780,7 +647,7 @@ public final class AppModel {
         if let partial = partialSelections[target.id] {
             return partial.values.reduce(0, +)
         }
-        return status(of: target.id).bytes ?? 0
+        return results.status(of: target.id).bytes ?? 0
     }
 
     /// Scan-time size of one cleanup path, when the breakdown measured it.
@@ -802,18 +669,18 @@ public final class AppModel {
         invalidateBreakdowns()
         projectScans = []
         artifactSelection.removeAll()
-        scanRealRoots.removeAll()
+        results.scanRealRoots.removeAll()
         scanRealDevRoots.removeAll()
         activity.scanProgress = ScanProgress(
-            completed: 0, total: targets.count + devRoots.count,
+            completed: 0, total: results.targets.count + devRoots.count,
             currentTargetName: "", currentPath: ""
         )
-        for target in targets {
-            statuses[target.id] = .scanning
+        for target in results.targets {
+            results.setStatus(.scanning, for: target.id)
         }
 
         let probe = fullDiskAccessProbe
-        scanTask = Task { [targets] in
+        scanTask = Task { [targets = results.targets] in
             // Keep the process off App Nap for the duration: a scan with
             // the window closed (menu-bar-only) would otherwise be
             // throttled, and the weekly background scan is exactly that
@@ -822,15 +689,15 @@ public final class AppModel {
                 options: [.userInitiated], reason: "Scanning for reclaimable storage"
             )
             defer { ProcessInfo.processInfo.endActivity(activity) }
-            self.hasFullDiskAccess = await offMain { probe() }
+            self.results.hasFullDiskAccess = await offMain { probe() }
             await self.runScan(of: targets)
             // Any rows still marked scanning were cancelled mid-flight.
-            for target in targets where self.statuses[target.id] == .scanning {
-                self.statuses[target.id] = .idle
+            for target in targets where self.results.statuses[target.id] == .scanning {
+                self.results.setStatus(.idle, for: target.id)
             }
             await self.runProjectScan()
-            self.lastScan = .now
-            self.lastScanWasComplete = !Task.isCancelled
+            self.results.lastScan = .now
+            self.results.lastScanWasComplete = !Task.isCancelled
             // Only a completed scan anchors the weekly schedule — a scan
             // the user stopped after two seconds must not push the next
             // automatic scan a full week out.
@@ -843,7 +710,7 @@ public final class AppModel {
             self.activity.scanProgress = nil
             self.scanTask = nil
             self.applyPostScanSelection()
-            self.refreshVolumeSpace()
+            self.results.refreshVolumeSpace()
         }
     }
 
@@ -851,7 +718,7 @@ public final class AppModel {
     /// (plus Caution when the setting opts in), so one click cleans.
     /// Targets the user excluded from automatic selection stay unticked.
     private func applyPostScanSelection() {
-        for target in targets where isSelectable(target) {
+        for target in results.targets where isSelectable(target) {
             guard !autoSelectExclusions.contains(target.id) else { continue }
             let wanted = target.safety == .safe
                 || (settings.preselectCaution && target.safety == .caution)
@@ -945,11 +812,11 @@ public final class AppModel {
             }
             publishProgress()
             while let (id, resolvedStatus, realRoots) = await group.next() {
-                statuses[id] = resolvedStatus
+                results.setStatus(resolvedStatus, for: id)
                 if realRoots.isEmpty {
-                    scanRealRoots[id] = nil
+                    results.scanRealRoots[id] = nil
                 } else {
-                    scanRealRoots[id] = realRoots
+                    results.scanRealRoots[id] = realRoots
                 }
                 completed += 1
                 inFlight.removeAll { $0.id == id }
@@ -965,7 +832,7 @@ public final class AppModel {
         let roots = devRoots
         guard !roots.isEmpty, !Task.isCancelled else { return }
         let scan = projectScanExecutor
-        let baseCompleted = targets.count
+        let baseCompleted = results.targets.count
 
         await withTaskGroup(of: (DevRootScan, String).self) { group in
             var pending = roots.makeIterator()
@@ -977,7 +844,7 @@ public final class AppModel {
                 let current = inFlight.first
                 activity.scanProgress = ScanProgress(
                     completed: baseCompleted + completed,
-                    total: targets.count + roots.count,
+                    total: results.targets.count + roots.count,
                     currentTargetName: current?.lastPathComponent ?? "",
                     currentPath: current.map {
                         ($0.path as NSString).abbreviatingWithTildeInPath
@@ -1066,10 +933,10 @@ public final class AppModel {
         case .targets(let ids): ids
         case .projectArtifacts: []      // registry targets never join
         }
-        let jobs: [CleanJob] = targets.compactMap { target in
+        let jobs: [CleanJob] = results.targets.compactMap { target in
             guard selection.contains(target.id), target.strategy.isCleanable,
                   targetLimit?.contains(target.id) != false else { return nil }
-            switch status(of: target.id) {
+            switch results.status(of: target.id) {
             case .measured(let measurement, _, _):
                 return CleanJob(
                     target: target,
@@ -1172,13 +1039,13 @@ public final class AppModel {
                     index: index + 1,
                     total: jobs.count + artifactJobs.count
                 )
-                self.statuses[job.target.id] = .scanning
+                self.results.setStatus(.scanning, for: job.target.id)
 
                 // Refuse any cleanup path whose ancestry no longer
                 // resolves to its scan-time root — a cache directory
                 // swapped for a symlink after the scan would otherwise
                 // redirect deletion outside the target.
-                let allowedRoots = self.scanRealRoots[job.target.id] ?? []
+                let allowedRoots = self.results.scanRealRoots[job.target.id] ?? []
                 let pathsAreChildren: Bool
                 if case .removeContents = job.target.strategy {
                     pathsAreChildren = true
@@ -1218,7 +1085,7 @@ public final class AppModel {
                 })
 
                 let refreshed = await offMain { scan(job.target) }
-                self.statuses[job.target.id] = refreshed
+                self.results.setStatus(refreshed, for: job.target.id)
                 self.invalidateBreakdown(of: job.target.id)
                 // Freed space is only credited when this pass actually
                 // removed something *and* the rescan could measure it.
@@ -1334,7 +1201,7 @@ public final class AppModel {
             // Volume space is measured before recording, so the entry
             // carries the honest "free after this clean" figure.
             let space = await offMain { volume() }
-            self.volumeSpace = space
+            self.results.volumeSpace = space
             self.history.record(
                 from: summary,
                 duration: Date.now.timeIntervalSince(passStart),
@@ -1396,15 +1263,15 @@ public final class AppModel {
         hasFullDiskAccess: Bool? = true,
         lastCleanSummary: CleanSummary? = nil
     ) {
-        self.statuses = statuses
+        self.results.statuses = statuses
         self.selection = selection
         self.history.seed(entries: history)
         self.breakdowns = breakdowns
-        self.volumeSpace = volumeSpace
-        self.hasFullDiskAccess = hasFullDiskAccess
+        self.results.volumeSpace = volumeSpace
+        self.results.hasFullDiskAccess = hasFullDiskAccess
         self.activity.lastCleanSummary = lastCleanSummary
-        self.lastScan = .now
-        self.lastScanWasComplete = true
+        self.results.lastScan = .now
+        self.results.lastScanWasComplete = true
     }
 
     /// Preview-only: canned dev-folder discovery without touching

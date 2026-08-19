@@ -24,14 +24,14 @@ enum BackgroundActivity {
     static func run(model: AppModel) async {
         while !Task.isCancelled {
             if model.settings.weeklyScanEnabled, !model.activity.isScanning, !model.activity.isCleaning {
-                let before = model.lastScan
+                let before = model.results.lastScan
                 model.runBackgroundScanIfDue()
                 if model.activity.isScanning {
                     // Wait for this scan to land, then evaluate the result.
                     while model.activity.isScanning, !Task.isCancelled {
                         try? await Task.sleep(for: .seconds(1))
                     }
-                    if model.lastScan != before {
+                    if model.results.lastScan != before {
                         await notifyIfWorthwhile(model: model)
                     }
                 }

@@ -213,7 +213,7 @@ struct RootView: View {
             if case .category = destination { return .browser }
             if destination == .allFindings { return .browser }
             if destination == .projects { return .projects }
-            if model.lastScan == nil { return .idle }
+            if model.results.lastScan == nil { return .idle }
             return .overview
         }
     }

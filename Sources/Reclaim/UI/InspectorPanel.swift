@@ -40,7 +40,7 @@ struct InspectorPanel: View {
     }
 
     private func details(for target: CleanupTarget) -> some View {
-        let status = model.status(of: target.id)
+        let status = model.results.status(of: target.id)
 
         return ScrollView {
             VStack(alignment: .leading, spacing: 0) {
@@ -454,7 +454,7 @@ struct InspectorPanel: View {
 #if DEBUG
 #Preview("Measured", traits: .fixedLayout(width: 336, height: 810)) {
     let model = PreviewData.scanned()
-    return InspectorPanel(target: model.targets.first { $0.id == "xcode-derived-data" })
+    return InspectorPanel(target: model.results.targets.first { $0.id == "xcode-derived-data" })
         .background(Theme.background)
         .environment(model)
         .preferredColorScheme(.dark)
@@ -462,7 +462,7 @@ struct InspectorPanel: View {
 
 #Preview("Tool-managed", traits: .fixedLayout(width: 336, height: 810)) {
     let model = PreviewData.scanned()
-    return InspectorPanel(target: model.targets.first { $0.id == "docker-vm-disk" })
+    return InspectorPanel(target: model.results.targets.first { $0.id == "docker-vm-disk" })
         .background(Theme.background)
         .environment(model)
         .preferredColorScheme(.dark)

@@ -31,11 +31,11 @@ struct OverviewView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: Theme.cardGap) {
-                if model.hasFullDiskAccess == false {
+                if model.results.hasFullDiskAccess == false {
                     FullDiskAccessBanner()
                         .entrance(appeared, delay: 0)
                 }
-                if !model.lastScanWasComplete {
+                if !model.results.lastScanWasComplete {
                     partialScanNotice
                         .entrance(appeared, delay: 0)
                 }
@@ -59,12 +59,12 @@ struct OverviewView: View {
                         .entrance(appeared, delay: 0.18)
                     // Lifetime/last/next stats live in the global footer;
                     // the column only appears when it has cards to show.
-                    if !model.devRoots.isEmpty || !model.manualTargets.isEmpty {
+                    if !model.devRoots.isEmpty || !model.results.manualTargets.isEmpty {
                         VStack(spacing: 12) {
                             if !model.devRoots.isEmpty {
                                 projectsCard
                             }
-                            if !model.manualTargets.isEmpty {
+                            if !model.results.manualTargets.isEmpty {
                                 attentionCard
                             }
                         }
@@ -117,16 +117,16 @@ struct OverviewView: View {
                     // After a clean pass the safe bucket is often empty;
                     // saying so beats formatting 0 bytes as "< 1 MB" and
                     // offering a button that cannot do anything.
-                    if model.safeReclaimableBytes > 0 {
+                    if model.results.safeReclaimableBytes > 0 {
                         breakdownRow(
                             color: Theme.safe,
                             title: localized(
                                 "overview.safeToRemove",
-                                defaultValue: "\(model.safeReclaimableBytes.formattedBytesCompact) safe to remove"
+                                defaultValue: "\(model.results.safeReclaimableBytes.formattedBytesCompact) safe to remove"
                             ),
                             subtitle: localized(
                                 "overview.safeItemsSubtitle",
-                                defaultValue: "\(model.safeReclaimableCount) safe items, regenerated automatically"
+                                defaultValue: "\(model.results.safeReclaimableCount) safe items, regenerated automatically"
                             )
                         )
                     } else {
@@ -146,11 +146,11 @@ struct OverviewView: View {
                         color: Theme.cautionBright,
                         title: localized(
                             "overview.needsDecision",
-                            defaultValue: "\(model.reviewBytes.formattedBytesCompact) needs a decision"
+                            defaultValue: "\(model.results.reviewBytes.formattedBytesCompact) needs a decision"
                         ),
                         subtitle: localized(
                             "overview.reviewItemsSubtitle",
-                            defaultValue: "\(model.reviewCount) items worth a look first"
+                            defaultValue: "\(model.results.reviewCount) items worth a look first"
                         )
                     )
                     // Dev-folder artifacts are inside the ring's total, so
@@ -172,7 +172,7 @@ struct OverviewView: View {
                 .padding(.top, 13)
 
                 HStack(spacing: 9) {
-                    if model.safeReclaimableBytes > 0 {
+                    if model.results.safeReclaimableBytes > 0 {
                         Button(
                             localized("overview.reclaimSafeButton", defaultValue: "Reclaim safe space"),
                             action: reclaimSafe
@@ -220,7 +220,7 @@ struct OverviewView: View {
     // artifacts — the colored composition must cover the same total,
     // so projects get their own segment.
     private var ringSegments: [MeterSegment] {
-        let totals = model.categoryTotals()
+        let totals = model.results.categoryTotals()
         let projectBytes = model.projectArtifactBytes
         let sum = max(1, totals.reduce(Int64(0)) { $0 + $1.bytes } + projectBytes)
         var segments = totals.map {
@@ -266,7 +266,7 @@ struct OverviewView: View {
             HStack {
                 SectionLabel(model.volumeDisplayName)
                 Spacer()
-                if let space = model.volumeSpace {
+                if let space = model.results.volumeSpace {
                     Text(localized(
                         "disk.usedOfTotal",
                         defaultValue: "\(space.usedBytes.wholeGB) used of \(space.totalBytes.wholeGB)"
@@ -307,7 +307,7 @@ struct OverviewView: View {
                 )
                 diskLegendRow(
                     localized("disk.legendFree", defaultValue: "Free"),
-                    (model.volumeSpace?.availableBytes ?? 0).wholeGB,
+                    (model.results.volumeSpace?.availableBytes ?? 0).wholeGB,
                     .white.opacity(0.08)
                 )
             }
@@ -319,17 +319,17 @@ struct OverviewView: View {
     }
 
     private var freeGBNumber: String {
-        guard let space = model.volumeSpace else { return "—" }
+        guard let space = model.results.volumeSpace else { return "—" }
         return space.availableBytes.wholeGBValue
     }
 
     private var otherUsedBytes: Int64 {
-        guard let space = model.volumeSpace else { return 0 }
+        guard let space = model.results.volumeSpace else { return 0 }
         return max(0, space.usedBytes - model.totalFoundBytes)
     }
 
     private var diskSegments: [MeterSegment] {
-        guard let space = model.volumeSpace, space.totalBytes > 0 else { return [] }
+        guard let space = model.results.volumeSpace, space.totalBytes > 0 else { return [] }
         let total = Double(space.totalBytes)
         return [
             MeterSegment(id: "dev", fraction: Double(model.totalFoundBytes) / total, color: Theme.accent),
@@ -465,7 +465,7 @@ struct OverviewView: View {
         VStack(alignment: .leading, spacing: 12) {
             SectionLabel(localized("overview.needsAttention", defaultValue: "Needs your attention"))
             VStack(spacing: 10) {
-                ForEach(model.manualTargets) { target in
+                ForEach(model.results.manualTargets) { target in
                     AttentionCard(target: target) {
                         openTarget(target)
                     }
@@ -489,13 +489,13 @@ private struct CategoryCard: View {
     @State private var isHovered = false
 
     var body: some View {
-        let totals = model.categoryTotals()
+        let totals = model.results.categoryTotals()
         let bytes = totals.first { $0.category == category }?.bytes ?? 0
         // Share of everything found, dev-folder artifacts included —
         // the same denominator as the overview ring.
         let all = model.totalFoundBytes
         let peak = totals.map(\.bytes).max() ?? 1
-        let items = model.targets.count { $0.category == category && model.bytes(of: $0) > 0 }
+        let items = model.results.targets.count { $0.category == category && model.results.bytes(of: $0) > 0 }
 
         Button(action: open) {
             VStack(alignment: .leading, spacing: 0) {
@@ -583,7 +583,7 @@ private struct BiggestRow: View {
                 }
                 Spacer(minLength: 10)
                 VStack(alignment: .trailing, spacing: 5) {
-                    Text(model.bytes(of: target).formattedBytesCompact)
+                    Text(model.results.bytes(of: target).formattedBytesCompact)
                         .scaledFont(size: 12.5, weight: .medium)
                         .monospacedDigit()
                         .foregroundStyle(Theme.textPrimary)
@@ -664,7 +664,7 @@ private struct AttentionCard: View {
                         .scaledFont(size: 13, weight: .medium)
                         .foregroundStyle(Theme.textPrimary)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                    Text(model.bytes(of: target).formattedBytesCompact)
+                    Text(model.results.bytes(of: target).formattedBytesCompact)
                         .scaledFont(size: 12.5, weight: .medium)
                         .monospacedDigit()
                         .foregroundStyle(Theme.textPrimary)

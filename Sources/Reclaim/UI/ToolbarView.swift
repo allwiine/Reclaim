@@ -73,7 +73,7 @@ struct ToolbarView: View {
                     .scaledFont(size: 10, weight: .medium)
                 Text(model.activity.isScanning
                     ? localized("menu.scanning", defaultValue: "Scanning…")
-                    : model.lastScan == nil
+                    : model.results.lastScan == nil
                         ? localized("idle.scanButton", defaultValue: "Scan this Mac")
                         : localized("action.scanAgain", defaultValue: "Scan again"))
             }
@@ -166,9 +166,9 @@ struct ToolbarView: View {
         case .idle:
             return localized("toolbar.noScanYet", defaultValue: "No scan yet")
         case .overview:
-            guard let lastScan = model.lastScan else { return "" }
+            guard let lastScan = model.results.lastScan else { return "" }
             let when = lastScan.formatted(.relative(presentation: .named))
-            let measured = model.targets.count { model.bytes(of: $0) > 0 }
+            let measured = model.results.targets.count { model.results.bytes(of: $0) > 0 }
             return localized(
                 "toolbar.scannedSubtitle",
                 defaultValue: "Scanned \(when) · \(measured) locations"
@@ -177,16 +177,16 @@ struct ToolbarView: View {
             if !searchText.isEmpty { return "" }
             let targets: [CleanupTarget]
             switch destination {
-            case .category(let category): targets = model.visibleTargets(in: category)
-            case .allFindings: targets = model.allVisibleTargets
+            case .category(let category): targets = model.results.visibleTargets(in: category)
+            case .allFindings: targets = model.results.allVisibleTargets
             default: return ""
             }
             // Before the first scan there is no size to report — a
             // formatted zero would read as a (wrong) measurement.
-            guard model.lastScan != nil else {
+            guard model.results.lastScan != nil else {
                 return localized("count.items", defaultValue: "\(targets.count) items")
             }
-            let bytes = targets.reduce(Int64(0)) { $0 + model.bytes(of: $1) }
+            let bytes = targets.reduce(Int64(0)) { $0 + model.results.bytes(of: $1) }
             // "All findings" lists a dev-folder pointer row too — its
             // header must account for those bytes or the rows below
             // would sum past it.
@@ -209,7 +209,7 @@ struct ToolbarView: View {
                 defaultValue: "\(recent) cleans on record"
             )
         case .projects:
-            guard model.lastScan != nil, !model.projects.isEmpty else { return "" }
+            guard model.results.lastScan != nil, !model.projects.isEmpty else { return "" }
             return localized(
                 "toolbar.projectsSubtitle",
                 defaultValue: "\(model.projects.count) projects · \(model.projectArtifactBytes.formattedBytesCompact)"

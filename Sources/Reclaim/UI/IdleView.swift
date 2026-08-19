@@ -337,7 +337,7 @@ struct IdleView: View {
     }
 
     private var diskLabel: String {
-        guard let space = model.volumeSpace else { return "—" }
+        guard let space = model.results.volumeSpace else { return "—" }
         return localized(
             "disk.usedOfTotal",
             defaultValue: "\(space.usedBytes.wholeGB) used of \(space.totalBytes.wholeGB)"
@@ -345,7 +345,7 @@ struct IdleView: View {
     }
 
     private var diskSegments: [MeterSegment] {
-        guard let space = model.volumeSpace, space.totalBytes > 0 else { return [] }
+        guard let space = model.results.volumeSpace, space.totalBytes > 0 else { return [] }
         let used = Double(space.usedBytes) / Double(space.totalBytes)
         return [MeterSegment(id: "used", fraction: used, color: .white.opacity(0.22))]
     }

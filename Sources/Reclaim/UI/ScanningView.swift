@@ -82,10 +82,10 @@ struct ScanningView: View {
     }
 
     private func categoryRow(_ category: ToolCategory) -> some View {
-        let targets = model.targets.filter { $0.category == category }
-        let finished = targets.allSatisfy { model.status(of: $0.id) != .scanning }
-        let bytes = targets.reduce(Int64(0)) { $0 + model.bytes(of: $1) }
-        let anyMeasured = targets.contains { model.status(of: $0.id).bytes != nil }
+        let targets = model.results.targets.filter { $0.category == category }
+        let finished = targets.allSatisfy { model.results.status(of: $0.id) != .scanning }
+        let bytes = targets.reduce(Int64(0)) { $0 + model.results.bytes(of: $1) }
+        let anyMeasured = targets.contains { model.results.status(of: $0.id).bytes != nil }
 
         return HStack(spacing: 9) {
             Circle()
