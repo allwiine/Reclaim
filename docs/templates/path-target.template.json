@@ -1,0 +1,14 @@
+{
+  "$schema": "../schema/target.schema.json",
+  "id": "toolname-caches",
+  "category": "otherTools",
+  "safety": "safe",
+  "paths": ["~/Library/Caches/toolname"],
+  "strategy": "removeContents",
+  "relatedApps": [],
+  "name": { "en": "Toolname caches", "nb": "Toolname-mellomlager" },
+  "summary": {
+    "en": "What the data is, and what happens after cleaning.",
+    "nb": "Hva dataene er, og hva som skjer etter opprydding."
+  }
+}

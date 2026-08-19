@@ -1,0 +1,7 @@
+{
+  "$schema": "../schema/exclusion.schema.json",
+  "id": "toolname-credentials",
+  "group": "toolchains",
+  "paths": ["~/.toolname/credentials.json"],
+  "reason": { "en": "credentials", "nb": "påloggingsinformasjon" }
+}
