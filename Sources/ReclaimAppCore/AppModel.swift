@@ -143,105 +143,14 @@ public final class AppModel {
 
     private let defaults: UserDefaults
 
+    /// UserDefaults-backed settings, split out of this model.
+    public let settings: SettingsStore
+
     private enum DefaultsKey {
-        static let disposal = "settings.disposal"
-        static let showNotInstalled = "settings.showNotInstalled"
-        static let showEmpty = "settings.showEmpty"
-        static let preselectCaution = "settings.preselectCaution"
-        static let dryRun = "settings.dryRun"
-        static let weeklyScan = "settings.weeklyScan"
-        static let notifyLargeReclaimable = "settings.notifyLargeReclaimable"
-        static let menuBarExtra = "settings.menuBarExtra"
-        static let autoSelectExclusions = "settings.autoSelectExclusions"
         static let lastScanDate = "state.lastScanDate"
+        static let autoSelectExclusions = "settings.autoSelectExclusions"
         static let devRoots = "settings.devRoots"
     }
-
-    /// Reads a Bool setting through the ObservationRegistrar so views
-    /// update when it changes; `fallback` applies when never set.
-    private func boolSetting<Member>(
-        _ keyPath: KeyPath<AppModel, Member>, key: String, fallback: Bool
-    ) -> Bool {
-        access(keyPath: keyPath)
-        return defaults.object(forKey: key) as? Bool ?? fallback
-    }
-
-    private func setBoolSetting<Member>(
-        _ keyPath: KeyPath<AppModel, Member>, key: String, to newValue: Bool
-    ) {
-        // Skip no-op writes: SwiftUI bindings (e.g. MenuBarExtra's
-        // isInserted) can re-assign the current value during scene
-        // evaluation, and an unconditional withMutation would spin an
-        // invalidate-reevaluate loop.
-        guard (defaults.object(forKey: key) as? Bool) != newValue else { return }
-        withMutation(keyPath: keyPath) {
-            defaults.set(newValue, forKey: key)
-        }
-    }
-
-    /// Trash (default) or permanent deletion. Backed by UserDefaults via
-    /// the ObservationRegistrar so views update when Settings change it.
-    public var disposal: Disposal {
-        get {
-            access(keyPath: \.disposal)
-            let raw = defaults.string(forKey: DefaultsKey.disposal) ?? ""
-            return Disposal(rawValue: raw) ?? .trash
-        }
-        set {
-            guard newValue != disposal else { return }
-            withMutation(keyPath: \.disposal) {
-                defaults.set(newValue.rawValue, forKey: DefaultsKey.disposal)
-            }
-        }
-    }
-
-    /// Whether tools that were not found on this Mac stay visible.
-    public var showNotInstalled: Bool {
-        get { boolSetting(\.showNotInstalled, key: DefaultsKey.showNotInstalled, fallback: false) }
-        set { setBoolSetting(\.showNotInstalled, key: DefaultsKey.showNotInstalled, to: newValue) }
-    }
-
-    /// Whether locations the last scan measured as empty stay visible.
-    /// Off by default — a clean row disappearing is the reward.
-    public var showEmpty: Bool {
-        get { boolSetting(\.showEmpty, key: DefaultsKey.showEmpty, fallback: false) }
-        set { setBoolSetting(\.showEmpty, key: DefaultsKey.showEmpty, to: newValue) }
-    }
-
-    /// Whether Caution-rated items join the post-scan preselection.
-    /// Off by default — only Safe items come ticked after a scan.
-    public var preselectCaution: Bool {
-        get { boolSetting(\.preselectCaution, key: DefaultsKey.preselectCaution, fallback: false) }
-        set { setBoolSetting(\.preselectCaution, key: DefaultsKey.preselectCaution, to: newValue) }
-    }
-
-    /// Report what a clean pass would remove without touching anything.
-    public var dryRun: Bool {
-        get { boolSetting(\.dryRun, key: DefaultsKey.dryRun, fallback: false) }
-        set { setBoolSetting(\.dryRun, key: DefaultsKey.dryRun, to: newValue) }
-    }
-
-    /// Re-scan automatically once a week while Reclaim is running.
-    public var weeklyScanEnabled: Bool {
-        get { boolSetting(\.weeklyScanEnabled, key: DefaultsKey.weeklyScan, fallback: true) }
-        set { setBoolSetting(\.weeklyScanEnabled, key: DefaultsKey.weeklyScan, to: newValue) }
-    }
-
-    /// Post a notification when a background scan finds more than
-    /// ``notificationThresholdBytes`` reclaimable.
-    public var notifyLargeReclaimable: Bool {
-        get { boolSetting(\.notifyLargeReclaimable, key: DefaultsKey.notifyLargeReclaimable, fallback: false) }
-        set { setBoolSetting(\.notifyLargeReclaimable, key: DefaultsKey.notifyLargeReclaimable, to: newValue) }
-    }
-
-    /// Whether the compact menu bar summary is shown.
-    public var menuBarExtraEnabled: Bool {
-        get { boolSetting(\.menuBarExtraEnabled, key: DefaultsKey.menuBarExtra, fallback: true) }
-        set { setBoolSetting(\.menuBarExtraEnabled, key: DefaultsKey.menuBarExtra, to: newValue) }
-    }
-
-    /// Reclaimable size that qualifies as "worth a notification".
-    public static let notificationThresholdBytes: Int64 = 25_000_000_000
 
     /// How often the background scan runs while the app is open.
     public static let backgroundScanInterval: TimeInterval = 7 * 24 * 3600
@@ -256,6 +165,7 @@ public final class AppModel {
     ) {
         self.targets = targets
         self.defaults = defaults
+        self.settings = SettingsStore(defaults: defaults)
         self.scanExecutor = executors.scan
         self.cleanExecutor = executors.clean
         self.breakdownExecutor = executors.breakdown
@@ -298,12 +208,12 @@ public final class AppModel {
     private func isVisibleAfterScan(_ target: CleanupTarget) -> Bool {
         switch status(of: target.id) {
         case .notInstalled:
-            return showNotInstalled
+            return settings.showNotInstalled
         case .measured(let measurement, _, _)
             where measurement.bytes == 0 && measurement.inaccessibleItems == 0:
             // Provably empty. A lower-bound zero (unreadable entries)
             // stays visible — it may not actually be empty.
-            return showEmpty
+            return settings.showEmpty
         default:
             return true
         }
@@ -410,7 +320,7 @@ public final class AppModel {
     /// When the next automatic scan is due, or `nil` when disabled or
     /// no scan has happened yet.
     public var nextBackgroundScanDate: Date? {
-        guard weeklyScanEnabled else { return nil }
+        guard settings.weeklyScanEnabled else { return nil }
         guard let last = lastCompletedScanDate else { return nil }
         return last.addingTimeInterval(Self.backgroundScanInterval)
     }
@@ -420,7 +330,7 @@ public final class AppModel {
     /// Defers while the confirmation sheet is up — a background scan
     /// must never clear a selection the user is actively reviewing.
     public func runBackgroundScanIfDue(now: Date = .now) {
-        guard weeklyScanEnabled, !activity.isScanning, !activity.isCleaning, !activity.isReviewingSelection else { return }
+        guard settings.weeklyScanEnabled, !activity.isScanning, !activity.isCleaning, !activity.isReviewingSelection else { return }
         guard let next = nextBackgroundScanDate else { return }
         if now >= next { scanAll() }
     }
@@ -956,7 +866,7 @@ public final class AppModel {
         for target in targets where isSelectable(target) {
             guard !autoSelectExclusions.contains(target.id) else { continue }
             let wanted = target.safety == .safe
-                || (preselectCaution && target.safety == .caution)
+                || (settings.preselectCaution && target.safety == .caution)
             if wanted {
                 selection.insert(target.id)
             }
@@ -1210,8 +1120,8 @@ public final class AppModel {
         // A dry run is a report, not a pass: project the numbers from
         // the scan-time snapshot and touch nothing — no engine, no
         // rescan, and the selection stays intact.
-        if dryRun {
-            var summary = CleanSummary(disposal: disposal)
+        if settings.dryRun {
+            var summary = CleanSummary(disposal: settings.disposal)
             summary.isDryRun = true
             for job in jobs {
                 summary.itemsRemoved += max(1, job.paths.count)
@@ -1243,7 +1153,7 @@ public final class AppModel {
 
         activity.isCleaning = true
         activity.isCancellingClean = false
-        let chosenDisposal = disposal
+        let chosenDisposal = settings.disposal
         let scan = scanExecutor
         let clean = cleanExecutor
         let volume = volumeProbe

@@ -29,7 +29,7 @@ struct SettingsView: View {
     @State private var autoUpdateChecks = true
 
     var body: some View {
-        @Bindable var model = model
+        @Bindable var settings = model.settings
 
         ScrollView {
             VStack(alignment: .leading, spacing: 26) {
@@ -69,8 +69,8 @@ struct SettingsView: View {
                             defaultValue: "The default. Nothing leaves your Mac until you empty the Trash."
                         ),
                         isOn: Binding(
-                            get: { model.disposal == .trash },
-                            set: { model.disposal = $0 ? .trash : .delete }
+                            get: { settings.disposal == .trash },
+                            set: { settings.disposal = $0 ? .trash : .delete }
                         )
                     )
                     SettingRow(
@@ -79,7 +79,7 @@ struct SettingsView: View {
                             "settings.dryRunHelp",
                             defaultValue: "Report what would be removed without touching anything."
                         ),
-                        isOn: $model.dryRun
+                        isOn: $settings.dryRun
                     )
                     SettingRow(
                         localized("settings.preselectCaution", defaultValue: "Preselect Caution items"),
@@ -87,7 +87,7 @@ struct SettingsView: View {
                             "settings.preselectCautionHelp",
                             defaultValue: "Off by default. Only Safe items are selected after a scan."
                         ),
-                        isOn: $model.preselectCaution,
+                        isOn: $settings.preselectCaution,
                         isLast: true
                     )
                 }
@@ -102,20 +102,20 @@ struct SettingsView: View {
                             "settings.weeklyScanHelp",
                             defaultValue: "Runs quietly while Reclaim is open, once a week has passed."
                         ),
-                        isOn: $model.weeklyScanEnabled
+                        isOn: $settings.weeklyScanEnabled
                     )
                     SettingRow(
                         localized(
                             "settings.notifyLarge",
-                            defaultValue: "Notify when more than \(AppModel.notificationThresholdBytes.formattedBytesCompact) is reclaimable"
+                            defaultValue: "Notify when more than \(SettingsStore.notificationThresholdBytes.formattedBytesCompact) is reclaimable"
                         ),
                         help: localized(
                             "settings.notifyLargeHelp",
                             defaultValue: "A single notification after each background scan that finds that much."
                         ),
-                        isOn: $model.notifyLargeReclaimable
+                        isOn: $settings.notifyLargeReclaimable
                     )
-                    if model.notifyLargeReclaimable, notificationsDenied {
+                    if settings.notifyLargeReclaimable, notificationsDenied {
                         notificationsDeniedRow
                     }
                     SettingRow(
@@ -127,7 +127,7 @@ struct SettingsView: View {
                             "settings.showNotInstalledHelp",
                             defaultValue: "Keep catalogue entries visible even when the tool was not found on this Mac."
                         ),
-                        isOn: $model.showNotInstalled
+                        isOn: $settings.showNotInstalled
                     )
                     SettingRow(
                         localized(
@@ -138,7 +138,7 @@ struct SettingsView: View {
                             "settings.showEmptyHelp",
                             defaultValue: "Keep locations listed even when the last scan measured nothing in them."
                         ),
-                        isOn: $model.showEmpty,
+                        isOn: $settings.showEmpty,
                         isLast: true
                     )
                 }
@@ -157,7 +157,7 @@ struct SettingsView: View {
                             "settings.menuBarExtraHelp",
                             defaultValue: "A compact summary with quick access to scanning and safe cleanup."
                         ),
-                        isOn: $model.menuBarExtraEnabled,
+                        isOn: $settings.menuBarExtraEnabled,
                         isLast: true
                     )
                 }
@@ -180,7 +180,7 @@ struct SettingsView: View {
             #endif
             await refreshNotificationStatus()
         }
-        .onChange(of: model.notifyLargeReclaimable) { _, enabled in
+        .onChange(of: settings.notifyLargeReclaimable) { _, enabled in
             // Ask for permission the moment the user opts in — not
             // silently at the first (possibly weeks-later) notification.
             guard enabled else { return }

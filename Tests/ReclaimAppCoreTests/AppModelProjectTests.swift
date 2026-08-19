@@ -367,7 +367,7 @@ struct AppModelProjectTests {
             ),
             historyStore: temporaryHistoryStore()
         )
-        model.dryRun = true
+        model.settings.dryRun = true
         model.addDevRoot(URL(filePath: "/dev"))
         model.scanAll()
         await model.scanTask?.value
@@ -776,7 +776,7 @@ struct AppModelProjectTests {
             ),
             historyStore: temporaryHistoryStore()
         )
-        model.dryRun = true
+        model.settings.dryRun = true
         model.addDevRoot(URL(filePath: "/dev"))
         model.scanAll()
         await model.scanTask?.value

@@ -58,7 +58,7 @@ struct ConfirmSheet: View {
         let picked: [CleanupTarget] =
             if case .project = scope { [] }
             else { singleTarget.map { [$0] } ?? model.selectedTargets }
-        let toTrash = model.disposal == .trash
+        let toTrash = model.settings.disposal == .trash
 
         return VStack(alignment: .leading, spacing: 0) {
             Text(title(picked))
@@ -175,7 +175,7 @@ struct ConfirmSheet: View {
         }
         let space = model.selectedBytes.formattedBytesCompact
         let locationCount = picked.count + model.selectedArtifacts.count
-        return model.dryRun
+        return model.settings.dryRun
             ? localized(
                 "confirm.titleDryRun",
                 defaultValue: "Dry run: reclaim \(space) from \(locationCount) locations?"
@@ -187,7 +187,7 @@ struct ConfirmSheet: View {
     }
 
     private func bodyText(toTrash: Bool) -> String {
-        if model.dryRun {
+        if model.settings.dryRun {
             return localized(
                 "confirm.bodyDryRun",
                 defaultValue: "Dry run is on — Reclaim will only report what would be removed. Nothing is touched."
@@ -404,10 +404,10 @@ struct ConfirmSheet: View {
     }
 
     private func trashToggle(toTrash: Bool) -> some View {
-        @Bindable var model = model
+        @Bindable var settings = model.settings
         return Toggle(isOn: Binding(
-            get: { model.disposal == .trash },
-            set: { model.disposal = $0 ? .trash : .delete }
+            get: { settings.disposal == .trash },
+            set: { settings.disposal = $0 ? .trash : .delete }
         )) {
             Text(localized("confirm.trashToggle", defaultValue: "Move to Trash instead of deleting"))
                 .themeFont(.body)

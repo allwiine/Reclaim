@@ -498,7 +498,7 @@ struct AppModelTests {
         #expect(!model.isSelected(risky), "Caution items stay unticked by default")
         #expect(!model.isSelected(manual), "manual targets can never be selected")
 
-        model.preselectCaution = true
+        model.settings.preselectCaution = true
         model.scanAll()
         await model.scanTask?.value
 
@@ -524,7 +524,7 @@ struct AppModelTests {
             ),
             historyStore: temporaryHistoryStore()
         )
-        model.dryRun = true
+        model.settings.dryRun = true
 
         model.scanAll()
         await model.scanTask?.value
@@ -626,7 +626,7 @@ struct AppModelTests {
         #expect(model.activity.isScanning, "a week later the scan starts")
         await model.scanTask?.value
 
-        model.weeklyScanEnabled = false
+        model.settings.weeklyScanEnabled = false
         #expect(model.nextBackgroundScanDate == nil, "disabling removes the schedule")
     }
 
@@ -702,10 +702,10 @@ struct AppModelTests {
         #expect(model.allVisibleTargets.map(\.id) == ["found", "lower"],
                 "not-installed and provably empty targets hide by default; a lower-bound zero stays")
 
-        model.showNotInstalled = true
+        model.settings.showNotInstalled = true
         #expect(model.allVisibleTargets.map(\.id) == ["found", "missing", "lower"])
 
-        model.showEmpty = true
+        model.settings.showEmpty = true
         #expect(model.allVisibleTargets.count == 4, "both settings bring everything back")
         #expect(model.visibleTargets(in: .otherTools).count == 4,
                 "the category list follows the same rules")
@@ -884,12 +884,12 @@ struct AppModelTests {
         model.setPathSelected(cache, path: "/fixture/a", false)
 
         // Dry run projects the subset, not the whole target.
-        model.dryRun = true
+        model.settings.dryRun = true
         model.cleanSelected()
         #expect(model.activity.lastCleanSummary?.reclaimedBytes == 40)
         #expect(model.activity.lastCleanSummary?.itemsRemoved == 1)
         #expect(model.isPartiallySelected(cache), "a dry run leaves the picks alone")
-        model.dryRun = false
+        model.settings.dryRun = false
 
         model.cleanSelected()
         await model.cleanTask?.value
@@ -1064,7 +1064,7 @@ struct AppModelTests {
         #expect(model.history.first?.trashEmptiedDate == emptied)
 
         // Permanent-delete passes are never stamped.
-        model.disposal = .delete
+        model.settings.disposal = .delete
         model.scanAll()
         await model.scanTask?.value
         model.setSelected(cache, true)
@@ -1161,7 +1161,7 @@ struct AppModelTests {
             ),
             historyStore: temporaryHistoryStore()
         )
-        model.disposal = .delete
+        model.settings.disposal = .delete
 
         model.scanAll()
         await model.scanTask?.value

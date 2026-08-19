@@ -15,7 +15,7 @@ struct CleaningView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Text(model.disposal == .trash
+            Text(model.settings.disposal == .trash
                 ? localized("title.movingToTrash", defaultValue: "Moving to Trash")
                 : localized("title.deleting", defaultValue: "Deleting"))
                 .scaledFont(size: 20, weight: .semibold)

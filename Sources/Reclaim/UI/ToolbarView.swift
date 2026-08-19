@@ -140,7 +140,7 @@ struct ToolbarView: View {
         switch phase {
         case .idle: localized("app.name", defaultValue: "Reclaim")
         case .scanning: localized("title.scanning", defaultValue: "Scanning")
-        case .cleaning: model.disposal == .trash
+        case .cleaning: model.settings.disposal == .trash
             ? localized("title.movingToTrash", defaultValue: "Moving to Trash")
             : localized("title.cleaning", defaultValue: "Cleaning")
         case .done: localized("title.finished", defaultValue: "Finished")

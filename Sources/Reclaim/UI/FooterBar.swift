@@ -36,7 +36,7 @@ struct FooterBar: View {
             item(
                 label: localized("overview.nextBackgroundScan", defaultValue: "Next background scan"),
                 value: nextScanValue,
-                help: model.weeklyScanEnabled
+                help: model.settings.weeklyScanEnabled
                     ? localized("overview.weeklyWhileRunning", defaultValue: "weekly, while Reclaim is running")
                     : localized("overview.backgroundScansOff", defaultValue: "background scans are off")
             )
@@ -76,7 +76,7 @@ struct FooterBar: View {
     }
 
     private var nextScanValue: String {
-        guard model.weeklyScanEnabled else {
+        guard model.settings.weeklyScanEnabled else {
             return localized("overview.off", defaultValue: "Off")
         }
         guard let next = model.nextBackgroundScanDate else {

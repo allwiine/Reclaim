@@ -84,8 +84,8 @@ struct ReclaimApp: App {
             localized("app.name", defaultValue: "Reclaim"),
             systemImage: "internaldrive",
             isInserted: Binding(
-                get: { model.menuBarExtraEnabled },
-                set: { model.menuBarExtraEnabled = $0 }
+                get: { model.settings.menuBarExtraEnabled },
+                set: { model.settings.menuBarExtraEnabled = $0 }
             )
         ) {
             MenuBarSummary()
