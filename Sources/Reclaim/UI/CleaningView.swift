@@ -53,7 +53,7 @@ struct CleaningView: View {
                 ? localized("cleaning.stoppingButton", defaultValue: "Stopping after this item…")
                 : localized("cleaning.stopButton", defaultValue: "Stop after this item")
             ) {
-                model.cancelClean()
+                model.cleaner.cancelClean()
             }
             .rcSecondary()
             .disabled(model.activity.isCancellingClean)

@@ -256,8 +256,8 @@ struct AppModelTests {
         model.scanner.scanAll()
         await model.scanner.scanTask?.value
         model.selection.setSelected(cache, true)
-        model.cleanSelected()
-        await model.cleanTask?.value
+        model.cleaner.cleanSelected()
+        await model.cleaner.cleanTask?.value
 
         let calls = cleaned.withLock { $0 }
         #expect(calls.count == 1)
@@ -296,8 +296,8 @@ struct AppModelTests {
         await model.scanner.scanTask?.value
         model.selection.setSelected(ok, true)
         model.selection.setSelected(broken, true)
-        model.cleanSelected()
-        await model.cleanTask?.value
+        model.cleaner.cleanSelected()
+        await model.cleaner.cleanTask?.value
 
         let summary = model.activity.lastCleanSummary
         #expect(summary?.itemsRemoved == 2)
@@ -335,8 +335,8 @@ struct AppModelTests {
         model.scanner.scanAll()
         await model.scanner.scanTask?.value
         model.selection.setSelected(shrinker, true)
-        model.cleanSelected()
-        await model.cleanTask?.value
+        model.cleaner.cleanSelected()
+        await model.cleaner.cleanTask?.value
 
         let summary = model.activity.lastCleanSummary
         // The rescan saw a 90-byte drop, but no disposal succeeded — so
@@ -368,8 +368,8 @@ struct AppModelTests {
         model.scanner.scanAll()
         await model.scanner.scanTask?.value
         model.selection.setSelected(partial, true)
-        model.cleanSelected()
-        await model.cleanTask?.value
+        model.cleaner.cleanSelected()
+        await model.cleaner.cleanTask?.value
 
         let summary = model.activity.lastCleanSummary
         #expect(summary?.itemsRemoved == 2)
@@ -420,8 +420,8 @@ struct AppModelTests {
         try FileManager.default.createSymbolicLink(at: realCache, withDestinationURL: evil)
 
         model.selection.setSelected(swappable, true)
-        model.cleanSelected()
-        await model.cleanTask?.value
+        model.cleaner.cleanSelected()
+        await model.cleaner.cleanTask?.value
 
         // The child's parent no longer resolves to the scan-time root, so
         // the path is refused: the executor is handed nothing and the
@@ -456,7 +456,7 @@ struct AppModelTests {
         await model.scanner.scanTask?.value
         model.selection.setSelected(first, true)
         model.selection.setSelected(second, true)
-        model.cleanSelected()
+        model.cleaner.cleanSelected()
 
         // Wait (bounded) until the first job is reported in flight.
         for _ in 0..<10_000 where model.activity.cleanProgress == nil {
@@ -465,9 +465,9 @@ struct AppModelTests {
         #expect(model.activity.cleanProgress?.targetName == "first")
         #expect(model.activity.cleanProgress?.total == 2)
 
-        model.cancelClean()
+        model.cleaner.cancelClean()
         gate.signal()
-        await model.cleanTask?.value
+        await model.cleaner.cleanTask?.value
 
         #expect(cleaned.withLock { $0 } == ["first"], "the in-flight target finishes; the rest are skipped")
         #expect(model.activity.cleanProgress == nil)
@@ -528,8 +528,8 @@ struct AppModelTests {
 
         model.scanner.scanAll()
         await model.scanner.scanTask?.value
-        model.cleanSelected()
-        await model.cleanTask?.value
+        model.cleaner.cleanSelected()
+        await model.cleaner.cleanTask?.value
 
         #expect(cleanCalls.withLock { $0 } == 0, "a dry run must never reach the engine")
         #expect(model.activity.lastCleanSummary?.isDryRun == true)
@@ -561,8 +561,8 @@ struct AppModelTests {
 
         model.scanner.scanAll()
         await model.scanner.scanTask?.value
-        model.cleanSelected()
-        await model.cleanTask?.value
+        model.cleaner.cleanSelected()
+        await model.cleaner.cleanTask?.value
 
         #expect(model.history.entries.count == 1)
         #expect(model.history.entries.first?.targetNames == ["cache"])
@@ -885,14 +885,14 @@ struct AppModelTests {
 
         // Dry run projects the subset, not the whole target.
         model.settings.dryRun = true
-        model.cleanSelected()
+        model.cleaner.cleanSelected()
         #expect(model.activity.lastCleanSummary?.reclaimedBytes == 40)
         #expect(model.activity.lastCleanSummary?.itemsRemoved == 1)
         #expect(model.selection.isPartiallySelected(cache), "a dry run leaves the picks alone")
         model.settings.dryRun = false
 
-        model.cleanSelected()
-        await model.cleanTask?.value
+        model.cleaner.cleanSelected()
+        await model.cleaner.cleanTask?.value
         #expect(cleanedPaths.withLock { $0 }.map(\.path) == ["/fixture/b"],
                 "the engine must receive only the ticked path")
         #expect(!model.selection.isPartiallySelected(cache), "picks are consumed by the pass")
@@ -927,8 +927,8 @@ struct AppModelTests {
         await model.scanner.scanTask?.value
         #expect(model.selection.isSelected(first) && model.selection.isSelected(second))
 
-        model.cleanSelected(scope: .targets([first.id]))
-        await model.cleanTask?.value
+        model.cleaner.cleanSelected(scope: .targets([first.id]))
+        await model.cleaner.cleanTask?.value
 
         #expect(cleanedIDs.withLock { $0 } == ["first"])
         #expect(!model.selection.isSelected(first), "the cleaned target leaves the selection")
@@ -960,8 +960,8 @@ struct AppModelTests {
         model.scanner.scanAll()
         await model.scanner.scanTask?.value
         model.selection.setSelected(command, true)
-        model.cleanSelected()
-        await model.cleanTask?.value
+        model.cleaner.cleanSelected()
+        await model.cleaner.cleanTask?.value
 
         let summary = model.activity.lastCleanSummary
         #expect(summary?.reclaimedBytes == 0, "an unmeasurable result must not be guessed")
@@ -983,8 +983,8 @@ struct AppModelTests {
         second.scanner.scanAll()
         await second.scanner.scanTask?.value
         second.selection.setSelected(broken, true)
-        second.cleanSelected()
-        await second.cleanTask?.value
+        second.cleaner.cleanSelected()
+        await second.cleaner.cleanTask?.value
 
         #expect(
             second.activity.lastCleanSummary?.reclaimedBytes == 0,
@@ -1016,8 +1016,8 @@ struct AppModelTests {
 
         model.scanner.scanAll()
         await model.scanner.scanTask?.value
-        model.cleanSelected()
-        await model.cleanTask?.value
+        model.cleaner.cleanSelected()
+        await model.cleaner.cleanTask?.value
 
         let entry = model.history.entries.first
         #expect(entry?.items?.map(\.targetID) == ["cache"])
@@ -1050,8 +1050,8 @@ struct AppModelTests {
 
         model.scanner.scanAll()
         await model.scanner.scanTask?.value
-        model.cleanSelected()
-        await model.cleanTask?.value
+        model.cleaner.cleanSelected()
+        await model.cleaner.cleanTask?.value
         #expect(model.history.entries.first?.trashEmptiedDate == nil)
 
         // Whole seconds: the store's ISO8601 coding drops fractions.
@@ -1068,8 +1068,8 @@ struct AppModelTests {
         model.scanner.scanAll()
         await model.scanner.scanTask?.value
         model.selection.setSelected(cache, true)
-        model.cleanSelected()
-        await model.cleanTask?.value
+        model.cleaner.cleanSelected()
+        await model.cleaner.cleanTask?.value
         model.history.markTrashEmptied()
         #expect(model.history.entries.first?.disposal == .delete)
         #expect(model.history.entries.first?.trashEmptiedDate == nil)
@@ -1101,8 +1101,8 @@ struct AppModelTests {
 
         model.scanner.scanAll()
         await model.scanner.scanTask?.value
-        model.cleanSelected()
-        await model.cleanTask?.value
+        model.cleaner.cleanSelected()
+        await model.cleaner.cleanTask?.value
         #expect(model.history.entries.count == 1)
 
         // Clearing immediately after the pass must win against the
@@ -1166,8 +1166,8 @@ struct AppModelTests {
         model.scanner.scanAll()
         await model.scanner.scanTask?.value
         model.selection.setSelected(cache, true)
-        model.cleanSelected()
-        await model.cleanTask?.value
+        model.cleaner.cleanSelected()
+        await model.cleaner.cleanTask?.value
 
         #expect(usedDisposal.withLock { $0 } == .delete)
     }

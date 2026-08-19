@@ -73,12 +73,12 @@ struct RootView: View {
                     onCancel: { confirmScope = nil },
                     onConfirm: {
                         confirmScope = nil
-                        let cleanScope: AppModel.CleanScope = switch scope {
+                        let cleanScope: CleanScope = switch scope {
                         case .selection: .selection
                         case .single(let id): .targets([id])
                         case .project(let id): .projectArtifacts(id)
                         }
-                        model.cleanSelected(scope: cleanScope)
+                        model.cleaner.cleanSelected(scope: cleanScope)
                     }
                 )
                 .accessibilityAddTraits(.isModal)

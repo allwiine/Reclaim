@@ -328,8 +328,8 @@ struct AppModelProjectTests {
         await model.scanner.scanTask?.value
         model.projects.setArtifactSelected(nodeModules, true)
 
-        model.cleanSelected()
-        await model.cleanTask?.value
+        model.cleaner.cleanSelected()
+        await model.cleaner.cleanTask?.value
 
         // The engine saw exactly the scan-time snapshot path.
         #expect(cleanedPaths.withLock { $0 } == ["/dev/app/node_modules"])
@@ -373,7 +373,7 @@ struct AppModelProjectTests {
         await model.scanner.scanTask?.value
         model.projects.setArtifactSelected(nodeModules, true)
 
-        model.cleanSelected()
+        model.cleaner.cleanSelected()
 
         #expect(cleanCalls.withLock { $0 } == 0)
         let summary = try #require(model.activity.lastCleanSummary)
@@ -409,8 +409,8 @@ struct AppModelProjectTests {
         await model.scanner.scanTask?.value
         model.projects.setArtifactSelected(nodeModules, true)
 
-        model.cleanSelected(scope: .targets(["cache"]))
-        await model.cleanTask?.value
+        model.cleaner.cleanSelected(scope: .targets(["cache"]))
+        await model.cleaner.cleanTask?.value
 
         #expect(cleanCalls.withLock { $0 } == 0)
         #expect(model.projects.isArtifactSelected(nodeModules))  // selection survives
@@ -739,8 +739,8 @@ struct AppModelProjectTests {
         // Post-scan auto-selection ticked the safe registry target too.
         #expect(model.selection.ids.contains("cache"))
 
-        model.cleanSelected(scope: .projectArtifacts("/dev/app"))
-        await model.cleanTask?.value
+        model.cleaner.cleanSelected(scope: .projectArtifacts("/dev/app"))
+        await model.cleaner.cleanTask?.value
 
         // Only the app project's artifact was disposed; no registry pass.
         #expect(cleanedPaths.withLock { $0 } == ["/dev/app/node_modules"])
@@ -783,7 +783,7 @@ struct AppModelProjectTests {
         model.projects.setArtifactSelected(appModules, true)
         model.projects.setArtifactSelected(libModules, true)
 
-        model.cleanSelected(scope: .projectArtifacts("/dev/app"))
+        model.cleaner.cleanSelected(scope: .projectArtifacts("/dev/app"))
 
         #expect(cleanCalls.withLock { $0 } == 0)
         let summary = try #require(model.activity.lastCleanSummary)
@@ -818,8 +818,8 @@ struct AppModelProjectTests {
         await model.scanner.scanTask?.value
         model.projects.setArtifactSelected(nodeModules, true)
 
-        model.cleanSelected(scope: .projectArtifacts("/dev/gone"))
-        await model.cleanTask?.value
+        model.cleaner.cleanSelected(scope: .projectArtifacts("/dev/gone"))
+        await model.cleaner.cleanTask?.value
 
         #expect(cleanCalls.withLock { $0 } == 0)
         #expect(model.activity.lastCleanSummary == nil)

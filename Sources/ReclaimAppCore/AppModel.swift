@@ -2,20 +2,20 @@
 //  AppModel.swift
 //  ReclaimAppCore
 //
-//  The single observable source of truth for the UI. Owns per-target
-//  scan status, selection, settings, and orchestrates background work.
-//  Lives in a UI-free library target so the whole orchestration layer
-//  is unit-testable; the scan/clean executors are injectable seams.
+//  The composition root the UI observes. It holds no session state of
+//  its own: it builds the sub-models in dependency order — settings,
+//  activity, history, results, breakdowns, selection, projects — plus
+//  the two coordinators that drive them (scanner, cleaner), and hands
+//  the whole graph to the views as one object. Lives in a UI-free
+//  library target so the orchestration layer stays unit-testable; the
+//  scan/clean seams are injected as `Executors`.
 //
-//  Concurrency model
-//  ─────────────────
-//  The model is @MainActor: every property the UI reads is main-actor
-//  state. Blocking filesystem work (sizing, deleting) runs through
-//  `offMain`, a `nonisolated` async helper, which — with this package's
-//  settings (no NonisolatedNonsendingByDefault / no default MainActor
-//  isolation) — executes on the global concurrent executor, off the
-//  main thread. Scans fan out through a task group with bounded width
-//  so disk I/O never saturates the cooperative thread pool.
+//  Only the handful of things no single sub-model owns live here: the
+//  termination handshake, the "safe only" selection reset, and the
+//  cross-model overview aggregates (AppModel+Overview.swift). The
+//  concurrency model belongs to the work, not to this file — see
+//  ScanCoordinator.swift and CleanCoordinator.swift for how each pass
+//  moves blocking filesystem work off the main actor.
 //
 
 import Foundation
@@ -50,19 +50,8 @@ public final class AppModel {
     /// Scan orchestration and the weekly background schedule.
     public let scanner: ScanCoordinator
 
-    @ObservationIgnored
-    private(set) var cleanTask: Task<Void, Never>?
-
-    @ObservationIgnored
-    private let scanExecutor: ScanExecutor
-    @ObservationIgnored
-    private let cleanExecutor: CleanExecutor
-    @ObservationIgnored
-    private let projectScanExecutor: ProjectScanExecutor
-    @ObservationIgnored
-    private let artifactCleanExecutor: ArtifactCleanExecutor
-    @ObservationIgnored
-    private let volumeProbe: @Sendable () -> VolumeSpace?
+    /// The clean pass and its scan-time safety pins.
+    public let cleaner: CleanCoordinator
 
     // MARK: - Persisted settings
 
@@ -87,13 +76,8 @@ public final class AppModel {
             results: results, activity: activity, breakdowns: breakdowns, defaults: defaults
         )
         self.projects = ProjectsModel(activity: activity, defaults: defaults)
-        self.scanExecutor = executors.scan
-        self.cleanExecutor = executors.clean
-        self.projectScanExecutor = executors.projectScan
-        self.artifactCleanExecutor = executors.artifactClean
-        self.volumeProbe = executors.volume
         self.history = HistoryModel(store: historyStore)
-        // Last: the coordinator takes every other model as a dependency.
+        // Last: the coordinators take every other model as a dependency.
         self.scanner = ScanCoordinator(
             executors: executors,
             results: results,
@@ -104,81 +88,17 @@ public final class AppModel {
             activity: activity,
             defaults: defaults
         )
+        self.cleaner = CleanCoordinator(
+            executors: executors,
+            results: results,
+            selection: selection,
+            projects: projects,
+            breakdowns: breakdowns,
+            settings: settings,
+            activity: activity,
+            history: history
+        )
         results.refreshVolumeSpace()
-    }
-
-    // MARK: - Derived state
-
-    /// Everything measured, including manual-only items like Docker and
-    /// dev-folder artifacts.
-    public var totalFoundBytes: Int64 {
-        results.targets.reduce(0) { $0 + (results.status(of: $1.id).bytes ?? 0) }
-            + projects.projectArtifactBytes
-    }
-
-    /// Only what Reclaim itself can clean, including dev-folder artifacts.
-    public var cleanableBytes: Int64 {
-        results.targets.reduce(0) { sum, target in
-            guard target.strategy.isCleanable else { return sum }
-            return sum + (results.status(of: target.id).bytes ?? 0)
-        } + projects.projectArtifactBytes
-    }
-
-    /// Bytes covered by the current selection, partial picks and
-    /// selected dev-folder artifacts included.
-    public var selectedBytes: Int64 {
-        results.targets.reduce(0) { $0 + selection.selectedBytes(of: $1) }
-            + projects.selectedArtifactBytes
-    }
-
-    // MARK: - Dev-folder projects
-
-    /// One entry in the overview's "biggest single locations" list —
-    /// either a registry target or a discovered project. Projects are
-    /// represented whole (their artifact total), not per artifact,
-    /// matching how the Projects screen presents them.
-    public enum OverviewFinding: Identifiable, Sendable {
-        case target(CleanupTarget, bytes: Int64)
-        case project(DiscoveredProject)
-
-        public var id: String {
-            switch self {
-            case .target(let target, _): "target:\(target.id)"
-            case .project(let project): "project:\(project.id)"
-            }
-        }
-
-        public var bytes: Int64 {
-            switch self {
-            case .target(_, let bytes): bytes
-            case .project(let project): project.artifactBytes
-            }
-        }
-    }
-
-    /// The largest measured findings across registry targets and
-    /// dev-folder projects, by size.
-    public func largestFindings(limit: Int) -> [OverviewFinding] {
-        let targetFindings: [OverviewFinding] = results.targets.compactMap { target in
-            let bytes = results.status(of: target.id).bytes ?? 0
-            return bytes > 0 ? .target(target, bytes: bytes) : nil
-        }
-        let projectFindings: [OverviewFinding] = projects.discovered
-            .filter { $0.artifactBytes > 0 }
-            .map { .project($0) }
-        return (targetFindings + projectFindings)
-            .sorted { $0.bytes > $1.bytes }
-            .prefix(limit)
-            .map { $0 }
-    }
-
-    /// Whether a clean pass has anything to do — registry targets or
-    /// dev-folder artifacts. Derived from live projects (via
-    /// ``ProjectsModel/selectedArtifacts``), not the raw id set, so ids
-    /// left dangling by a root removed out from under the selection
-    /// never count.
-    public var hasCleanableSelection: Bool {
-        !selection.ids.isEmpty || !projects.selectedArtifacts.isEmpty
     }
 
     // MARK: - Selection
@@ -193,14 +113,7 @@ public final class AppModel {
         selection.selectAllSafe()
     }
 
-    // MARK: - Cleaning
-
-    /// Stop the running clean pass after the in-flight target finishes.
-    public func cancelClean() {
-        guard cleanTask != nil else { return }
-        activity.isCancellingClean = true
-        cleanTask?.cancel()
-    }
+    // MARK: - Termination
 
     /// Prepare for app termination: stop any in-flight clean pass and
     /// wait for it to unwind so the summary is shown and the history is
@@ -209,397 +122,12 @@ public final class AppModel {
     /// left half-cleaned, and every completed removal is recorded. Safe
     /// to call when nothing is running — it returns at once.
     public func prepareForTermination() async {
-        if cleanTask != nil {
-            activity.isCancellingClean = true
-            cleanTask?.cancel()
-            _ = await cleanTask?.value
+        if cleaner.cleanTask != nil {
+            await cleaner.cancelAndWait()
         }
         // record(from:duration:freeAfterBytes:) (run at the end of the
         // pass) schedules the persist; await it so the on-disk history
         // is up to date.
         await history.flush()
     }
-
-    private struct CleanJob {
-        let target: CleanupTarget
-        let paths: [URL]
-        let bytesBefore: Int64
-        /// What the (possibly partial) selection is expected to free —
-        /// dry-run projection only; real passes measure.
-        let estimatedBytes: Int64
-    }
-
-    private struct ArtifactCleanJob {
-        let artifact: DiscoveredArtifact
-        let projectName: String
-        let devRoot: URL
-    }
-
-    /// What a clean pass covers.
-    public enum CleanScope: Sendable, Equatable {
-        /// Everything selected — registry targets and dev-folder artifacts.
-        case selection
-        /// Only the selected registry targets in the set ("Clean just
-        /// this" on a target; artifacts never join).
-        case targets(Set<CleanupTarget.ID>)
-        /// Only the ticked artifacts of one project ("Clean just this"
-        /// on a project; registry targets never join).
-        case projectArtifacts(DiscoveredProject.ID)
-    }
-
-    /// Clean what the scope covers — everything selected, one target's
-    /// selection, or one project's ticked artifacts (the rest of the
-    /// selection stays intact) — then re-scan the cleaned entries so
-    /// the numbers on screen stay truthful.
-    public func cleanSelected(scope: CleanScope = .selection) {
-        guard !activity.isCleaning, !activity.isScanning else { return }
-        guard !selection.ids.isEmpty || !projects.artifactSelection.isEmpty else { return }
-
-        let targetLimit: Set<CleanupTarget.ID>? = switch scope {
-        case .selection: nil
-        case .targets(let ids): ids
-        case .projectArtifacts: []      // registry targets never join
-        }
-        let jobs: [CleanJob] = results.targets.compactMap { target in
-            guard selection.ids.contains(target.id), target.strategy.isCleanable,
-                  targetLimit?.contains(target.id) != false else { return nil }
-            switch results.status(of: target.id) {
-            case .measured(let measurement, _, _):
-                return CleanJob(
-                    target: target,
-                    paths: selection.selectedCleanupPaths(of: target),
-                    bytesBefore: measurement.bytes,
-                    estimatedBytes: selection.selectedBytes(of: target)
-                )
-            case .unmeasurable:
-                return CleanJob(target: target, paths: [], bytesBefore: 0, estimatedBytes: 0)
-            default:
-                return nil
-            }
-        }
-        // Artifact jobs join full passes and per-project passes —
-        // "Clean just this" on a registry target stays a target affair.
-        let artifactJobs: [ArtifactCleanJob]
-        switch scope {
-        case .targets:
-            artifactJobs = []
-        case .selection, .projectArtifacts:
-            let projectLimit: DiscoveredProject.ID? =
-                if case .projectArtifacts(let id) = scope { id } else { nil }
-            artifactJobs = projects.projectScans.flatMap { scan in
-                scan.projects
-                    .filter { projectLimit == nil || $0.id == projectLimit }
-                    .flatMap { project in
-                        project.artifacts
-                            .filter { projects.artifactSelection.contains($0.id) }
-                            .map { ArtifactCleanJob(
-                                artifact: $0, projectName: project.name, devRoot: scan.root
-                            ) }
-                    }
-            }
-        }
-        guard !jobs.isEmpty || !artifactJobs.isEmpty else { return }
-
-        // A dry run is a report, not a pass: project the numbers from
-        // the scan-time snapshot and touch nothing — no engine, no
-        // rescan, and the selection stays intact.
-        if settings.dryRun {
-            var summary = CleanSummary(disposal: settings.disposal)
-            summary.isDryRun = true
-            for job in jobs {
-                summary.itemsRemoved += max(1, job.paths.count)
-                summary.cleanedTargets += 1
-                summary.reclaimedBytes += job.estimatedBytes
-                summary.cleaned.append(CleanSummary.CleanedTarget(
-                    id: job.target.id,
-                    name: job.target.name,
-                    category: job.target.category,
-                    // Command targets have no measurable projection.
-                    bytesFreed: job.paths.isEmpty ? nil : job.estimatedBytes
-                ))
-            }
-            for job in artifactJobs {
-                summary.itemsRemoved += 1
-                summary.cleanedTargets += 1
-                summary.reclaimedBytes += job.artifact.measurement.bytes
-                summary.cleanedArtifacts.append(CleanSummary.CleanedArtifact(
-                    id: job.artifact.id,
-                    name: projects.artifactDisplayName(
-                        kindID: job.artifact.kindID, projectName: job.projectName
-                    ),
-                    bytesFreed: job.artifact.measurement.bytes
-                ))
-            }
-            activity.lastCleanSummary = summary
-            return
-        }
-
-        activity.isCleaning = true
-        activity.isCancellingClean = false
-        let chosenDisposal = settings.disposal
-        let scan = scanExecutor
-        let clean = cleanExecutor
-        let volume = volumeProbe
-
-        cleanTask = Task {
-            // A clean pass must not be throttled or napped part-way — hold
-            // an activity assertion for its whole duration.
-            let activity = ProcessInfo.processInfo.beginActivity(
-                options: [.userInitiated], reason: "Cleaning reclaimable storage"
-            )
-            defer { ProcessInfo.processInfo.endActivity(activity) }
-            let passStart = Date.now
-            var summary = CleanSummary(disposal: chosenDisposal)
-
-            // Sequential on purpose: cleanup should be predictable and
-            // easy to interrupt, and it is I/O-bound anyway. The
-            // cancellation check sits between jobs: the in-flight
-            // target always finishes, so nothing is left half-cleaned.
-            for (index, job) in jobs.enumerated() {
-                if Task.isCancelled {
-                    summary.wasStopped = true
-                    break
-                }
-                self.activity.cleanProgress = CleanProgress(
-                    targetName: job.target.name,
-                    targetPath: job.target.pathPatterns.first,
-                    index: index + 1,
-                    total: jobs.count + artifactJobs.count
-                )
-                self.results.setStatus(.scanning, for: job.target.id)
-
-                // Refuse any cleanup path whose ancestry no longer
-                // resolves to its scan-time root — a cache directory
-                // swapped for a symlink after the scan would otherwise
-                // redirect deletion outside the target.
-                let allowedRoots = self.results.scanRealRoots[job.target.id] ?? []
-                let pathsAreChildren: Bool
-                if case .removeContents = job.target.strategy {
-                    pathsAreChildren = true
-                } else {
-                    pathsAreChildren = false
-                }
-                let (safePaths, refusedPaths) = await offMain {
-                    Self.partitionSafe(
-                        job.paths,
-                        allowedRealRoots: allowedRoots,
-                        pathsAreChildren: pathsAreChildren
-                    )
-                }
-                var outcome = await offMain {
-                    clean(job.target, safePaths, chosenDisposal)
-                }
-                for refused in refusedPaths {
-                    outcome.failures.append(CleanFailure(
-                        path: refused.path,
-                        message: localized(
-                            "clean.pathChanged",
-                            defaultValue: "Its location changed since the scan, so it was left untouched."
-                        )
-                    ))
-                }
-                summary.itemsRemoved += outcome.removedItems
-                if outcome.removedItems > 0 {
-                    summary.cleanedTargets += 1
-                } else if !outcome.failures.isEmpty {
-                    summary.failedTargets += 1
-                }
-                summary.failures.append(contentsOf: outcome.failures.map {
-                    localized(
-                        "clean.failureLine",
-                        defaultValue: "\(job.target.name) — \($0.message)"
-                    )
-                })
-
-                let refreshed = await offMain { scan(job.target) }
-                self.results.setStatus(refreshed, for: job.target.id)
-                self.breakdowns.invalidate(job.target.id)
-                // Freed space is only credited when this pass actually
-                // removed something *and* the rescan could measure it.
-                // A target the tool pruned itself between scan and clean
-                // (or one whose disposals all failed) must not be
-                // reported as space Reclaim reclaimed — command targets
-                // and failed rescans report "unknown", never a guess.
-                let freed = refreshed.bytes.map { max(0, job.bytesBefore - $0) }
-                if outcome.removedItems > 0 {
-                    summary.reclaimedBytes += freed ?? 0
-                    summary.cleaned.append(CleanSummary.CleanedTarget(
-                        id: job.target.id,
-                        name: job.target.name,
-                        category: job.target.category,
-                        bytesFreed: freed,
-                        bytesAfter: refreshed.bytes
-                    ))
-                }
-                self.selection.removeAfterClean(job.target.id)
-            }
-
-            // Dev-folder artifacts, after the registry targets. Same
-            // sequential, cancellable, best-effort discipline.
-            let removeArtifacts = self.artifactCleanExecutor
-            var cleanedRoots: [URL] = []
-            for (offset, job) in artifactJobs.enumerated() {
-                if Task.isCancelled {
-                    summary.wasStopped = true
-                    break
-                }
-                let name = self.projects.artifactDisplayName(
-                    kindID: job.artifact.kindID, projectName: job.projectName
-                )
-                self.activity.cleanProgress = CleanProgress(
-                    targetName: name,
-                    targetPath: (job.artifact.url.path as NSString).abbreviatingWithTildeInPath,
-                    index: jobs.count + offset + 1,
-                    total: jobs.count + artifactJobs.count
-                )
-
-                let url = job.artifact.url
-                // Same scan-time pin as registry targets: only dispose
-                // of the artifact while its parent still resolves inside
-                // a scanned dev root.
-                let devRootsSnapshot = self.projects.scanRealDevRoots
-                let pinHolds = await offMain {
-                    Self.artifactPinHolds(url, allowedRealDevRoots: devRootsSnapshot)
-                }
-                let outcome: CleanOutcome
-                if pinHolds {
-                    outcome = await offMain {
-                        removeArtifacts([url], chosenDisposal)
-                    }
-                } else {
-                    outcome = CleanOutcome(failures: [CleanFailure(
-                        path: url.path,
-                        message: localized(
-                            "clean.pathChanged",
-                            defaultValue: "Its location changed since the scan, so it was left untouched."
-                        )
-                    )])
-                }
-                summary.itemsRemoved += outcome.removedItems
-                summary.failures.append(contentsOf: outcome.failures.map {
-                    localized(
-                        "clean.failureLine",
-                        defaultValue: "\(name) — \($0.message)"
-                    )
-                })
-
-                // Freed space is only credited when this pass actually
-                // removed the artifact *and* it is verifiably gone from
-                // disk. An artifact deleted out from under us between
-                // scan and clean (a build tool, another cleaner) fails
-                // the removal — its bytes are not space Reclaim freed.
-                if outcome.removedItems > 0 {
-                    let gone = await offMain {
-                        !FileManager.default.fileExists(atPath: url.path)
-                    }
-                    let freed: Int64? = gone ? job.artifact.measurement.bytes : nil
-                    summary.reclaimedBytes += freed ?? 0
-                    summary.cleanedTargets += 1
-                    summary.cleanedArtifacts.append(CleanSummary.CleanedArtifact(
-                        id: job.artifact.id, name: name, bytesFreed: freed
-                    ))
-                    if !cleanedRoots.contains(where: { $0.path == job.devRoot.path }) {
-                        cleanedRoots.append(job.devRoot)
-                    }
-                } else if !outcome.failures.isEmpty {
-                    summary.failedTargets += 1
-                }
-                self.projects.removeFromSelection(job.artifact.id)
-            }
-
-            // Re-discover the affected roots so the Projects list stays
-            // truthful — reclaimed space is measured, never assumed.
-            let rescan = self.projectScanExecutor
-            for root in cleanedRoots {
-                let refreshed = await offMain { rescan(root) }
-                self.projects.replaceScan(refreshed)
-            }
-
-            self.activity.cleanProgress = nil
-            self.activity.lastCleanSummary = summary
-            self.activity.isCleaning = false
-            self.activity.isCancellingClean = false
-            self.cleanTask = nil
-            // Volume space is measured before recording, so the entry
-            // carries the honest "free after this clean" figure.
-            let space = await offMain { volume() }
-            self.results.volumeSpace = space
-            self.history.record(
-                from: summary,
-                duration: Date.now.timeIntervalSince(passStart),
-                freeAfterBytes: space?.availableBytes
-            )
-        }
-    }
-
-    // MARK: - Background helpers
-
-    /// Split scan-time cleanup paths into those still safe to dispose
-    /// and those whose ancestry changed since the scan.
-    ///
-    /// `allowedRealRoots` is the symlink-resolved form of the target's
-    /// roots at scan time. For `.removeContents` each path is a child of
-    /// a root, so its *parent* must still resolve to one of those roots;
-    /// for `.removePaths` each path *is* a root. An empty set means the
-    /// scan captured no pin (e.g. a command target), so the paths pass
-    /// straight through to the engine's own exclusion guard.
-    private nonisolated static func partitionSafe(
-        _ paths: [URL], allowedRealRoots: Set<String>, pathsAreChildren: Bool
-    ) -> (safe: [URL], refused: [URL]) {
-        guard !allowedRealRoots.isEmpty else { return (paths, []) }
-        var safe: [URL] = []
-        var refused: [URL] = []
-        for path in paths {
-            let container = pathsAreChildren ? path.deletingLastPathComponent() : path
-            if allowedRealRoots.contains(container.resolvingSymlinksInPath().path) {
-                safe.append(path)
-            } else {
-                refused.append(path)
-            }
-        }
-        return (safe, refused)
-    }
-
-    /// True while the artifact's parent still resolves inside a scanned
-    /// dev root — the same scan-time pin as ``partitionSafe(_:allowedRealRoots:pathsAreChildren:)``,
-    /// for dev-folder artifacts, which have no registry root.
-    private nonisolated static func artifactPinHolds(
-        _ url: URL, allowedRealDevRoots: Set<String>
-    ) -> Bool {
-        guard !allowedRealDevRoots.isEmpty else { return true }
-        let parent = url.deletingLastPathComponent().resolvingSymlinksInPath().path
-        return allowedRealDevRoots.contains { parent == $0 || parent.hasPrefix($0 + "/") }
-    }
-
-    // MARK: - Preview support
-
-    #if DEBUG
-    /// Preview-only: install canned scan results so SwiftUI previews
-    /// can render every screen without touching the filesystem.
-    public func seedForPreview(
-        statuses: [CleanupTarget.ID: TargetStatus],
-        selection: Set<CleanupTarget.ID> = [],
-        history: [CleanHistoryEntry] = [],
-        breakdowns: [CleanupTarget.ID: [BreakdownEntry]] = [:],
-        volumeSpace: VolumeSpace? = nil,
-        hasFullDiskAccess: Bool? = true,
-        lastCleanSummary: CleanSummary? = nil
-    ) {
-        self.results.statuses = statuses
-        self.selection.seed(ids: selection)
-        self.history.seed(entries: history)
-        self.breakdowns.seed(entries: breakdowns)
-        self.results.volumeSpace = volumeSpace
-        self.results.hasFullDiskAccess = hasFullDiskAccess
-        self.activity.lastCleanSummary = lastCleanSummary
-        self.results.lastScan = .now
-        self.results.lastScanWasComplete = true
-    }
-
-    /// Preview-only: canned dev-folder discovery without touching
-    /// UserDefaults persistence or running a scan.
-    public func seedProjectsForPreview(devRoots: [URL], projectScans: [DevRootScan]) {
-        projects.seed(devRoots: devRoots, projectScans: projectScans)
-    }
-    #endif
 }
