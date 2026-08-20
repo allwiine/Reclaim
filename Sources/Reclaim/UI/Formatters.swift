@@ -15,7 +15,7 @@ extension AppModel {
     /// The user-visible name of the volume the disk cards describe,
     /// falling back to a generic label until the probe reports one.
     var volumeDisplayName: String {
-        volumeSpace?.localizedName
+        results.volumeSpace?.localizedName
             ?? localized("disk.startupDisk", defaultValue: "Startup Disk")
     }
 }

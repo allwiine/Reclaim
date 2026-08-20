@@ -23,15 +23,15 @@ enum BackgroundActivity {
     @MainActor
     static func run(model: AppModel) async {
         while !Task.isCancelled {
-            if model.weeklyScanEnabled, !model.isScanning, !model.isCleaning {
-                let before = model.lastScan
-                model.runBackgroundScanIfDue()
-                if model.isScanning {
+            if model.settings.weeklyScanEnabled, !model.activity.isScanning, !model.activity.isCleaning {
+                let before = model.results.lastScan
+                model.scanner.runBackgroundScanIfDue()
+                if model.activity.isScanning {
                     // Wait for this scan to land, then evaluate the result.
-                    while model.isScanning, !Task.isCancelled {
+                    while model.activity.isScanning, !Task.isCancelled {
                         try? await Task.sleep(for: .seconds(1))
                     }
-                    if model.lastScan != before {
+                    if model.results.lastScan != before {
                         await notifyIfWorthwhile(model: model)
                     }
                 }
@@ -43,8 +43,8 @@ enum BackgroundActivity {
     /// Post a notification when the scan found more than the threshold.
     @MainActor
     private static func notifyIfWorthwhile(model: AppModel) async {
-        guard model.notifyLargeReclaimable,
-              model.cleanableBytes > AppModel.notificationThresholdBytes,
+        guard model.settings.notifyLargeReclaimable,
+              model.cleanableBytes > SettingsStore.notificationThresholdBytes,
               // UNUserNotificationCenter requires a real app bundle;
               // `swift run` has none and would crash.
               Bundle.main.bundleIdentifier != nil else { return }

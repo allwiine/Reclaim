@@ -20,11 +20,11 @@ struct FooterBar: View {
         HStack(spacing: 0) {
             item(
                 label: localized("overview.reclaimedAllTime", defaultValue: "Reclaimed (all time)"),
-                value: model.reclaimedAllTimeBytes > 0
-                    ? model.reclaimedAllTimeBytes.formattedBytesCompact : "—",
-                help: model.history.isEmpty
+                value: model.history.reclaimedAllTimeBytes > 0
+                    ? model.history.reclaimedAllTimeBytes.formattedBytesCompact : "—",
+                help: model.history.entries.isEmpty
                     ? localized("overview.noCleansYet", defaultValue: "no cleans recorded yet")
-                    : localized("overview.acrossCleans", defaultValue: "across \(model.history.count) cleans")
+                    : localized("overview.acrossCleans", defaultValue: "across \(model.history.entries.count) cleans")
             )
             Spacer(minLength: 16)
             item(
@@ -36,7 +36,7 @@ struct FooterBar: View {
             item(
                 label: localized("overview.nextBackgroundScan", defaultValue: "Next background scan"),
                 value: nextScanValue,
-                help: model.weeklyScanEnabled
+                help: model.settings.weeklyScanEnabled
                     ? localized("overview.weeklyWhileRunning", defaultValue: "weekly, while Reclaim is running")
                     : localized("overview.backgroundScansOff", defaultValue: "background scans are off")
             )
@@ -62,12 +62,12 @@ struct FooterBar: View {
     }
 
     private var lastCleanValue: String {
-        guard let last = model.history.first else { return "—" }
+        guard let last = model.history.entries.first else { return "—" }
         return last.date.formatted(date: .abbreviated, time: .omitted)
     }
 
     private var lastCleanHelp: String {
-        guard let last = model.history.first else {
+        guard let last = model.history.entries.first else {
             return localized("overview.nothingCleanedYet", defaultValue: "nothing cleaned yet")
         }
         let freed = last.reclaimedBytes.formattedBytesCompact
@@ -76,10 +76,10 @@ struct FooterBar: View {
     }
 
     private var nextScanValue: String {
-        guard model.weeklyScanEnabled else {
+        guard model.settings.weeklyScanEnabled else {
             return localized("overview.off", defaultValue: "Off")
         }
-        guard let next = model.nextBackgroundScanDate else {
+        guard let next = model.scanner.nextBackgroundScanDate else {
             return localized("overview.afterFirstScan", defaultValue: "After first scan")
         }
         return next.formatted(.dateTime.weekday(.wide).hour().minute())

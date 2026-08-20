@@ -30,7 +30,7 @@ final class ReclaimAppDelegate: NSObject, NSApplicationDelegate {
     func applicationShouldTerminate(
         _ sender: NSApplication
     ) -> NSApplication.TerminateReply {
-        guard let model = ReclaimTermination.model, model.isCleaning else {
+        guard let model = ReclaimTermination.model, model.activity.isCleaning else {
             return .terminateNow
         }
         Log.app.info("Deferring termination to finish the clean pass")
@@ -84,8 +84,8 @@ struct ReclaimApp: App {
             localized("app.name", defaultValue: "Reclaim"),
             systemImage: "internaldrive",
             isInserted: Binding(
-                get: { model.menuBarExtraEnabled },
-                set: { model.menuBarExtraEnabled = $0 }
+                get: { model.settings.menuBarExtraEnabled },
+                set: { model.settings.menuBarExtraEnabled = $0 }
             )
         ) {
             MenuBarSummary()
@@ -107,8 +107,8 @@ struct ReclaimApp: App {
         // rebuild the main menu on every model change.
         CommandGroup(after: .newItem) {
             Button(localized("menu.scanThisMac", defaultValue: "Scan This Mac")) {
-                if !model.isScanning, !model.isCleaning {
-                    model.scanAll()
+                if !model.activity.isScanning, !model.activity.isCleaning {
+                    model.scanner.scanAll()
                 }
             }
             .keyboardShortcut("r", modifiers: .command)
@@ -133,7 +133,7 @@ private struct MenuBarSummary: View {
 
     var body: some View {
         Group {
-            if model.lastScan != nil {
+            if model.results.lastScan != nil {
                 // Only what Reclaim itself can clean — tool-managed
                 // items (Docker, Go modules) don't count as reclaimable.
                 Text(localized(
@@ -142,7 +142,7 @@ private struct MenuBarSummary: View {
                 ))
                 Text(localized(
                     "menu.safeToRemove",
-                    defaultValue: "Safe to remove: \(model.safeReclaimableBytes.formattedBytesCompact)"
+                    defaultValue: "Safe to remove: \(model.results.safeReclaimableBytes.formattedBytesCompact)"
                 ))
             } else {
                 Text(localized("toolbar.noScanYet", defaultValue: "No scan yet"))
@@ -150,13 +150,13 @@ private struct MenuBarSummary: View {
 
             Divider()
 
-            Button(model.isScanning
+            Button(model.activity.isScanning
                 ? localized("menu.scanning", defaultValue: "Scanning…")
                 : localized("menu.scanNow", defaultValue: "Scan Now")
             ) {
-                model.scanAll()
+                model.scanner.scanAll()
             }
-            .disabled(model.isScanning || model.isCleaning)
+            .disabled(model.activity.isScanning || model.activity.isCleaning)
 
             Button(localized("menu.reviewInReclaim", defaultValue: "Review in Reclaim…")) {
                 NSApp.activate()

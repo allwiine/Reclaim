@@ -1,0 +1,105 @@
+//
+//  OverviewView+Disk.swift
+//  Reclaim
+//
+//  The overview's real-disk-usage card: free space, and the
+//  developer-caches / other-used / free legend beneath the bar.
+//
+
+import ReclaimAppCore
+import ReclaimKit
+import SwiftUI
+
+extension OverviewView {
+    // MARK: - Disk card
+
+    var diskCard: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack {
+                SectionLabel(model.volumeDisplayName)
+                Spacer()
+                if let space = model.results.volumeSpace {
+                    Text(localized(
+                        "disk.usedOfTotal",
+                        defaultValue: "\(space.usedBytes.wholeGB) used of \(space.totalBytes.wholeGB)"
+                    ))
+                    .themeFont(.footnote)
+                    .monospacedDigit()
+                    .foregroundStyle(Theme.textTertiary)
+                }
+            }
+
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                Text(freeGBNumber)
+                    .font(Theme.heroNumber(30))
+                    .monospacedDigit()
+                    .foregroundStyle(Theme.textPrimary)
+                    .contentTransition(.numericText())
+                    .animation(Theme.smooth, value: freeGBNumber)
+                Text(localized("disk.gbFree", defaultValue: "GB free"))
+                    .themeFont(.cardTitle)
+                    .fontWeight(.regular)
+                    .foregroundStyle(Theme.textSecondary)
+            }
+            .padding(.top, 10)
+
+            SegmentedBar(segments: diskSegments, height: 9)
+                .padding(.top, 12)
+
+            VStack(spacing: 6) {
+                diskLegendRow(
+                    localized("disk.legendDeveloperCaches", defaultValue: "Developer caches"),
+                    model.totalFoundBytes.formattedBytesCompact,
+                    Theme.accent
+                )
+                diskLegendRow(
+                    localized("disk.legendOtherUsed", defaultValue: "Other used space"),
+                    otherUsedBytes.wholeGB,
+                    .white.opacity(0.28)
+                )
+                diskLegendRow(
+                    localized("disk.legendFree", defaultValue: "Free"),
+                    (model.results.volumeSpace?.availableBytes ?? 0).wholeGB,
+                    .white.opacity(0.08)
+                )
+            }
+            .padding(.top, 14)
+        }
+        .padding(Theme.cardPadding)
+        .frame(maxHeight: .infinity, alignment: .top)
+        .card()
+    }
+
+    private var freeGBNumber: String {
+        guard let space = model.results.volumeSpace else { return "—" }
+        return space.availableBytes.wholeGBValue
+    }
+
+    private var otherUsedBytes: Int64 {
+        guard let space = model.results.volumeSpace else { return 0 }
+        return max(0, space.usedBytes - model.totalFoundBytes)
+    }
+
+    private var diskSegments: [MeterSegment] {
+        guard let space = model.results.volumeSpace, space.totalBytes > 0 else { return [] }
+        let total = Double(space.totalBytes)
+        return [
+            MeterSegment(id: "dev", fraction: Double(model.totalFoundBytes) / total, color: Theme.accent),
+            MeterSegment(id: "other", fraction: Double(otherUsedBytes) / total, color: .white.opacity(0.28)),
+        ]
+    }
+
+    private func diskLegendRow(_ name: String, _ value: String, _ color: Color) -> some View {
+        HStack(spacing: 8) {
+            Circle().fill(color).frame(width: 7, height: 7)
+            Text(name)
+                .scaledFont(size: 12)
+                .foregroundStyle(Color(hex: 0xB4B4BB))
+            Spacer(minLength: 8)
+            Text(value)
+                .scaledFont(size: 12)
+                .monospacedDigit()
+                .foregroundStyle(Color(hex: 0x8E8E95))
+        }
+    }
+}

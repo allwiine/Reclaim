@@ -73,12 +73,12 @@ struct RootView: View {
                     onCancel: { confirmScope = nil },
                     onConfirm: {
                         confirmScope = nil
-                        let cleanScope: AppModel.CleanScope = switch scope {
+                        let cleanScope: CleanScope = switch scope {
                         case .selection: .selection
                         case .single(let id): .targets([id])
                         case .project(let id): .projectArtifacts(id)
                         }
-                        model.cleanSelected(scope: cleanScope)
+                        model.cleaner.cleanSelected(scope: cleanScope)
                     }
                 )
                 .accessibilityAddTraits(.isModal)
@@ -87,19 +87,19 @@ struct RootView: View {
                 // While the sheet is up the background scan defers, so
                 // it cannot clear the selection under review. Covers
                 // window close too — onDisappear fires either way.
-                .onAppear { model.isReviewingSelection = true }
-                .onDisappear { model.isReviewingSelection = false }
+                .onAppear { model.activity.isReviewingSelection = true }
+                .onDisappear { model.activity.isReviewingSelection = false }
             }
         }
         .animation(Theme.flow, value: confirmScope)
-        .onChange(of: model.lastCleanSummary != nil) { _, hasSummary in
+        .onChange(of: model.activity.lastCleanSummary != nil) { _, hasSummary in
             // A finished pass (real or dry run) lands on the Done screen.
             if hasSummary {
                 isShowingDone = true
                 destination = flowDestination
             }
         }
-        .onChange(of: model.isScanning) { _, isScanning in
+        .onChange(of: model.activity.isScanning) { _, isScanning in
             // A scan (manual ⌘R, menu bar) clears the selection; a
             // confirmation left open would show an empty, dead sheet.
             if isScanning { confirmScope = nil }
@@ -121,7 +121,7 @@ struct RootView: View {
                 NSApp.activate()
             }
             if arguments.contains("--scan-on-launch") {
-                model.scanAll()
+                model.scanner.scanAll()
             }
             // `--open=history|settings|<category rawValue>` jumps straight
             // to a destination for screenshot-driven smoke tests.
@@ -165,7 +165,7 @@ struct RootView: View {
                 inspectedTargetID = nil
                 if isShowingDone {
                     isShowingDone = false
-                    model.lastCleanSummary = nil
+                    model.activity.lastCleanSummary = nil
                 }
             }
         )
@@ -203,9 +203,9 @@ struct RootView: View {
         case .history: return .history
         case .settings: return .settings
         case .overview, .category, .allFindings, .projects:
-            if model.isCleaning { return .cleaning }
-            if isShowingDone, model.lastCleanSummary != nil { return .done }
-            if model.isScanning { return .scanning }
+            if model.activity.isCleaning { return .cleaning }
+            if isShowingDone, model.activity.lastCleanSummary != nil { return .done }
+            if model.activity.isScanning { return .scanning }
             // Categories and search are browsable before the first scan
             // too — the catalogue itself is worth exploring; only the
             // overview needs measurements and shows the hero instead.
@@ -213,7 +213,7 @@ struct RootView: View {
             if case .category = destination { return .browser }
             if destination == .allFindings { return .browser }
             if destination == .projects { return .projects }
-            if model.lastScan == nil { return .idle }
+            if model.results.lastScan == nil { return .idle }
             return .overview
         }
     }
@@ -231,10 +231,10 @@ struct RootView: View {
             CleaningView()
                 .transition(.opacity)
         case .done:
-            if let summary = model.lastCleanSummary {
+            if let summary = model.activity.lastCleanSummary {
                 DoneView(summary: summary) {
                     isShowingDone = false
-                    model.lastCleanSummary = nil
+                    model.activity.lastCleanSummary = nil
                     destination = .overview
                 }
                 .transition(.opacity)

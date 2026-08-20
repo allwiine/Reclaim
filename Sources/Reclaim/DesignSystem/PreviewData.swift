@@ -107,7 +107,7 @@ enum PreviewData {
     static func scanned() -> AppModel {
         let model = makeModel()
         var statuses: [CleanupTarget.ID: TargetStatus] = [:]
-        for target in model.targets {
+        for target in model.results.targets {
             if let size = sizes[target.id] {
                 let root = URL(filePath: "/Users/dev/Library/\(target.id)")
                 statuses[target.id] = .measured(
@@ -123,7 +123,7 @@ enum PreviewData {
                 statuses[target.id] = .notInstalled
             }
         }
-        let selection = Set(model.targets.filter {
+        let selection = Set(model.results.targets.filter {
             $0.safety == .safe && $0.strategy.isCleanable && sizes[$0.id] != nil
         }.map(\.id))
 
@@ -210,18 +210,20 @@ enum PreviewData {
             .init(id: "gradle-caches", name: "Gradle caches", category: .android, bytesFreed: gb(8.6)),
             .init(id: "npm-cache", name: "npm cache", category: .packageManagers, bytesFreed: gb(3.4)),
         ]
-        model.lastCleanSummary = summary
+        model.activity.lastCleanSummary = summary
         return model
     }
 
     private static func makeModel() -> AppModel {
         AppModel(
             defaults: UserDefaults(suiteName: "previews-\(UUID().uuidString)")!,
-            scanExecutor: { _ in .notInstalled },
-            cleanExecutor: { _, _, _ in CleanOutcome() },
-            breakdownExecutor: { _ in nil },
-            fullDiskAccessProbe: { true },
-            volumeProbe: { nil },
+            executors: Executors(
+                scan: { _ in .notInstalled },
+                clean: { _, _, _ in CleanOutcome() },
+                breakdown: { _ in nil },
+                fullDiskAccess: { true },
+                volume: { nil }
+            ),
             historyStore: CleanHistoryStore(
                 fileURL: FileManager.default.temporaryDirectory
                     .appending(path: "previews-\(UUID().uuidString).json")
