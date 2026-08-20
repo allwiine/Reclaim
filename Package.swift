@@ -26,19 +26,23 @@ import PackageDescription
 /// swift-tools-version 6.2 already enables the Swift 6 language mode
 /// (strict, compile-time data-race safety). The upcoming features below
 /// are safe, forward-looking hygiene flags.
-///
-/// Deliberate decision: we do NOT enable `.defaultIsolation(MainActor.self)`
-/// ("single-threaded by default"). This app has a real concurrency
-/// boundary — filesystem scanning must stay off the main actor — so
-/// explicit isolation annotations (`@MainActor` on UI/state, `@concurrent`
-/// on workers) document that boundary better than a module-wide default.
-/// See docs/ARCHITECTURE.md § Concurrency.
 let sharedSwiftSettings: [SwiftSetting] = [
     .enableUpcomingFeature("ExistentialAny"),
     .enableUpcomingFeature("MemberImportVisibility"),
     .enableUpcomingFeature("NonisolatedNonsendingByDefault"),
     .enableUpcomingFeature("InferIsolatedConformances"),
 ]
+
+/// Settings for the app-state layer: "approachable concurrency".
+///
+/// `.defaultIsolation(MainActor.self)` makes every unannotated declaration
+/// main-actor-isolated, which is the truth for observable UI state. The
+/// real concurrency boundary stays explicit from the other side: blocking
+/// filesystem work runs in `@concurrent` workers, and the value types that
+/// cross the boundary are marked `nonisolated`.
+/// See docs/ARCHITECTURE.md § Concurrency.
+let mainActorByDefault: [SwiftSetting] =
+    sharedSwiftSettings + [.defaultIsolation(MainActor.self)]
 
 let package = Package(
     name: "Reclaim",
@@ -61,7 +65,7 @@ let package = Package(
             name: "ReclaimAppCore",
             dependencies: ["ReclaimKit"],
             resources: [.process("Resources")],
-            swiftSettings: sharedSwiftSettings
+            swiftSettings: mainActorByDefault
         ),
         .executableTarget(
             name: "Reclaim",
@@ -77,7 +81,7 @@ let package = Package(
         .testTarget(
             name: "ReclaimAppCoreTests",
             dependencies: ["ReclaimAppCore"],
-            swiftSettings: sharedSwiftSettings
+            swiftSettings: mainActorByDefault
         ),
         .testTarget(
             name: "LocalizationLintTests",

@@ -23,7 +23,6 @@ import Foundation
 import Observation
 import ReclaimKit
 
-@MainActor
 @Observable
 public final class ScanCoordinator {
     // MARK: - Constants

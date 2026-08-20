@@ -17,14 +17,13 @@ import Testing
 @testable import ReclaimAppCore
 
 /// Thread-safe capture of where executor closures actually ran.
-final class ThreadRecorder: Sendable {
+nonisolated final class ThreadRecorder: Sendable {
     private let hits = Mutex<[Bool]>([])
     func record() { hits.withLock { $0.append(Thread.isMainThread) } }
     var sawMainThread: Bool { hits.withLock { $0.contains(true) } }
     var count: Int { hits.withLock { $0.count } }
 }
 
-@MainActor
 @Suite("Isolation")
 struct IsolationTests {
     @Test("Scan, project-scan, full-disk-access, and volume executors run off the main thread")

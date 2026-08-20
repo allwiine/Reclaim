@@ -10,7 +10,7 @@
 import Foundation
 import ReclaimKit
 
-public struct CategoryTotal: Identifiable {
+public nonisolated struct CategoryTotal: Identifiable {
     public let category: ToolCategory
     public let bytes: Int64
     public var id: ToolCategory.ID { category.id }

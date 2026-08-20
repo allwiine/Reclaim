@@ -10,7 +10,9 @@
 import Foundation
 
 /// Resolves a semantic key against this module's string catalogues.
-func localized(_ key: StaticString, defaultValue: String.LocalizationValue) -> String {
+/// A pure bundle read, so it stays callable from pass code and value
+/// contexts rather than inheriting the module's MainActor default.
+nonisolated func localized(_ key: StaticString, defaultValue: String.LocalizationValue) -> String {
     String(localized: key, defaultValue: defaultValue, bundle: .module)
 }
 

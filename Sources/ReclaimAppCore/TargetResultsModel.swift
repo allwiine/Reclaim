@@ -13,7 +13,6 @@ import Foundation
 import Observation
 import ReclaimKit
 
-@MainActor
 @Observable
 public final class TargetResultsModel {
     // MARK: - Catalogue

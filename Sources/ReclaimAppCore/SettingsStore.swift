@@ -10,7 +10,6 @@ import Foundation
 import Observation
 import ReclaimKit
 
-@MainActor
 @Observable
 public final class SettingsStore {
     private let defaults: UserDefaults

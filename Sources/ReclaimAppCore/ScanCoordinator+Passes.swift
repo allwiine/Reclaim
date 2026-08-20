@@ -25,8 +25,10 @@ extension ScanCoordinator {
             // progress line to show while several run concurrently.
             var inFlight: [CleanupTarget] = []
 
-            // Nested functions do not inherit the enclosing actor, so
-            // spell out the isolation these need to touch progress.
+            // A local function declared inside a closure is nonisolated
+            // even under the module's MainActor default, so these two
+            // still have to spell out the isolation they touch progress
+            // and start work from.
             @MainActor
             func publishProgress() {
                 let current = inFlight.first

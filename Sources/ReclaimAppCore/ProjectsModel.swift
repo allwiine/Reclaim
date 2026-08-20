@@ -13,7 +13,6 @@ import Foundation
 import Observation
 import ReclaimKit
 
-@MainActor
 @Observable
 public final class ProjectsModel {
     // MARK: - Session state

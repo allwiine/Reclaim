@@ -23,7 +23,7 @@ public typealias ProjectScanExecutor = @Sendable (URL) -> DevRootScan
 public typealias ArtifactCleanExecutor = @Sendable ([URL], Disposal) -> CleanOutcome
 
 /// Every injectable seam, with production defaults.
-public struct Executors: Sendable {
+public nonisolated struct Executors: Sendable {
     public var scan: ScanExecutor
     public var clean: CleanExecutor
     public var breakdown: BreakdownExecutor

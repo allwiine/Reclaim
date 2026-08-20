@@ -25,7 +25,7 @@ import Observation
 import ReclaimKit
 
 /// What a clean pass covers.
-public enum CleanScope: Sendable, Equatable {
+public nonisolated enum CleanScope: Sendable, Equatable {
     /// Everything selected — registry targets and dev-folder artifacts.
     case selection
     /// Only the selected registry targets in the set ("Clean just
@@ -36,7 +36,6 @@ public enum CleanScope: Sendable, Equatable {
     case projectArtifacts(DiscoveredProject.ID)
 }
 
-@MainActor
 @Observable
 public final class CleanCoordinator {
     // MARK: - Session state

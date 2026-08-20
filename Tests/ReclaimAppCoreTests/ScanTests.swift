@@ -12,7 +12,6 @@ import Synchronization
 import Testing
 @testable import ReclaimAppCore
 
-@MainActor
 @Suite("Scan")
 struct ScanTests {
     @Test("Scanning populates statuses and records the scan")

@@ -10,7 +10,6 @@ import Foundation
 import Observation
 import ReclaimKit
 
-@MainActor
 @Observable
 public final class HistoryModel {
     /// Past clean passes, newest first.

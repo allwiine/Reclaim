@@ -12,7 +12,6 @@ import Synchronization
 import Testing
 @testable import ReclaimAppCore
 
-@MainActor
 @Suite("History")
 struct HistoryTests {
     @Test("A real clean pass is recorded in persistent history")

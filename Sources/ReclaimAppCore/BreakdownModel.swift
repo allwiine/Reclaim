@@ -11,7 +11,6 @@ import Foundation
 import Observation
 import ReclaimKit
 
-@MainActor
 @Observable
 public final class BreakdownModel {
     /// On-demand "largest contents" per target, cached per scan.
