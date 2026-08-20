@@ -16,8 +16,9 @@ Reclaim is deliberately small and layered. The core insight is that a storage cl
 ┌────────────────────▼─────────────────────────────────────┐
 │ ReclaimAppCore (library target — no UI imports)          │
 │                                                          │
-│  AppModel  composition root (@MainActor @Observable);    │
-│            builds the sub-models, injects `Executors`    │
+│  AppModel  composition root, MainActor by default        │
+│            (@Observable); builds the sub-models, injects │
+│            `Executors`                                   │
 │  Models    SettingsStore · ActivityModel ·               │
 │            TargetResultsModel · BreakdownModel ·         │
 │            SelectionModel · ProjectsModel ·              │
