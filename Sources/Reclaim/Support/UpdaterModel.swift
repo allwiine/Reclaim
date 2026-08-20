@@ -10,7 +10,6 @@
 #if canImport(Sparkle)
 import Sparkle
 
-@MainActor
 final class UpdaterModel {
     static let shared = UpdaterModel()
 

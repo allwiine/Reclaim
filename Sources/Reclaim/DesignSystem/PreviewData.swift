@@ -12,7 +12,6 @@ import Foundation
 import ReclaimAppCore
 import ReclaimKit
 
-@MainActor
 enum PreviewData {
     /// Gigabytes → bytes, for readable fixture tables.
     private static func gb(_ value: Double) -> Int64 { Int64(value * 1_000_000_000) }

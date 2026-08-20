@@ -20,7 +20,6 @@ enum BackgroundActivity {
 
     /// Loops for the app's lifetime: starts a background scan when one
     /// is due, then notifies about the result if the user opted in.
-    @MainActor
     static func run(model: AppModel) async {
         while !Task.isCancelled {
             if model.settings.weeklyScanEnabled, !model.activity.isScanning, !model.activity.isCleaning {
@@ -41,7 +40,6 @@ enum BackgroundActivity {
     }
 
     /// Post a notification when the scan found more than the threshold.
-    @MainActor
     private static func notifyIfWorthwhile(model: AppModel) async {
         guard model.settings.notifyLargeReclaimable,
               model.cleanableBytes > SettingsStore.notificationThresholdBytes,

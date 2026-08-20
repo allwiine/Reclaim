@@ -8,7 +8,6 @@
 import AppKit
 
 /// The folder-picking dialog shared by ProjectsView and Settings.
-@MainActor
 enum DevFolderPicker {
     static func pickFolders() -> [URL] {
         let panel = NSOpenPanel()

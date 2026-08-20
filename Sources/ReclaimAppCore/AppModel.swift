@@ -22,12 +22,6 @@ import Foundation
 import Observation
 import ReclaimKit
 
-// Redundant inside this module, but load-bearing outside it: a type made
-// main-actor-isolated by `.defaultIsolation` does not drive global-actor
-// inference into extensions declared in *other* modules, while an explicit
-// `@MainActor` does. The app target extends `AppModel`, so this stays until
-// that target also defaults to MainActor.
-@MainActor
 @Observable
 public final class AppModel {
     // MARK: - Sub-models

@@ -71,7 +71,7 @@ let package = Package(
             name: "Reclaim",
             dependencies: ["ReclaimKit", "ReclaimAppCore"],
             resources: [.process("Resources")],
-            swiftSettings: sharedSwiftSettings
+            swiftSettings: mainActorByDefault
         ),
         .testTarget(
             name: "ReclaimKitTests",
@@ -85,7 +85,7 @@ let package = Package(
         ),
         .testTarget(
             name: "LocalizationLintTests",
-            swiftSettings: sharedSwiftSettings
+            swiftSettings: mainActorByDefault
         ),
     ]
 )
