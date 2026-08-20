@@ -116,7 +116,14 @@ public final class TargetResultsModel {
     func refreshVolumeSpace() {
         let probe = volumeProbe
         Task {
-            self.volumeSpace = await offMain { probe() }
+            self.volumeSpace = await Self.measure(probe)
         }
+    }
+
+    /// Measures the volume on the concurrent executor — the blocking
+    /// filesystem boundary of a capacity refresh.
+    @concurrent
+    private static func measure(_ probe: @Sendable () -> VolumeSpace?) async -> VolumeSpace? {
+        probe()
     }
 }

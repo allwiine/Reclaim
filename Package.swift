@@ -30,12 +30,14 @@ import PackageDescription
 /// Deliberate decision: we do NOT enable `.defaultIsolation(MainActor.self)`
 /// ("single-threaded by default"). This app has a real concurrency
 /// boundary — filesystem scanning must stay off the main actor — so
-/// explicit isolation annotations (`@MainActor` on UI/state, `nonisolated`
+/// explicit isolation annotations (`@MainActor` on UI/state, `@concurrent`
 /// on workers) document that boundary better than a module-wide default.
 /// See docs/ARCHITECTURE.md § Concurrency.
 let sharedSwiftSettings: [SwiftSetting] = [
     .enableUpcomingFeature("ExistentialAny"),
     .enableUpcomingFeature("MemberImportVisibility"),
+    .enableUpcomingFeature("NonisolatedNonsendingByDefault"),
+    .enableUpcomingFeature("InferIsolatedConformances"),
 ]
 
 let package = Package(

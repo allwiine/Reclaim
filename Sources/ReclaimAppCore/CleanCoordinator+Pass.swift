@@ -66,16 +66,12 @@ extension CleanCoordinator {
                 } else {
                     pathsAreChildren = false
                 }
-                let (safePaths, refusedPaths) = await offMain {
-                    Self.partitionSafe(
-                        job.paths,
-                        allowedRealRoots: allowedRoots,
-                        pathsAreChildren: pathsAreChildren
-                    )
-                }
-                var outcome = await offMain {
-                    clean(job.target, safePaths, chosenDisposal)
-                }
+                let (safePaths, refusedPaths) = await Self.partitionWorker(
+                    job.paths, allowedRoots, pathsAreChildren
+                )
+                var outcome = await Self.cleanWorker(
+                    clean, job.target, safePaths, chosenDisposal
+                )
                 for refused in refusedPaths {
                     outcome.failures.append(CleanFailure(
                         path: refused.path,
@@ -98,7 +94,7 @@ extension CleanCoordinator {
                     )
                 })
 
-                let refreshed = await offMain { scan(job.target) }
+                let refreshed = await Self.rescanWorker(scan, job.target)
                 self.results.setStatus(refreshed, for: job.target.id)
                 self.breakdowns.invalidate(job.target.id)
                 // Freed space is only credited when this pass actually
@@ -145,14 +141,12 @@ extension CleanCoordinator {
                 // of the artifact while its parent still resolves inside
                 // a scanned dev root.
                 let devRootsSnapshot = self.projects.scanRealDevRoots
-                let pinHolds = await offMain {
-                    Self.artifactPinHolds(url, allowedRealDevRoots: devRootsSnapshot)
-                }
+                let pinHolds = await Self.pinWorker(url, devRootsSnapshot)
                 let outcome: CleanOutcome
                 if pinHolds {
-                    outcome = await offMain {
-                        removeArtifacts([url], chosenDisposal)
-                    }
+                    outcome = await Self.removeWorker(
+                        removeArtifacts, [url], chosenDisposal
+                    )
                 } else {
                     outcome = CleanOutcome(failures: [CleanFailure(
                         path: url.path,
@@ -176,9 +170,7 @@ extension CleanCoordinator {
                 // scan and clean (a build tool, another cleaner) fails
                 // the removal — its bytes are not space Reclaim freed.
                 if outcome.removedItems > 0 {
-                    let gone = await offMain {
-                        !FileManager.default.fileExists(atPath: url.path)
-                    }
+                    let gone = await Self.goneWorker(url)
                     let freed: Int64? = gone ? job.artifact.measurement.bytes : nil
                     summary.reclaimedBytes += freed ?? 0
                     summary.cleanedTargets += 1
@@ -198,7 +190,7 @@ extension CleanCoordinator {
             // truthful — reclaimed space is measured, never assumed.
             let rescan = self.projectScanExecutor
             for root in cleanedRoots {
-                let refreshed = await offMain { rescan(root) }
+                let refreshed = await Self.rediscoverWorker(rescan, root)
                 self.projects.replaceScan(refreshed)
             }
 
@@ -209,7 +201,7 @@ extension CleanCoordinator {
             self.cleanTask = nil
             // Volume space is measured before recording, so the entry
             // carries the honest "free after this clean" figure.
-            let space = await offMain { volume() }
+            let space = await Self.volumeWorker(volume)
             self.results.volumeSpace = space
             self.history.record(
                 from: summary,

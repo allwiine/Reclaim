@@ -13,7 +13,8 @@
 //  ─────────────────
 //  The coordinator is @MainActor: every property the UI reads is
 //  main-actor state. Blocking filesystem work (disposal, re-scanning,
-//  probing) runs through `offMain`, which executes on the global
+//  probing) runs through the named `@concurrent` workers in
+//  CleanCoordinator+Workers.swift, which execute on the global
 //  concurrent executor, off the main thread. The pass itself is
 //  sequential on purpose: cleanup should be predictable and easy to
 //  interrupt, and cancellation is only checked between jobs.

@@ -43,20 +43,7 @@ extension ScanCoordinator {
             func startNext() -> Bool {
                 guard let target = pending.next() else { return false }
                 inFlight.append(target)
-                group.addTask {
-                    let status = scan(target)
-                    // Resolve the roots' real paths in the worker (off
-                    // the main actor) so cleaning can later refuse a
-                    // cleanup path whose ancestry was swapped for a
-                    // symlink after the scan.
-                    let real: Set<String>
-                    if case .measured(_, let roots, _) = status {
-                        real = Set(roots.map { $0.resolvingSymlinksInPath().path })
-                    } else {
-                        real = []
-                    }
-                    return (target.id, status, real)
-                }
+                group.addTask { await Self.scanWorker(scan, target) }
                 return true
             }
 
@@ -110,10 +97,7 @@ extension ScanCoordinator {
             func startNext() -> Bool {
                 guard let root = pending.next() else { return false }
                 inFlight.append(root)
-                // Resolve the root's real path in the worker so artifact
-                // cleaning can refuse anything whose parent no longer
-                // resolves inside a scanned dev root.
-                group.addTask { (scan(root), root.resolvingSymlinksInPath().path) }
+                group.addTask { await Self.rootWorker(scan, root) }
                 return true
             }
 
@@ -129,5 +113,35 @@ extension ScanCoordinator {
                 publishProgress()
             }
         }
+    }
+
+    // MARK: - Workers
+
+    /// One target walk, off the main actor: the scan itself plus the
+    /// scan-time resolution of the roots' real paths (the symlink pin),
+    /// so cleaning can later refuse a cleanup path whose ancestry was
+    /// swapped for a symlink after the scan.
+    @concurrent
+    private static func scanWorker(
+        _ scan: ScanExecutor, _ target: CleanupTarget
+    ) async -> (CleanupTarget.ID, TargetStatus, Set<String>) {
+        let status = scan(target)
+        let real: Set<String>
+        if case .measured(_, let roots, _) = status {
+            real = Set(roots.map { $0.resolvingSymlinksInPath().path })
+        } else {
+            real = []
+        }
+        return (target.id, status, real)
+    }
+
+    /// One dev-root walk, off the main actor. Resolves the root's real
+    /// path in the worker so artifact cleaning can refuse anything whose
+    /// parent no longer resolves inside a scanned dev root.
+    @concurrent
+    private static func rootWorker(
+        _ scan: ProjectScanExecutor, _ root: URL
+    ) async -> (DevRootScan, String) {
+        (scan(root), root.resolvingSymlinksInPath().path)
     }
 }
