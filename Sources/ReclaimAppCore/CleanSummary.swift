@@ -9,9 +9,9 @@ import Foundation
 import ReclaimKit
 
 /// Aggregated outcome of cleaning the selected targets.
-public struct CleanSummary: Equatable, Sendable {
+public nonisolated struct CleanSummary: Equatable, Sendable {
     /// One target processed by the pass, for the results list.
-    public struct CleanedTarget: Equatable, Sendable, Identifiable {
+    public nonisolated struct CleanedTarget: Equatable, Sendable, Identifiable {
         public let id: String
         public let name: String
         public let category: ToolCategory
@@ -36,7 +36,7 @@ public struct CleanSummary: Equatable, Sendable {
     }
 
     /// One dev-folder artifact processed by the pass.
-    public struct CleanedArtifact: Equatable, Sendable, Identifiable {
+    public nonisolated struct CleanedArtifact: Equatable, Sendable, Identifiable {
         /// The artifact's absolute path (its stable identity).
         public let id: String
         /// Display label, e.g. "node_modules in my-app".

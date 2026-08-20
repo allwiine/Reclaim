@@ -12,7 +12,6 @@ import Synchronization
 import Testing
 @testable import ReclaimAppCore
 
-@MainActor
 @Suite("Projects — artifact selection")
 struct ProjectSelectionTests {
     @Test("Artifact selection follows the selectability rules")

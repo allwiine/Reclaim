@@ -11,7 +11,6 @@ import Foundation
 import Observation
 import ReclaimKit
 
-@MainActor
 @Observable
 public final class BreakdownModel {
     /// On-demand "largest contents" per target, cached per scan.
@@ -46,7 +45,7 @@ public final class BreakdownModel {
         let token = UUID()
         breakdownTokens[target.id] = token
         breakdownTasks[target.id] = Task {
-            let entries = await offMain { compute(current) }
+            let entries = await Self.computeEntries(compute, current)
             // A computation that finished just before an invalidation
             // cancelled it must not publish its (stale) result.
             guard self.breakdownTokens[target.id] == token else { return }
@@ -56,6 +55,15 @@ public final class BreakdownModel {
             self.breakdownTasks[target.id] = nil
             self.breakdownTokens[target.id] = nil
         }
+    }
+
+    /// Sizes the target's contents on the concurrent executor — the
+    /// blocking filesystem boundary of a breakdown load.
+    @concurrent
+    private static func computeEntries(
+        _ compute: BreakdownExecutor, _ status: TargetStatus
+    ) async -> [BreakdownEntry]? {
+        compute(status)
     }
 
     /// Drop cached breakdowns (statuses changed, they may be stale).

@@ -26,17 +26,27 @@ import PackageDescription
 /// swift-tools-version 6.2 already enables the Swift 6 language mode
 /// (strict, compile-time data-race safety). The upcoming features below
 /// are safe, forward-looking hygiene flags.
-///
-/// Deliberate decision: we do NOT enable `.defaultIsolation(MainActor.self)`
-/// ("single-threaded by default"). This app has a real concurrency
-/// boundary — filesystem scanning must stay off the main actor — so
-/// explicit isolation annotations (`@MainActor` on UI/state, `nonisolated`
-/// on workers) document that boundary better than a module-wide default.
-/// See docs/ARCHITECTURE.md § Concurrency.
 let sharedSwiftSettings: [SwiftSetting] = [
     .enableUpcomingFeature("ExistentialAny"),
     .enableUpcomingFeature("MemberImportVisibility"),
+    .enableUpcomingFeature("NonisolatedNonsendingByDefault"),
+    .enableUpcomingFeature("InferIsolatedConformances"),
 ]
+
+/// Settings for the app-facing targets — `ReclaimAppCore`, `Reclaim`, and
+/// their test targets: Swift 6.2 "approachable concurrency".
+///
+/// `.defaultIsolation(MainActor.self)` makes every unannotated declaration
+/// main-actor-isolated, which is the truth for observable UI state — most
+/// of what these targets contain. The real concurrency boundary is marked
+/// explicitly from the other side: each blocking filesystem call sits
+/// behind a named `@concurrent` worker, and the value types that cross the
+/// boundary are `nonisolated`. `ReclaimKit` stays on `sharedSwiftSettings`
+/// (nonisolated by default) deliberately — the Kit *is* the off-main work,
+/// so defaulting it to `MainActor` would fight its own purpose.
+/// See docs/ARCHITECTURE.md § Concurrency.
+let mainActorByDefault: [SwiftSetting] =
+    sharedSwiftSettings + [.defaultIsolation(MainActor.self)]
 
 let package = Package(
     name: "Reclaim",
@@ -59,13 +69,13 @@ let package = Package(
             name: "ReclaimAppCore",
             dependencies: ["ReclaimKit"],
             resources: [.process("Resources")],
-            swiftSettings: sharedSwiftSettings
+            swiftSettings: mainActorByDefault
         ),
         .executableTarget(
             name: "Reclaim",
             dependencies: ["ReclaimKit", "ReclaimAppCore"],
             resources: [.process("Resources")],
-            swiftSettings: sharedSwiftSettings
+            swiftSettings: mainActorByDefault
         ),
         .testTarget(
             name: "ReclaimKitTests",
@@ -75,11 +85,11 @@ let package = Package(
         .testTarget(
             name: "ReclaimAppCoreTests",
             dependencies: ["ReclaimAppCore"],
-            swiftSettings: sharedSwiftSettings
+            swiftSettings: mainActorByDefault
         ),
         .testTarget(
             name: "LocalizationLintTests",
-            swiftSettings: sharedSwiftSettings
+            swiftSettings: mainActorByDefault
         ),
     ]
 )

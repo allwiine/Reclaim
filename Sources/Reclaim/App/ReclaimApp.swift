@@ -15,7 +15,6 @@ import SwiftUI
 /// Bridges the single ``AppModel`` to the app delegate, which SwiftUI
 /// instantiates on its own. Weak so it never keeps the model alive past
 /// the `@State` that owns it.
-@MainActor
 enum ReclaimTermination {
     static weak var model: AppModel?
 }

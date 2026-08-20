@@ -13,7 +13,6 @@ import Synchronization
 import Testing
 @testable import ReclaimAppCore
 
-@MainActor
 @Suite("Projects — scoped cleaning")
 struct ProjectCleanScopeTests {
     @Test("A project-scoped clean touches only that project's ticked artifacts")

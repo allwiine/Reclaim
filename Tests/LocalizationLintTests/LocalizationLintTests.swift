@@ -31,7 +31,9 @@ struct LocalizationLintTests {
         .deletingLastPathComponent()
         .deletingLastPathComponent()
 
-    static let modules = ["ReclaimKit", "ReclaimAppCore", "Reclaim"]
+    // Feeds `@Test(arguments:)`, which the macro evaluates outside the
+    // actor context — nonisolated so the literal stays reachable there.
+    nonisolated static let modules = ["ReclaimKit", "ReclaimAppCore", "Reclaim"]
     static let locales = ["en", "nb"]
 
     // MARK: - Helpers

@@ -11,9 +11,10 @@
 //
 //  Concurrency model
 //  ─────────────────
-//  The coordinator is @MainActor: every property the UI reads is
-//  main-actor state. Blocking filesystem work (disposal, re-scanning,
-//  probing) runs through `offMain`, which executes on the global
+//  The coordinator is MainActor-isolated (the module default): every
+//  property the UI reads is main-actor state. Blocking filesystem work
+//  (disposal, re-scanning, probing) runs through the named `@concurrent`
+//  workers in CleanCoordinator+Workers.swift, which execute on the global
 //  concurrent executor, off the main thread. The pass itself is
 //  sequential on purpose: cleanup should be predictable and easy to
 //  interrupt, and cancellation is only checked between jobs.
@@ -24,7 +25,7 @@ import Observation
 import ReclaimKit
 
 /// What a clean pass covers.
-public enum CleanScope: Sendable, Equatable {
+public nonisolated enum CleanScope: Sendable, Equatable {
     /// Everything selected — registry targets and dev-folder artifacts.
     case selection
     /// Only the selected registry targets in the set ("Clean just
@@ -35,7 +36,6 @@ public enum CleanScope: Sendable, Equatable {
     case projectArtifacts(DiscoveredProject.ID)
 }
 
-@MainActor
 @Observable
 public final class CleanCoordinator {
     // MARK: - Session state

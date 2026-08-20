@@ -16,8 +16,9 @@ Reclaim is deliberately small and layered. The core insight is that a storage cl
 ┌────────────────────▼─────────────────────────────────────┐
 │ ReclaimAppCore (library target — no UI imports)          │
 │                                                          │
-│  AppModel  composition root (@MainActor @Observable);    │
-│            builds the sub-models, injects `Executors`    │
+│  AppModel  composition root, MainActor by default        │
+│            (@Observable); builds the sub-models, injects │
+│            `Executors`                                   │
 │  Models    SettingsStore · ActivityModel ·               │
 │            TargetResultsModel · BreakdownModel ·         │
 │            SelectionModel · ProjectsModel ·              │
@@ -68,17 +69,26 @@ This flow has one dependency cycle that would otherwise exist: `SelectionModel` 
 
 ## Concurrency model
 
-The package compiles in Swift 6 language mode (strict data-race safety). Isolation is **explicit**, not defaulted:
+The package compiles in Swift 6 language mode (strict data-race safety). Isolation follows Swift 6.2's "approachable concurrency": the app-facing targets default every unannotated declaration to `MainActor`, and the one real concurrency boundary — filesystem work must never touch the main thread — is marked explicitly from the other side, at each blocking call.
 
-- `AppModel` and each of the nine sub-models it composes (`settings`, `activity`, `results`, `breakdowns`, `selection`, `projects`, `scanner`, `cleaner`, `history`) are `@MainActor @Observable`. UI-visible state lives on whichever sub-model owns it, never duplicated onto `AppModel` itself.
-- Everything in `ReclaimKit` is nonisolated, `Sendable`, and synchronous. Services are stateless structs — cheap to create per call, trivially thread-safe.
-- Blocking filesystem work reaches the background two ways:
-  - scan fan-out: `group.addTask { … scan(target) }` — child tasks run nonisolated on the global executor;
-  - single operations: the free `offMain` function (`Sources/ReclaimAppCore/Support/OffMain.swift`), awaited from the coordinators and other sub-models that touch the filesystem (`BreakdownModel`, `HistoryModel`, `TargetResultsModel`).
+| Target(s) | Swift settings | Default isolation |
+| --- | --- | --- |
+| `ReclaimKit`, `ReclaimKitTests` | `sharedSwiftSettings` | nonisolated — the Kit *is* the off-main work |
+| `ReclaimAppCore`, `ReclaimAppCoreTests` | `mainActorByDefault` | `MainActor` |
+| `Reclaim`, `LocalizationLintTests` | `mainActorByDefault` | `MainActor` |
+
+- `AppModel` and each of the nine sub-models it composes (`settings`, `activity`, `results`, `breakdowns`, `selection`, `projects`, `scanner`, `cleaner`, `history`) are `@Observable` and MainActor-isolated by `ReclaimAppCore`'s module default — no explicit `@MainActor` needed. UI-visible state lives on whichever sub-model owns it, never duplicated onto `AppModel` itself.
+- Everything in `ReclaimKit` is nonisolated, `Sendable`, and synchronous by its own module default. Services are stateless structs — cheap to create per call, trivially thread-safe.
+- Blocking filesystem work crosses the boundary through 14 named `@concurrent` workers — one per blocking call, each doing nothing but run its injected `Executors` closure (or a pure pin helper) off the main actor: `probeAccess` (`ScanCoordinator.swift`); `scanWorker` / `rootWorker` (`ScanCoordinator+Passes.swift`); `partitionWorker`, `cleanWorker`, `rescanWorker`, `pinWorker`, `removeWorker`, `goneWorker`, `rediscoverWorker`, `volumeWorker` (`CleanCoordinator+Workers.swift`); `computeEntries` (`BreakdownModel.swift`); `persist` (`HistoryModel.swift`); `measure` (`TargetResultsModel.swift`).
 - The scan group is **width-limited** (4) because directory walking is disk-bound: more parallelism gains nothing and would occupy cooperative-pool threads with blocking I/O.
 - Cancellation is cooperative: `DiskSizer` calls `Task.checkCancellation()` every 512 entries, so the Stop button reacts promptly even mid-walk. A cancelled scan keeps completed measurements but is flagged partial. A clean pass checks cancellation between targets — the in-flight target always finishes, so nothing is left half-cleaned.
+- `ScanCoordinator+Passes.swift`'s `runScan(of:)` and `runProjectScan()` each nest two local functions (`publishProgress`, `startNext`) inside a `withTaskGroup` operation closure and mark them `@MainActor` explicitly. That is not a leftover: `.defaultIsolation` does not reach a local function nested inside a closure body — only one nested directly in a function body does — so a plain declaration would be nonisolated; `publishProgress` needs `@MainActor` because it reads and writes `activity.scanProgress` (and, in the first pass, `projects.devRoots`). Both nested-function pairs are load-bearing and permanent.
 
-**Why not `.defaultIsolation(MainActor.self)`?** Swift 6.2's "single-threaded by default" mode is great for apps that are mostly UI. Reclaim has a genuine concurrency boundary at its heart — scans must never touch the main thread — and annotating that boundary explicitly (`@MainActor` above it, plain `Sendable` code below it) documents the design better than a module-wide default plus scattered opt-outs. If the default is ever adopted, the background helpers across `ReclaimAppCore` should gain `@concurrent` to preserve their off-main execution.
+**`@concurrent` is a checked guarantee, and for most workers it is also the mechanism.** Twelve of the fourteen workers above are awaited from inside an unstructured `Task { … }` started by a MainActor method (`ScanCoordinator.scanAll`, `startPass(jobs:artifactJobs:)` in `CleanCoordinator+Pass.swift`, `BreakdownModel.load(for:)`, `HistoryModel.persistHistory`, `TargetResultsModel.refreshVolumeSpace`). An unstructured `Task` inherits the isolation of the context that spawned it, so for these twelve, `@concurrent` genuinely is what keeps the work off the main actor — under `NonisolatedNonsendingByDefault`, a plain `nonisolated` callee would stay right there on `MainActor`. The remaining two, `scanWorker` and `rootWorker`, run as `group.addTask { … }` children of the width-limited `withTaskGroup` in `runScan(of:)` / `runProjectScan()`. Task-group child closures are already nonisolated regardless of the enclosing method's default isolation, so today `@concurrent` is *not* the reason those two stay off-main — a temporary downgrade to plain `nonisolated` behaved identically. It is kept anyway as the explicit, compiler-checked promise that survives a future change to that closure-inheritance behavior, rather than the unstated assumption it would otherwise be. `IsolationTests` (`Tests/ReclaimAppCoreTests/IsolationTests.swift`, 4 tests) is what makes both claims checked instead of asserted: it pins all seven `Executors` closures (`scan`, `clean`, `breakdown`, `projectScan`, `artifactClean`, `fullDiskAccess`, `volume`) to off-main execution via a `ThreadRecorder` that records `Thread.isMainThread` inside each stub, and during this migration downgrading a `Task`-launched worker reliably broke the suite while downgrading a task-group worker reliably did not — exactly the asymmetry above.
+
+The app target has one deliberate exception to "blocking work gets `@concurrent`": `TrashService.emptyTrash()` (`Sources/Reclaim/App/TrashService.swift`) hands its blocking `osascript` call to a raw `DispatchQueue.global()` thread rather than the Swift-concurrency executor pool, so a slow Finder can't starve the cooperative threads a scan or clean pass is using. The function underneath is `nonisolated`, not `@concurrent`, because `@concurrent` would move it onto the very concurrent executor it was built to avoid.
+
+**Why the stance flipped.** The original design kept isolation fully explicit — `@MainActor` on UI/state, `nonisolated` on workers — and deliberately skipped `.defaultIsolation(MainActor.self)`, reasoning that a module-wide default plus scattered opt-outs would document the app's one real concurrency boundary worse than annotating it directly. In practice the explicit `@MainActor` had become pure repetition: nine `@Observable` model classes and every suite in `ReclaimAppCoreTests` carried it for no reason beyond "this is app state," while the actual boundary — which calls are blocking and must leave the main actor — was carried by an unenforced convention (a single `offMain` helper) a reviewer had to trust by reading call sites, not something the compiler checked. Naming every blocking call as its own `@concurrent` worker replaces that convention with one the compiler enforces per declaration; `.defaultIsolation(MainActor.self)` on the app-facing targets removes the redundant annotations for free. None of this was taken on faith: `IsolationTests` was written and made to pass *before* any isolation attribute changed, so every claim in this section — including the `addTask` asymmetry above — was verified by making an edit and watching a specific test fail, not by reasoning about what the settings file should imply.
 
 ## Error handling
 

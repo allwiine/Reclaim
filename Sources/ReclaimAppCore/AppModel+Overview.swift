@@ -15,7 +15,7 @@ import ReclaimKit
 /// either a registry target or a discovered project. Projects are
 /// represented whole (their artifact total), not per artifact,
 /// matching how the Projects screen presents them.
-public enum OverviewFinding: Identifiable, Sendable {
+public nonisolated enum OverviewFinding: Identifiable, Sendable {
     case target(CleanupTarget, bytes: Int64)
     case project(DiscoveredProject)
 

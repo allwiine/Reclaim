@@ -12,7 +12,6 @@ import Synchronization
 import Testing
 @testable import ReclaimAppCore
 
-@MainActor
 @Suite("Breakdowns")
 struct BreakdownTests {
     @Test("Breakdowns load once per target and clear on rescan")

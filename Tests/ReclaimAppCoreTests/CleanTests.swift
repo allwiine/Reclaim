@@ -12,7 +12,6 @@ import Synchronization
 import Testing
 @testable import ReclaimAppCore
 
-@MainActor
 @Suite("Clean")
 struct CleanTests {
     @Test("Cleaning disposes the scan-time cleanup paths and re-measures")
