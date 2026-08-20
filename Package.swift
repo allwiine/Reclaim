@@ -33,13 +33,17 @@ let sharedSwiftSettings: [SwiftSetting] = [
     .enableUpcomingFeature("InferIsolatedConformances"),
 ]
 
-/// Settings for the app-state layer: "approachable concurrency".
+/// Settings for the app-facing targets — `ReclaimAppCore`, `Reclaim`, and
+/// their test targets: Swift 6.2 "approachable concurrency".
 ///
 /// `.defaultIsolation(MainActor.self)` makes every unannotated declaration
-/// main-actor-isolated, which is the truth for observable UI state. The
-/// real concurrency boundary stays explicit from the other side: blocking
-/// filesystem work runs in `@concurrent` workers, and the value types that
-/// cross the boundary are marked `nonisolated`.
+/// main-actor-isolated, which is the truth for observable UI state — most
+/// of what these targets contain. The real concurrency boundary is marked
+/// explicitly from the other side: each blocking filesystem call sits
+/// behind a named `@concurrent` worker, and the value types that cross the
+/// boundary are `nonisolated`. `ReclaimKit` stays on `sharedSwiftSettings`
+/// (nonisolated by default) deliberately — the Kit *is* the off-main work,
+/// so defaulting it to `MainActor` would fight its own purpose.
 /// See docs/ARCHITECTURE.md § Concurrency.
 let mainActorByDefault: [SwiftSetting] =
     sharedSwiftSettings + [.defaultIsolation(MainActor.self)]

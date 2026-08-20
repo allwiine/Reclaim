@@ -11,12 +11,12 @@
 //
 //  Concurrency model
 //  ─────────────────
-//  The coordinator is @MainActor: every property the UI reads is
-//  main-actor state. Blocking filesystem work (sizing, discovery) runs
-//  through named `@concurrent` workers, which execute on the global
-//  concurrent executor, off the main thread. Scans fan out through a
-//  task group with bounded width so disk I/O never saturates the
-//  cooperative thread pool.
+//  The coordinator is MainActor-isolated (the module default): every
+//  property the UI reads is main-actor state. Blocking filesystem work
+//  (sizing, discovery) runs through named `@concurrent` workers, which
+//  execute on the global concurrent executor, off the main thread. Scans
+//  fan out through a task group with bounded width so disk I/O never
+//  saturates the cooperative thread pool.
 //
 
 import Foundation

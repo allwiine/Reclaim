@@ -27,8 +27,8 @@ extension ScanCoordinator {
 
             // A local function declared inside a closure is nonisolated
             // even under the module's MainActor default, so these two
-            // still have to spell out the isolation they touch progress
-            // and start work from.
+            // still have to spell out the isolation they need to touch
+            // progress and start work.
             @MainActor
             func publishProgress() {
                 let current = inFlight.first
@@ -81,6 +81,7 @@ extension ScanCoordinator {
             var completed = 0
             var inFlight: [URL] = []
 
+            // Same local-function rule as runScan: keep these markers.
             @MainActor
             func publishProgress() {
                 let current = inFlight.first

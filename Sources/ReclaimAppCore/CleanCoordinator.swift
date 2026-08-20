@@ -11,10 +11,10 @@
 //
 //  Concurrency model
 //  ─────────────────
-//  The coordinator is @MainActor: every property the UI reads is
-//  main-actor state. Blocking filesystem work (disposal, re-scanning,
-//  probing) runs through the named `@concurrent` workers in
-//  CleanCoordinator+Workers.swift, which execute on the global
+//  The coordinator is MainActor-isolated (the module default): every
+//  property the UI reads is main-actor state. Blocking filesystem work
+//  (disposal, re-scanning, probing) runs through the named `@concurrent`
+//  workers in CleanCoordinator+Workers.swift, which execute on the global
 //  concurrent executor, off the main thread. The pass itself is
 //  sequential on purpose: cleanup should be predictable and easy to
 //  interrupt, and cancellation is only checked between jobs.
