@@ -118,12 +118,12 @@ extension IdleView {
                 Text(localized("sidebar.projects", defaultValue: "Projects"))
                     .scaledFont(size: 12.5, weight: .medium)
                     .foregroundStyle(Theme.textPrimary)
-                Text(model.projects.devRoots.isEmpty
+                Text(projects.devRoots.isEmpty
                     ? localized(
                         "idle.projectsPitch",
                         defaultValue: "Find git repos, node_modules and build folders in your own projects."
                     )
-                    : model.projects.devRoots
+                    : projects.devRoots
                         .map { ($0.path as NSString).abbreviatingWithTildeInPath }
                         .joined(separator: " · "))
                     .themeFont(.caption)
@@ -131,10 +131,10 @@ extension IdleView {
                     .lineLimit(1)
             }
             Spacer(minLength: 10)
-            if model.projects.devRoots.isEmpty {
+            if projects.devRoots.isEmpty {
                 Button(localized("settings.addDevFolder", defaultValue: "Add folder…")) {
                     for url in DevFolderPicker.pickFolders() {
-                        model.projects.addDevRoot(url)
+                        projects.addDevRoot(url)
                     }
                 }
                 .rcSecondary()
@@ -162,7 +162,7 @@ extension IdleView {
     }
 
     private var diskLabel: String {
-        guard let space = model.results.volumeSpace else { return "—" }
+        guard let space = results.volumeSpace else { return "—" }
         return localized(
             "disk.usedOfTotal",
             defaultValue: "\(space.usedBytes.wholeGB) used of \(space.totalBytes.wholeGB)"
@@ -170,7 +170,7 @@ extension IdleView {
     }
 
     private var diskSegments: [MeterSegment] {
-        guard let space = model.results.volumeSpace, space.totalBytes > 0 else { return [] }
+        guard let space = results.volumeSpace, space.totalBytes > 0 else { return [] }
         let used = Double(space.usedBytes) / Double(space.totalBytes)
         return [MeterSegment(id: "used", fraction: used, color: .white.opacity(0.22))]
     }

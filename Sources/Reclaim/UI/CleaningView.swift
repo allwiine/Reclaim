@@ -11,18 +11,20 @@ import ReclaimKit
 import SwiftUI
 
 struct CleaningView: View {
-    @Environment(AppModel.self) private var model
+    @Environment(SettingsStore.self) private var settings
+    @Environment(ActivityModel.self) private var activity
+    @Environment(CleanCoordinator.self) private var cleaner
 
     var body: some View {
         VStack(spacing: 0) {
-            Text(model.settings.disposal == .trash
+            Text(settings.disposal == .trash
                 ? localized("title.movingToTrash", defaultValue: "Moving to Trash")
                 : localized("title.deleting", defaultValue: "Deleting"))
                 .scaledFont(size: 20, weight: .semibold)
                 .foregroundStyle(Theme.textPrimary)
 
-            Text(model.activity.cleanProgress?.targetPath
-                ?? model.activity.cleanProgress?.targetName
+            Text(activity.cleanProgress?.targetPath
+                ?? activity.cleanProgress?.targetName
                 ?? localized("progress.finishingUp", defaultValue: "Finishing up…"))
                 .font(Theme.mono(11.5))
                 .foregroundStyle(Color(hex: 0x7E7E85))
@@ -30,13 +32,13 @@ struct CleaningView: View {
                 .frame(height: 16)
                 .padding(.top, 10)
                 .contentTransition(.opacity)
-                .animation(Theme.quick, value: model.activity.cleanProgress?.targetPath)
+                .animation(Theme.quick, value: activity.cleanProgress?.targetPath)
 
-            ProgressBar(fraction: model.activity.cleanProgress?.fraction ?? 0, height: 6)
+            ProgressBar(fraction: activity.cleanProgress?.fraction ?? 0, height: 6)
                 .frame(width: 420)
                 .padding(.top, 20)
 
-            if let progress = model.activity.cleanProgress {
+            if let progress = activity.cleanProgress {
                 Text(localized(
                     "cleaning.progress",
                     defaultValue: "\(progress.index) of \(progress.total) locations"
@@ -49,14 +51,14 @@ struct CleaningView: View {
                 .animation(Theme.smooth, value: progress.index)
             }
 
-            Button(model.activity.isCancellingClean
+            Button(activity.isCancellingClean
                 ? localized("cleaning.stoppingButton", defaultValue: "Stopping after this item…")
                 : localized("cleaning.stopButton", defaultValue: "Stop after this item")
             ) {
-                model.cleaner.cancelClean()
+                cleaner.cancelClean()
             }
             .rcSecondary()
-            .disabled(model.activity.isCancellingClean)
+            .disabled(activity.isCancellingClean)
             .padding(.top, 30)
             .help(localized(
                 "cleaning.stopHelp",

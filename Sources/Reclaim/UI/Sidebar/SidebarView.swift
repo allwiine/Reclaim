@@ -12,7 +12,11 @@ import ReclaimKit
 import SwiftUI
 
 struct SidebarView: View {
+    /// Kept for `cleanableBytes` only — a cross-model member.
     @Environment(AppModel.self) var model
+    @Environment(TargetResultsModel.self) var results
+    @Environment(ActivityModel.self) var activity
+    @Environment(ProjectsModel.self) var projects
     @Binding var destination: Destination
 
     var body: some View {

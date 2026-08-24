@@ -11,7 +11,12 @@ import ReclaimKit
 import SwiftUI
 
 struct ScanningView: View {
+    /// Kept for `totalFoundBytes` only — a cross-model member.
     @Environment(AppModel.self) private var model
+    @Environment(ActivityModel.self) private var activity
+    @Environment(TargetResultsModel.self) private var results
+    @Environment(ProjectsModel.self) private var projects
+    @Environment(ScanCoordinator.self) private var scanner
 
     var body: some View {
         VStack(spacing: 0) {
@@ -22,7 +27,7 @@ struct ScanningView: View {
                 .foregroundStyle(Theme.textPrimary)
                 .padding(.top, 26)
 
-            Text(model.activity.scanProgress?.currentPath
+            Text(activity.scanProgress?.currentPath
                 ?? localized("progress.finishingUp", defaultValue: "Finishing up…"))
                 .font(Theme.mono(11.5))
                 .foregroundStyle(Color(hex: 0x7E7E85))
@@ -30,9 +35,9 @@ struct ScanningView: View {
                 .frame(height: 16)
                 .padding(.top, 8)
                 .contentTransition(.opacity)
-                .animation(Theme.quick, value: model.activity.scanProgress?.currentPath)
+                .animation(Theme.quick, value: activity.scanProgress?.currentPath)
 
-            ProgressBar(fraction: model.activity.scanProgress?.fraction ?? 0)
+            ProgressBar(fraction: activity.scanProgress?.fraction ?? 0)
                 .frame(width: 420)
                 .padding(.top, 20)
 
@@ -56,21 +61,21 @@ struct ScanningView: View {
                 ForEach(ToolCategory.allCases) { category in
                     categoryRow(category)
                 }
-                if !model.projects.devRoots.isEmpty {
+                if !projects.devRoots.isEmpty {
                     projectsRow
                 }
             }
             .frame(width: 420)
             .padding(.top, 28)
 
-            Button(model.activity.isCancellingScan
+            Button(activity.isCancellingScan
                 ? localized("scanning.stoppingButton", defaultValue: "Stopping…")
                 : localized("scanning.stopButton", defaultValue: "Stop")
             ) {
-                model.scanner.cancelScan()
+                scanner.cancelScan()
             }
             .rcSecondary()
-            .disabled(model.activity.isCancellingScan)
+            .disabled(activity.isCancellingScan)
             .padding(.top, 30)
             .help(localized(
                 "scanning.stopHelp",
@@ -82,10 +87,10 @@ struct ScanningView: View {
     }
 
     private func categoryRow(_ category: ToolCategory) -> some View {
-        let targets = model.results.targets.filter { $0.category == category }
-        let finished = targets.allSatisfy { model.results.status(of: $0.id) != .scanning }
-        let bytes = targets.reduce(Int64(0)) { $0 + model.results.bytes(of: $1) }
-        let anyMeasured = targets.contains { model.results.status(of: $0.id).bytes != nil }
+        let targets = results.targets.filter { $0.category == category }
+        let finished = targets.allSatisfy { results.status(of: $0.id) != .scanning }
+        let bytes = targets.reduce(Int64(0)) { $0 + results.bytes(of: $1) }
+        let anyMeasured = targets.contains { results.status(of: $0.id).bytes != nil }
 
         return HStack(spacing: 9) {
             Circle()
@@ -111,8 +116,8 @@ struct ScanningView: View {
     /// while roots are queued or walking (the phase runs after the
     /// registry targets), lit once every configured root is scanned.
     private var projectsRow: some View {
-        let finished = model.projects.projectScans.count == model.projects.devRoots.count
-        let anyMeasured = !model.projects.projectScans.isEmpty
+        let finished = projects.projectScans.count == projects.devRoots.count
+        let anyMeasured = !projects.projectScans.isEmpty
 
         return HStack(spacing: 9) {
             Circle()
@@ -122,12 +127,12 @@ struct ScanningView: View {
                 .themeFont(.body)
                 .foregroundStyle(Theme.textPrimary)
             Spacer(minLength: 8)
-            Text(anyMeasured ? model.projects.projectArtifactBytes.formattedBytesCompact : "—")
+            Text(anyMeasured ? projects.projectArtifactBytes.formattedBytesCompact : "—")
                 .scaledFont(size: 12)
                 .monospacedDigit()
                 .foregroundStyle(Color(hex: 0x8E8E95))
                 .contentTransition(.numericText())
-                .animation(Theme.smooth, value: model.projects.projectArtifactBytes)
+                .animation(Theme.smooth, value: projects.projectArtifactBytes)
         }
         .padding(.vertical, 6)
         .opacity(finished ? 1 : 0.4)

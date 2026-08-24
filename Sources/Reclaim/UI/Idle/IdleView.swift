@@ -11,7 +11,11 @@ import ReclaimKit
 import SwiftUI
 
 struct IdleView: View {
+    /// Kept for `volumeDisplayName` only — a cross-model member.
     @Environment(AppModel.self) var model
+    @Environment(TargetResultsModel.self) var results
+    @Environment(ProjectsModel.self) var projects
+    @Environment(ScanCoordinator.self) var scanner
     @State var appeared = false
 
     var body: some View {
@@ -70,7 +74,7 @@ struct IdleView: View {
 
             HStack(spacing: 14) {
                 Button(localized("idle.scanButton", defaultValue: "Scan this Mac")) {
-                    model.scanner.scanAll()
+                    scanner.scanAll()
                 }
                 .rcPrimaryProminent()
                 .keyboardShortcut(.defaultAction)

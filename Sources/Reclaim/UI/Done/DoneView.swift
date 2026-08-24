@@ -11,7 +11,10 @@ import ReclaimAppCore
 import SwiftUI
 
 struct DoneView: View {
+    /// Kept for `volumeDisplayName` only — a cross-model member.
     @Environment(AppModel.self) var model
+    @Environment(TargetResultsModel.self) var results
+    @Environment(HistoryModel.self) var history
     let summary: CleanSummary
     let dismiss: () -> Void
 
@@ -38,7 +41,7 @@ struct DoneView: View {
             VStack(spacing: 0) {
                 checkmark
                 headline
-                if let space = model.results.volumeSpace {
+                if let space = results.volumeSpace {
                     diskAfter(space)
                         .padding(.top, 36)
                         .entrance(appeared, delay: 0.25)

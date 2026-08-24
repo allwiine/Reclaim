@@ -32,7 +32,7 @@ extension DoneView {
                 .themeFont(.caption)
                 .foregroundStyle(Theme.textTertiary)
             }
-            if model.results.hasFullDiskAccess == false {
+            if results.hasFullDiskAccess == false {
                 Text(localized(
                     "done.fullDiskAccessHint",
                     defaultValue: "If access was denied, grant Reclaim Full Disk Access in System Settings → Privacy & Security."

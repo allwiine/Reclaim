@@ -50,8 +50,8 @@ extension HistoryDetailPanel {
 
     /// Today's measured size of the target, when a scan can tell.
     private func currentBytes(for item: CleanedHistoryItem) -> Int64? {
-        guard let target = model.results.targets.first(where: { $0.id == item.targetID }),
-              case .measured(let measurement, _, _) = model.results.status(of: target.id)
+        guard let target = results.targets.first(where: { $0.id == item.targetID }),
+              case .measured(let measurement, _, _) = results.status(of: target.id)
         else { return nil }
         return measurement.bytes
     }

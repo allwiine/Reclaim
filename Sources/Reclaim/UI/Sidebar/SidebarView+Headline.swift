@@ -15,7 +15,7 @@ extension SidebarView {
     // MARK: - Headline
 
     var hasMeasurements: Bool {
-        model.results.lastScan != nil || model.activity.isScanning
+        results.lastScan != nil || activity.isScanning
     }
 
     var headline: some View {
@@ -65,8 +65,8 @@ extension SidebarView {
     // the bar carries their share too — otherwise the composition
     // would silently attribute the projects' bytes to the categories.
     private var categorySegments: [MeterSegment] {
-        let totals = model.results.categoryTotals(cleanableOnly: true)
-        let projectBytes = model.projects.projectArtifactBytes
+        let totals = results.categoryTotals(cleanableOnly: true)
+        let projectBytes = projects.projectArtifactBytes
         let sum = max(1, totals.reduce(Int64(0)) { $0 + $1.bytes } + projectBytes)
         var segments = totals.map { total in
             MeterSegment(

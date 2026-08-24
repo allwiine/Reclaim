@@ -12,7 +12,7 @@ import SwiftUI
 /// The right-hand pane for one selected clean pass: what it freed, how,
 /// what exactly was removed, and how much has grown back since.
 struct HistoryDetailPanel: View {
-    @Environment(AppModel.self) var model
+    @Environment(TargetResultsModel.self) var results
     let entry: CleanHistoryEntry
     let close: () -> Void
 

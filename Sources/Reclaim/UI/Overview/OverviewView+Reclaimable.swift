@@ -26,16 +26,16 @@ extension OverviewView {
                     // After a clean pass the safe bucket is often empty;
                     // saying so beats formatting 0 bytes as "< 1 MB" and
                     // offering a button that cannot do anything.
-                    if model.results.safeReclaimableBytes > 0 {
+                    if results.safeReclaimableBytes > 0 {
                         breakdownRow(
                             color: Theme.safe,
                             title: localized(
                                 "overview.safeToRemove",
-                                defaultValue: "\(model.results.safeReclaimableBytes.formattedBytesCompact) safe to remove"
+                                defaultValue: "\(results.safeReclaimableBytes.formattedBytesCompact) safe to remove"
                             ),
                             subtitle: localized(
                                 "overview.safeItemsSubtitle",
-                                defaultValue: "\(model.results.safeReclaimableCount) safe items, regenerated automatically"
+                                defaultValue: "\(results.safeReclaimableCount) safe items, regenerated automatically"
                             )
                         )
                     } else {
@@ -55,25 +55,25 @@ extension OverviewView {
                         color: Theme.cautionBright,
                         title: localized(
                             "overview.needsDecision",
-                            defaultValue: "\(model.results.reviewBytes.formattedBytesCompact) needs a decision"
+                            defaultValue: "\(results.reviewBytes.formattedBytesCompact) needs a decision"
                         ),
                         subtitle: localized(
                             "overview.reviewItemsSubtitle",
-                            defaultValue: "\(model.results.reviewCount) items worth a look first"
+                            defaultValue: "\(results.reviewCount) items worth a look first"
                         )
                     )
                     // Dev-folder artifacts are inside the ring's total, so
                     // the rows only sum up to it with this third slice.
-                    if model.projects.projectArtifactBytes > 0 {
+                    if projects.projectArtifactBytes > 0 {
                         breakdownRow(
                             color: Theme.accent,
                             title: localized(
                                 "overview.projectArtifacts",
-                                defaultValue: "\(model.projects.projectArtifactBytes.formattedBytesCompact) in project artifacts"
+                                defaultValue: "\(projects.projectArtifactBytes.formattedBytesCompact) in project artifacts"
                             ),
                             subtitle: localized(
                                 "overview.projectArtifactsSubtitle",
-                                defaultValue: "\(model.projects.projectsWithArtifactsCount) projects, cleaned from the Projects screen"
+                                defaultValue: "\(projects.projectsWithArtifactsCount) projects, cleaned from the Projects screen"
                             )
                         )
                     }
@@ -81,7 +81,7 @@ extension OverviewView {
                 .padding(.top, 13)
 
                 HStack(spacing: 9) {
-                    if model.results.safeReclaimableBytes > 0 {
+                    if results.safeReclaimableBytes > 0 {
                         Button(
                             localized("overview.reclaimSafeButton", defaultValue: "Reclaim safe space"),
                             action: reclaimSafe
@@ -89,7 +89,7 @@ extension OverviewView {
                         .rcPrimary()
                     } else {
                         Button(localized("action.scanAgain", defaultValue: "Scan again")) {
-                            model.scanner.scanAll()
+                            scanner.scanAll()
                         }
                         .rcPrimary()
                     }
@@ -129,8 +129,8 @@ extension OverviewView {
     // artifacts — the colored composition must cover the same total,
     // so projects get their own segment.
     private var ringSegments: [MeterSegment] {
-        let totals = model.results.categoryTotals()
-        let projectBytes = model.projects.projectArtifactBytes
+        let totals = results.categoryTotals()
+        let projectBytes = projects.projectArtifactBytes
         let sum = max(1, totals.reduce(Int64(0)) { $0 + $1.bytes } + projectBytes)
         var segments = totals.map {
             MeterSegment(

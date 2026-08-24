@@ -26,7 +26,7 @@ extension OverviewView {
                         .scaledFont(size: 10, weight: .semibold)
                         .foregroundStyle(Theme.textQuaternary)
                 }
-                if model.projects.discovered.isEmpty {
+                if projects.discovered.isEmpty {
                     Text(localized(
                         "projects.noneFound",
                         defaultValue: "No projects found in the added folders."
@@ -36,16 +36,16 @@ extension OverviewView {
                 } else {
                     Text(localized(
                         "toolbar.projectsSubtitle",
-                        defaultValue: "\(model.projects.discovered.count) projects · \(model.projects.projectArtifactBytes.formattedBytesCompact)"
+                        defaultValue: "\(projects.discovered.count) projects · \(projects.projectArtifactBytes.formattedBytesCompact)"
                     ))
                     .scaledFont(size: 14, weight: .semibold)
                     .monospacedDigit()
                     .foregroundStyle(Theme.textPrimary)
                     .contentTransition(.numericText())
-                    .animation(Theme.smooth, value: model.projects.projectArtifactBytes)
+                    .animation(Theme.smooth, value: projects.projectArtifactBytes)
 
                     VStack(spacing: 6) {
-                        ForEach(model.projects.largestProjects(limit: 2)) { project in
+                        ForEach(projects.largestProjects(limit: 2)) { project in
                             HStack(spacing: 8) {
                                 Image(systemName: "folder.badge.gearshape")
                                     .scaledFont(size: 10.5)
@@ -80,7 +80,7 @@ extension OverviewView {
         VStack(alignment: .leading, spacing: 12) {
             SectionLabel(localized("overview.needsAttention", defaultValue: "Needs your attention"))
             VStack(spacing: 10) {
-                ForEach(model.results.manualTargets) { target in
+                ForEach(results.manualTargets) { target in
                     AttentionCard(target: target) {
                         openTarget(target)
                     }

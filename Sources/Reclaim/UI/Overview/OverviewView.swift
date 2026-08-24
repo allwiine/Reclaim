@@ -13,7 +13,12 @@ import ReclaimKit
 import SwiftUI
 
 struct OverviewView: View {
+    /// Kept for `volumeDisplayName`, `totalFoundBytes`, and
+    /// `largestFindings(limit:)` only — cross-model members.
     @Environment(AppModel.self) var model
+    @Environment(TargetResultsModel.self) var results
+    @Environment(ProjectsModel.self) var projects
+    @Environment(ScanCoordinator.self) var scanner
 
     /// Jumps to a category browser.
     let openCategory: (ToolCategory) -> Void
@@ -31,11 +36,11 @@ struct OverviewView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: Theme.cardGap) {
-                if model.results.hasFullDiskAccess == false {
+                if results.hasFullDiskAccess == false {
                     FullDiskAccessBanner()
                         .entrance(appeared, delay: 0)
                 }
-                if !model.results.lastScanWasComplete {
+                if !results.lastScanWasComplete {
                     partialScanNotice
                         .entrance(appeared, delay: 0)
                 }
@@ -59,12 +64,12 @@ struct OverviewView: View {
                         .entrance(appeared, delay: 0.18)
                     // Lifetime/last/next stats live in the global footer;
                     // the column only appears when it has cards to show.
-                    if !model.projects.devRoots.isEmpty || !model.results.manualTargets.isEmpty {
+                    if !projects.devRoots.isEmpty || !results.manualTargets.isEmpty {
                         VStack(spacing: 12) {
-                            if !model.projects.devRoots.isEmpty {
+                            if !projects.devRoots.isEmpty {
                                 projectsCard
                             }
-                            if !model.results.manualTargets.isEmpty {
+                            if !results.manualTargets.isEmpty {
                                 attentionCard
                             }
                         }

@@ -11,19 +11,21 @@ import SwiftUI
 
 /// One tile in the category grid.
 struct CategoryCard: View {
+    /// Kept for `totalFoundBytes` only — a cross-model member.
     @Environment(AppModel.self) private var model
+    @Environment(TargetResultsModel.self) private var results
     let category: ToolCategory
     let open: () -> Void
     @State private var isHovered = false
 
     var body: some View {
-        let totals = model.results.categoryTotals()
+        let totals = results.categoryTotals()
         let bytes = totals.first { $0.category == category }?.bytes ?? 0
         // Share of everything found, dev-folder artifacts included —
         // the same denominator as the overview ring.
         let all = model.totalFoundBytes
         let peak = totals.map(\.bytes).max() ?? 1
-        let items = model.results.targets.count { $0.category == category && model.results.bytes(of: $0) > 0 }
+        let items = results.targets.count { $0.category == category && results.bytes(of: $0) > 0 }
 
         Button(action: open) {
             VStack(alignment: .leading, spacing: 0) {

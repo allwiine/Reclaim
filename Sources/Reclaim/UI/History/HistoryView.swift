@@ -11,7 +11,7 @@ import ReclaimKit
 import SwiftUI
 
 struct HistoryView: View {
-    @Environment(AppModel.self) private var model
+    @Environment(HistoryModel.self) private var history
     @State private var appeared = false
     @State private var isConfirmingClear = false
     /// The pass whose detail pane is open, if any.
@@ -19,7 +19,7 @@ struct HistoryView: View {
 
     var body: some View {
         Group {
-            if model.history.entries.isEmpty {
+            if history.entries.isEmpty {
                 emptyState
             } else {
                 content
@@ -31,7 +31,7 @@ struct HistoryView: View {
         // clicks cannot be scripted without Accessibility permission.
         .task {
             if ProcessInfo.processInfo.arguments.contains("--select-first-clean") {
-                selectedEntryID = model.history.entries.first?.id
+                selectedEntryID = history.entries.first?.id
             }
         }
         #endif
@@ -44,7 +44,7 @@ struct HistoryView: View {
                 localized("history.clearConfirmAction", defaultValue: "Clear History"),
                 role: .destructive
             ) {
-                model.history.clear()
+                history.clear()
             }
         } message: {
             Text(localized(
@@ -79,7 +79,7 @@ struct HistoryView: View {
     // MARK: - Content
 
     private var selectedEntry: CleanHistoryEntry? {
-        model.history.entries.first { $0.id == selectedEntryID }
+        history.entries.first { $0.id == selectedEntryID }
     }
 
     private var content: some View {
@@ -107,12 +107,12 @@ struct HistoryView: View {
                     VStack(alignment: .leading, spacing: 6) {
                         SectionLabel(localized("overview.reclaimedAllTime", defaultValue: "Reclaimed (all time)"))
                         HStack(alignment: .firstTextBaseline, spacing: 6) {
-                            Text(model.history.reclaimedAllTimeBytes.byteParts.value)
+                            Text(history.reclaimedAllTimeBytes.byteParts.value)
                                 .font(Theme.heroNumber(34))
                                 .monospacedDigit()
                                 .foregroundStyle(Theme.textPrimary)
                                 .contentTransition(.numericText())
-                            Text(model.history.reclaimedAllTimeBytes.byteParts.unit)
+                            Text(history.reclaimedAllTimeBytes.byteParts.unit)
                                 .scaledFont(size: 15)
                                 .foregroundStyle(Theme.textSecondary)
                         }
@@ -153,7 +153,7 @@ struct HistoryView: View {
 
     /// Oldest → newest bars, opacity scaled by size like the design.
     private var chart: some View {
-        let entries = Array(model.history.entries.reversed().suffix(24))
+        let entries = Array(history.entries.reversed().suffix(24))
         let peak = max(1, entries.map(\.reclaimedBytes).max() ?? 1)
         return HStack(alignment: .bottom, spacing: 6) {
             ForEach(Array(entries.enumerated()), id: \.element.id) { index, entry in
@@ -193,10 +193,10 @@ struct HistoryView: View {
                 Rectangle().fill(Color.white.opacity(0.08)).frame(height: 1)
             }
 
-            ForEach(model.history.entries) { entry in
+            ForEach(history.entries) { entry in
                 HistoryRow(
                     entry: entry,
-                    isLast: entry.id == model.history.entries.last?.id,
+                    isLast: entry.id == history.entries.last?.id,
                     isSelected: entry.id == selectedEntryID
                 ) {
                     selectedEntryID = entry.id
