@@ -12,7 +12,8 @@ import ReclaimKit
 import SwiftUI
 
 struct ProjectInspectorPanel: View {
-    @Environment(AppModel.self) var model
+    @Environment(ProjectsModel.self) var projects
+    @Environment(ActivityModel.self) var activity
     let project: DiscoveredProject?
     /// Opens the per-project clean confirmation ("Clean just this").
     var onCleanProject: (DiscoveredProject) -> Void = { _ in }
@@ -42,7 +43,7 @@ struct ProjectInspectorPanel: View {
                     .padding(.top, 14)
 
                 HStack(spacing: 8) {
-                    if model.projects.isProjectStale(project) {
+                    if projects.isProjectStale(project) {
                         StaleBadge()
                     }
                     Text((project.devRoot.path as NSString).abbreviatingWithTildeInPath)

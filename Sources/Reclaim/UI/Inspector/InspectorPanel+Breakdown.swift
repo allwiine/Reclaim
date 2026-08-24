@@ -15,25 +15,25 @@ extension InspectorPanel {
     func breakdown(for target: CleanupTarget, status: TargetStatus) -> some View {
         if case .measured(let measurement, _, let cleanupPaths) = status, measurement.bytes > 0 {
             let pickable = target.strategy.isCleanable && !cleanupPaths.isEmpty
-            let entries = model.breakdowns.entries[target.id] ?? []
+            let entries = breakdowns.entries[target.id] ?? []
 
             HStack(alignment: .firstTextBaseline, spacing: 10) {
                 SectionLabel(localized("inspector.largestContents", defaultValue: "Largest contents"))
                     .frame(maxWidth: .infinity, alignment: .leading)
                 if pickable, !entries.isEmpty {
-                    Button(model.selection.isSelected(target) && !model.selection.isPartiallySelected(target)
+                    Button(selection.isSelected(target) && !selection.isPartiallySelected(target)
                         ? localized("inspector.deselectAllContents", defaultValue: "Deselect all")
                         : localized("inspector.selectAllContents", defaultValue: "Select all")
                     ) {
-                        model.selection.setSelected(
+                        selection.setSelected(
                             target,
-                            !(model.selection.isSelected(target) && !model.selection.isPartiallySelected(target))
+                            !(selection.isSelected(target) && !selection.isPartiallySelected(target))
                         )
                     }
                     .buttonStyle(.plain)
                     .scaledFont(size: 11, weight: .medium)
                     .foregroundStyle(Theme.textSecondary)
-                    .disabled(model.activity.isScanning || model.activity.isCleaning)
+                    .disabled(activity.isScanning || activity.isCleaning)
                 }
             }
             .padding(.top, 24)
@@ -93,13 +93,13 @@ extension InspectorPanel {
                     Toggle(
                         localized("browser.selectAccessibility", defaultValue: "Select \(entry.name)"),
                         isOn: Binding(
-                            get: { model.selection.isPathSelected(target, path: entry.id) },
-                            set: { model.selection.setPathSelected(target, path: entry.id, $0) }
+                            get: { selection.isPathSelected(target, path: entry.id) },
+                            set: { selection.setPathSelected(target, path: entry.id, $0) }
                         )
                     )
                     .toggleStyle(CheckboxToggleStyle(size: 15))
                     .labelsHidden()
-                    .disabled(model.activity.isScanning || model.activity.isCleaning)
+                    .disabled(activity.isScanning || activity.isCleaning)
                 }
                 Text(entry.name)
                     .scaledFont(size: 12)
@@ -138,12 +138,12 @@ extension InspectorPanel {
                 .frame(maxWidth: .infinity)
         }
         .rcPrimary()
-        .disabled(!model.selection.isSelected(target) || model.activity.isScanning || model.activity.isCleaning)
+        .disabled(!selection.isSelected(target) || activity.isScanning || activity.isCleaning)
         .padding(.top, 12)
     }
 
     private func scopeLabel(for target: CleanupTarget) -> String? {
-        guard let counts = model.selection.partialSelectionCounts(of: target) else { return nil }
+        guard let counts = selection.partialSelectionCounts(of: target) else { return nil }
         return localized(
             "format.itemsOf",
             defaultValue: "\(counts.selected) of \(counts.total) items"
@@ -154,15 +154,15 @@ extension InspectorPanel {
         guard let scope = scopeLabel(for: target) else {
             return localized("inspector.tickHint", defaultValue: "Tick items to clean only those")
         }
-        let size = model.selection.selectedBytes(of: target).formattedBytesCompact
+        let size = selection.selectedBytes(of: target).formattedBytesCompact
         return localized("inspector.tickedNote", defaultValue: "\(scope) ticked · \(size)")
     }
 
     private func cleanJustThisLabel(for target: CleanupTarget) -> String {
-        guard model.selection.isSelected(target) else {
+        guard selection.isSelected(target) else {
             return localized("inspector.nothingTicked", defaultValue: "Nothing ticked here")
         }
-        let size = model.selection.selectedBytes(of: target).formattedBytesCompact
+        let size = selection.selectedBytes(of: target).formattedBytesCompact
         guard let scope = scopeLabel(for: target) else {
             return localized("inspector.cleanJustThis", defaultValue: "Clean just this · \(size)")
         }

@@ -127,12 +127,16 @@ struct ReclaimApp: App {
 /// Compact menu bar summary with quick actions. Cleaning always goes
 /// through the main window's confirmation — never one silent click.
 private struct MenuBarSummary: View {
+    /// Kept for `cleanableBytes` only — a cross-model member.
     @Environment(AppModel.self) private var model
+    @Environment(TargetResultsModel.self) private var results
+    @Environment(ActivityModel.self) private var activity
+    @Environment(ScanCoordinator.self) private var scanner
     @Environment(\.openWindow) private var openWindow
 
     var body: some View {
         Group {
-            if model.results.lastScan != nil {
+            if results.lastScan != nil {
                 // Only what Reclaim itself can clean — tool-managed
                 // items (Docker, Go modules) don't count as reclaimable.
                 Text(localized(
@@ -141,7 +145,7 @@ private struct MenuBarSummary: View {
                 ))
                 Text(localized(
                     "menu.safeToRemove",
-                    defaultValue: "Safe to remove: \(model.results.safeReclaimableBytes.formattedBytesCompact)"
+                    defaultValue: "Safe to remove: \(results.safeReclaimableBytes.formattedBytesCompact)"
                 ))
             } else {
                 Text(localized("toolbar.noScanYet", defaultValue: "No scan yet"))
@@ -149,13 +153,13 @@ private struct MenuBarSummary: View {
 
             Divider()
 
-            Button(model.activity.isScanning
+            Button(activity.isScanning
                 ? localized("menu.scanning", defaultValue: "Scanning…")
                 : localized("menu.scanNow", defaultValue: "Scan Now")
             ) {
-                model.scanner.scanAll()
+                scanner.scanAll()
             }
-            .disabled(model.activity.isScanning || model.activity.isCleaning)
+            .disabled(activity.isScanning || activity.isCleaning)
 
             Button(localized("menu.reviewInReclaim", defaultValue: "Review in Reclaim…")) {
                 NSApp.activate()

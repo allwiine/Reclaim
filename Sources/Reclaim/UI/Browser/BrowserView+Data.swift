@@ -16,13 +16,13 @@ extension BrowserView {
     var visibleTargets: [CleanupTarget] {
         switch mode {
         case .category(let category):
-            return model.results.visibleTargets(in: category)
+            return results.visibleTargets(in: category)
         case .all:
-            return model.results.allVisibleTargets
+            return results.allVisibleTargets
         case .search(let query):
             let trimmed = query.trimmingCharacters(in: .whitespaces)
             guard !trimmed.isEmpty else { return [] }
-            return model.results.targets.filter { target in
+            return results.targets.filter { target in
                 target.name.localizedCaseInsensitiveContains(trimmed)
                     || target.summary.localizedCaseInsensitiveContains(trimmed)
                     || target.category.title.localizedCaseInsensitiveContains(trimmed)
@@ -36,6 +36,6 @@ extension BrowserView {
     /// "Review everything" would under-account the headline it sits
     /// beneath without the projects' bytes — they get a pointer row.
     var showsProjectsRow: Bool {
-        mode == .all && model.projects.projectArtifactBytes > 0
+        mode == .all && projects.projectArtifactBytes > 0
     }
 }

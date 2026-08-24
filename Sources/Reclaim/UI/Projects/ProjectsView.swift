@@ -18,7 +18,9 @@ struct ProjectsView: View {
         case bySize, byActivity
     }
 
-    @Environment(AppModel.self) var model
+    @Environment(ProjectsModel.self) var projects
+    @Environment(TargetResultsModel.self) var results
+    @Environment(ActivityModel.self) var activity
     /// Opens the per-project clean confirmation ("Clean just this").
     var onCleanProject: (DiscoveredProject) -> Void = { _ in }
 
@@ -27,7 +29,7 @@ struct ProjectsView: View {
 
     var body: some View {
         Group {
-            if model.projects.devRoots.isEmpty {
+            if projects.devRoots.isEmpty {
                 emptyState
             } else {
                 browser
@@ -57,7 +59,7 @@ struct ProjectsView: View {
             .frame(maxWidth: 420)
             Button(localized("projects.addFolder", defaultValue: "Add a development folder…")) {
                 for url in DevFolderPicker.pickFolders() {
-                    model.projects.addDevRoot(url)
+                    projects.addDevRoot(url)
                 }
             }
             .rcPrimary()

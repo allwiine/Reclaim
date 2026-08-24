@@ -38,12 +38,12 @@ extension ConfirmSheet {
                 .padding(.horizontal, 12)
                 .padding(.vertical, 9)
                 .overlay(alignment: .bottom) {
-                    if target.id != picked.last?.id || !model.projects.selectedArtifacts.isEmpty {
+                    if target.id != picked.last?.id || !projects.selectedArtifacts.isEmpty {
                         Rectangle().fill(Theme.separator).frame(height: 1)
                     }
                 }
             }
-            ForEach(model.projects.selectedArtifacts) { artifact in
+            ForEach(projects.selectedArtifacts) { artifact in
                 HStack(spacing: 10) {
                     Circle()
                         .fill(Theme.safe)
@@ -61,7 +61,7 @@ extension ConfirmSheet {
                 .padding(.horizontal, 12)
                 .padding(.vertical, 9)
                 .overlay(alignment: .bottom) {
-                    if artifact.id != model.projects.selectedArtifacts.last?.id {
+                    if artifact.id != projects.selectedArtifacts.last?.id {
                         Rectangle().fill(Theme.separator).frame(height: 1)
                     }
                 }
@@ -70,15 +70,15 @@ extension ConfirmSheet {
     }
 
     private func artifactLabel(_ artifact: DiscoveredArtifact) -> String {
-        let projectName = model.projects.discovered
+        let projectName = projects.discovered
             .first { $0.artifacts.contains(where: { $0.id == artifact.id }) }?
             .name ?? ""
-        return model.projects.artifactDisplayName(kindID: artifact.kindID, projectName: projectName)
+        return projects.artifactDisplayName(kindID: artifact.kindID, projectName: projectName)
     }
 
     /// "Clean just this": the exact scan-time items that will go.
     func singlePathList(for target: CleanupTarget) -> some View {
-        let paths = model.selection.selectedCleanupPaths(of: target)
+        let paths = selection.selectedCleanupPaths(of: target)
         return listCard {
             ForEach(paths, id: \.path) { url in
                 HStack(spacing: 10) {
@@ -90,7 +90,7 @@ extension ConfirmSheet {
                         .foregroundStyle(Theme.textPrimary)
                         .lineLimit(1)
                     Spacer(minLength: 8)
-                    Text(model.selection.breakdownBytes(of: target, path: url.path)
+                    Text(selection.breakdownBytes(of: target, path: url.path)
                         .map(\.formattedBytesCompact)
                         ?? localized("confirm.sizeUnknown", defaultValue: "size unknown"))
                         .scaledFont(size: 12)
@@ -110,7 +110,7 @@ extension ConfirmSheet {
 
     /// Per-project "Clean just this": the ticked artifacts that will go.
     func projectArtifactList(for project: DiscoveredProject) -> some View {
-        let picked = model.projects.selectedArtifacts(of: project)
+        let picked = projects.selectedArtifacts(of: project)
         return listCard {
             ForEach(picked) { artifact in
                 HStack(spacing: 10) {
@@ -155,7 +155,7 @@ extension ConfirmSheet {
     }
 
     private func partialScopeLabel(for target: CleanupTarget) -> String? {
-        guard let counts = model.selection.partialSelectionCounts(of: target) else { return nil }
+        guard let counts = selection.partialSelectionCounts(of: target) else { return nil }
         return localized(
             "format.itemsOf",
             defaultValue: "\(counts.selected) of \(counts.total) items"
@@ -163,9 +163,9 @@ extension ConfirmSheet {
     }
 
     private func sizeLabel(for target: CleanupTarget) -> String {
-        if case .unmeasurable = model.results.status(of: target.id) {
+        if case .unmeasurable = results.status(of: target.id) {
             return localized("confirm.sizeUnknown", defaultValue: "size unknown")
         }
-        return model.selection.selectedBytes(of: target).formattedBytesCompact
+        return selection.selectedBytes(of: target).formattedBytesCompact
     }
 }

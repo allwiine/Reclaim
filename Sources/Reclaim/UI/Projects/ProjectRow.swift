@@ -12,7 +12,7 @@ import ReclaimKit
 import SwiftUI
 
 struct ProjectRow: View {
-    @Environment(AppModel.self) private var model
+    @Environment(ProjectsModel.self) private var projects
     let project: DiscoveredProject
     let isInspected: Bool
     let maxBytes: Int64
@@ -29,7 +29,7 @@ struct ProjectRow: View {
                             .scaledFont(size: 13.5, weight: .medium)
                             .foregroundStyle(Theme.textPrimary)
                             .lineLimit(1)
-                        if model.projects.isProjectStale(project) {
+                        if projects.isProjectStale(project) {
                             StaleBadge()
                         }
                     }
@@ -81,14 +81,14 @@ struct ProjectRow: View {
         Toggle(
             localized("browser.selectAccessibility", defaultValue: "Select \(project.name)"),
             isOn: Binding(
-                get: { model.projects.isProjectSelected(project) },
-                set: { model.projects.setProjectSelected(project, $0) }
+                get: { projects.isProjectSelected(project) },
+                set: { projects.setProjectSelected(project, $0) }
             )
         )
-        .toggleStyle(CheckboxToggleStyle(mixed: model.projects.isProjectPartiallySelected(project)))
+        .toggleStyle(CheckboxToggleStyle(mixed: projects.isProjectPartiallySelected(project)))
         .labelsHidden()
-        .disabled(!model.projects.isProjectSelectable(project))
-        .opacity(model.projects.isProjectSelectable(project) ? 1 : 0.35)
+        .disabled(!projects.isProjectSelectable(project))
+        .opacity(projects.isProjectSelectable(project) ? 1 : 0.35)
     }
 
     @ViewBuilder

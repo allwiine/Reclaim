@@ -11,8 +11,6 @@ import ReclaimAppCore
 import SwiftUI
 
 struct DoneView: View {
-    /// Kept for `volumeDisplayName` only — a cross-model member.
-    @Environment(AppModel.self) var model
     @Environment(TargetResultsModel.self) var results
     @Environment(HistoryModel.self) var history
     let summary: CleanSummary

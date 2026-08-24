@@ -13,7 +13,7 @@ extension DoneView {
     func diskAfter(_ space: VolumeSpace) -> some View {
         VStack(spacing: 7) {
             HStack {
-                Text(model.volumeDisplayName)
+                Text(results.volumeDisplayName)
                     .themeFont(.caption)
                     .foregroundStyle(Theme.textLabel)
                 Spacer()

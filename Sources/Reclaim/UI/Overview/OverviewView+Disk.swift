@@ -16,7 +16,7 @@ extension OverviewView {
     var diskCard: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
-                SectionLabel(model.volumeDisplayName)
+                SectionLabel(results.volumeDisplayName)
                 Spacer()
                 if let space = results.volumeSpace {
                     Text(localized(

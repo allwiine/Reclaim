@@ -12,7 +12,12 @@ import ReclaimKit
 import SwiftUI
 
 struct ConfirmSheet: View {
+    /// Kept for `selectedBytes` only — a cross-model member.
     @Environment(AppModel.self) var model
+    @Environment(SettingsStore.self) var settings
+    @Environment(TargetResultsModel.self) var results
+    @Environment(ProjectsModel.self) var projects
+    @Environment(SelectionModel.self) var selection
     let scope: ConfirmScope
     let onCancel: () -> Void
     let onConfirm: () -> Void
@@ -23,14 +28,14 @@ struct ConfirmSheet: View {
     /// what this sheet covers.
     var singleTarget: CleanupTarget? {
         guard case .single(let id) = scope else { return nil }
-        return model.results.targets.first { $0.id == id }
+        return results.targets.first { $0.id == id }
     }
 
     /// The one project of a per-project confirmation, if that is what
     /// this sheet covers.
     var singleProject: DiscoveredProject? {
         guard case .project(let id) = scope else { return nil }
-        return model.projects.discovered.first { $0.id == id }
+        return projects.discovered.first { $0.id == id }
     }
 
     var body: some View {
@@ -57,8 +62,8 @@ struct ConfirmSheet: View {
     private var panel: some View {
         let picked: [CleanupTarget] =
             if case .project = scope { [] }
-            else { singleTarget.map { [$0] } ?? model.selection.selectedTargets }
-        let toTrash = model.settings.disposal == .trash
+            else { singleTarget.map { [$0] } ?? selection.selectedTargets }
+        let toTrash = settings.disposal == .trash
 
         return VStack(alignment: .leading, spacing: 0) {
             Text(title(picked))

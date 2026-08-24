@@ -12,7 +12,10 @@ import ReclaimKit
 import SwiftUI
 
 struct InspectorPanel: View {
-    @Environment(AppModel.self) var model
+    @Environment(TargetResultsModel.self) var results
+    @Environment(SelectionModel.self) var selection
+    @Environment(ActivityModel.self) var activity
+    @Environment(BreakdownModel.self) var breakdowns
     let target: CleanupTarget?
     /// Opens the single-target clean confirmation ("Clean just this").
     var onCleanSingle: (CleanupTarget) -> Void = { _ in }
@@ -39,7 +42,7 @@ struct InspectorPanel: View {
     }
 
     private func details(for target: CleanupTarget) -> some View {
-        let status = model.results.status(of: target.id)
+        let status = results.status(of: target.id)
 
         return ScrollView {
             VStack(alignment: .leading, spacing: 0) {
@@ -77,7 +80,7 @@ struct InspectorPanel: View {
                         .padding(.top, 10)
                 }
 
-                if target.strategy.isCleanable, model.selection.isExcludedFromAutoSelect(target) {
+                if target.strategy.isCleanable, selection.isExcludedFromAutoSelect(target) {
                     Label(
                         localized(
                             "inspector.excludedNote",
@@ -119,7 +122,7 @@ struct InspectorPanel: View {
             // Reset per-target view state that lives on the (stable) panel.
             showAllContents = false
             copied = false
-            model.breakdowns.load(for: target)
+            breakdowns.load(for: target)
         }
     }
 

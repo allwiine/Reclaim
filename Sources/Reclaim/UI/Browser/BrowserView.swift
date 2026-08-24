@@ -18,7 +18,9 @@ struct BrowserView: View {
         case search(String)
     }
 
-    @Environment(AppModel.self) var model
+    @Environment(TargetResultsModel.self) var results
+    @Environment(ProjectsModel.self) var projects
+    @Environment(SelectionModel.self) var selection
     let mode: Mode
     /// Row to anchor the inspector on when arriving from a tap on a
     /// specific target elsewhere (overview lists); `nil` falls back to

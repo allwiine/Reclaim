@@ -21,12 +21,12 @@ extension ProjectsView {
                     failedRootRow(scan)
                 }
 
-                if model.results.lastScan == nil {
+                if results.lastScan == nil {
                     hintText(localized(
                         "projects.notScanned",
                         defaultValue: "Run a scan to find projects and artifacts."
                     ))
-                } else if model.projects.discovered.isEmpty {
+                } else if projects.discovered.isEmpty {
                     hintText(localized(
                         "projects.noneFound",
                         defaultValue: "No projects found in the added folders."

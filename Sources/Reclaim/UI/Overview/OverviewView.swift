@@ -13,8 +13,8 @@ import ReclaimKit
 import SwiftUI
 
 struct OverviewView: View {
-    /// Kept for `volumeDisplayName`, `totalFoundBytes`, and
-    /// `largestFindings(limit:)` only — cross-model members.
+    /// Kept for `totalFoundBytes` and `largestFindings(limit:)` only —
+    /// cross-model members.
     @Environment(AppModel.self) var model
     @Environment(TargetResultsModel.self) var results
     @Environment(ProjectsModel.self) var projects

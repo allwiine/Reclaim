@@ -11,8 +11,6 @@ import ReclaimKit
 import SwiftUI
 
 struct IdleView: View {
-    /// Kept for `volumeDisplayName` only — a cross-model member.
-    @Environment(AppModel.self) var model
     @Environment(TargetResultsModel.self) var results
     @Environment(ProjectsModel.self) var projects
     @Environment(ScanCoordinator.self) var scanner

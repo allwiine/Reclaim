@@ -148,7 +148,7 @@ extension IdleView {
     private var diskFooter: some View {
         VStack(spacing: 8) {
             HStack {
-                Text(model.volumeDisplayName)
+                Text(results.volumeDisplayName)
                     .themeFont(.footnote)
                     .foregroundStyle(Color(hex: 0x98989F))
                 Spacer()
