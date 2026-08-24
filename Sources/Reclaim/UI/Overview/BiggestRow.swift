@@ -11,7 +11,7 @@ import SwiftUI
 
 /// A ranked row in "Biggest single locations".
 struct BiggestRow: View {
-    @Environment(AppModel.self) private var model
+    @Environment(TargetResultsModel.self) private var results
     let rank: Int
     let target: CleanupTarget
     let fraction: Double
@@ -39,7 +39,7 @@ struct BiggestRow: View {
                 }
                 Spacer(minLength: 10)
                 VStack(alignment: .trailing, spacing: 5) {
-                    Text(model.results.bytes(of: target).formattedBytesCompact)
+                    Text(results.bytes(of: target).formattedBytesCompact)
                         .scaledFont(size: 12.5, weight: .medium)
                         .monospacedDigit()
                         .foregroundStyle(Theme.textPrimary)

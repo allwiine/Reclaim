@@ -12,7 +12,11 @@ import ReclaimKit
 import SwiftUI
 
 struct SidebarView: View {
+    /// Kept for `cleanableBytes` only — a cross-model member.
     @Environment(AppModel.self) var model
+    @Environment(TargetResultsModel.self) var results
+    @Environment(ActivityModel.self) var activity
+    @Environment(ProjectsModel.self) var projects
     @Binding var destination: Destination
 
     var body: some View {
@@ -87,14 +91,14 @@ struct SidebarView: View {
 #Preview("Measured", traits: .fixedLayout(width: 258, height: 700)) {
     @Previewable @State var destination = Destination.overview
     SidebarView(destination: $destination)
-        .environment(PreviewData.scanned())
+        .appEnvironment(PreviewData.scanned())
         .preferredColorScheme(.dark)
 }
 
 #Preview("Unmeasured", traits: .fixedLayout(width: 258, height: 700)) {
     @Previewable @State var destination = Destination.overview
     SidebarView(destination: $destination)
-        .environment(PreviewData.idle())
+        .appEnvironment(PreviewData.idle())
         .preferredColorScheme(.dark)
 }
 #endif

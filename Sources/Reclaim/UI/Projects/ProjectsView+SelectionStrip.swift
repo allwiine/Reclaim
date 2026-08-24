@@ -24,16 +24,16 @@ extension ProjectsView {
             .fixedSize()
 
             Button(localized("projects.selectAllArtifacts", defaultValue: "Select all")) {
-                model.projects.selectAllArtifacts()
+                projects.selectAllArtifacts()
             }
             .buttonStyle(StripChipButtonStyle())
-            .disabled(model.activity.isScanning || model.activity.isCleaning || model.projects.selectableArtifactCount == 0)
+            .disabled(activity.isScanning || activity.isCleaning || projects.selectableArtifactCount == 0)
 
             Button(localized("browser.clear", defaultValue: "Clear")) {
-                model.projects.clearArtifactSelection()
+                projects.clearArtifactSelection()
             }
             .buttonStyle(StripChipButtonStyle(plain: true))
-            .disabled(model.projects.selectedArtifacts.isEmpty)
+            .disabled(projects.selectedArtifacts.isEmpty)
 
             Spacer()
 
@@ -42,11 +42,11 @@ extension ProjectsView {
                 .monospacedDigit()
                 .foregroundStyle(Theme.textLabel)
                 .contentTransition(.numericText())
-                .animation(Theme.smooth, value: model.projects.selectedArtifactBytes)
+                .animation(Theme.smooth, value: projects.selectedArtifactBytes)
 
             Button(localized("projects.addFolder", defaultValue: "Add a development folder…")) {
                 for url in DevFolderPicker.pickFolders() {
-                    model.projects.addDevRoot(url)
+                    projects.addDevRoot(url)
                 }
             }
             .rcSecondary()
@@ -58,13 +58,13 @@ extension ProjectsView {
     /// Scoped to the artifacts this screen lists — never the registry
     /// selection (that count lives in the category browser).
     private var selectionSummary: String {
-        let picked = model.projects.selectedArtifacts.count
+        let picked = projects.selectedArtifacts.count
         guard picked > 0 else {
             return localized("browser.noItemsSelected", defaultValue: "No items selected")
         }
         return localized(
             "browser.selectionSummary",
-            defaultValue: "\(picked) of \(model.projects.selectableArtifactCount) items selected · \(model.projects.selectedArtifactBytes.formattedBytesCompact)"
+            defaultValue: "\(picked) of \(projects.selectableArtifactCount) items selected · \(projects.selectedArtifactBytes.formattedBytesCompact)"
         )
     }
 }

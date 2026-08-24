@@ -11,11 +11,11 @@ import Foundation
 import ReclaimAppCore
 import ReclaimKit
 
-extension AppModel {
+extension TargetResultsModel {
     /// The user-visible name of the volume the disk cards describe,
     /// falling back to a generic label until the probe reports one.
     var volumeDisplayName: String {
-        results.volumeSpace?.localizedName
+        volumeSpace?.localizedName
             ?? localized("disk.startupDisk", defaultValue: "Startup Disk")
     }
 }

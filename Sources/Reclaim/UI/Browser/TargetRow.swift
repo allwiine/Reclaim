@@ -11,13 +11,14 @@ import ReclaimKit
 import SwiftUI
 
 struct TargetRow: View {
-    @Environment(AppModel.self) private var model
+    @Environment(TargetResultsModel.self) private var results
+    @Environment(SelectionModel.self) private var selection
     let target: CleanupTarget
     let isInspected: Bool
     let maxBytes: Int64
     let inspect: () -> Void
 
-    private var status: TargetStatus { model.results.status(of: target.id) }
+    private var status: TargetStatus { results.status(of: target.id) }
 
     var body: some View {
         Button(action: inspect) {
@@ -72,12 +73,12 @@ struct TargetRow: View {
 
     /// "2 of 8 items · 1.2 GB" while the target is cherry-picked.
     private var partialNote: String? {
-        guard let counts = model.selection.partialSelectionCounts(of: target) else { return nil }
+        guard let counts = selection.partialSelectionCounts(of: target) else { return nil }
         let scope = localized(
             "format.itemsOf",
             defaultValue: "\(counts.selected) of \(counts.total) items"
         )
-        let size = model.selection.selectedBytes(of: target).formattedBytesCompact
+        let size = selection.selectedBytes(of: target).formattedBytesCompact
         return localized("browser.partialNote", defaultValue: "\(scope) · \(size)")
     }
 
@@ -85,14 +86,14 @@ struct TargetRow: View {
         Toggle(
             localized("browser.selectAccessibility", defaultValue: "Select \(target.name)"),
             isOn: Binding(
-                get: { model.selection.isSelected(target) },
-                set: { model.selection.setSelected(target, $0) }
+                get: { selection.isSelected(target) },
+                set: { selection.setSelected(target, $0) }
             )
         )
-        .toggleStyle(CheckboxToggleStyle(mixed: model.selection.isPartiallySelected(target)))
+        .toggleStyle(CheckboxToggleStyle(mixed: selection.isPartiallySelected(target)))
         .labelsHidden()
-        .disabled(!model.selection.isSelectable(target))
-        .opacity(model.selection.isSelectable(target) ? 1 : 0.35)
+        .disabled(!selection.isSelectable(target))
+        .opacity(selection.isSelectable(target) ? 1 : 0.35)
     }
 
     @ViewBuilder
@@ -175,8 +176,8 @@ struct TargetRow: View {
             Toggle(
                 localized("browser.keepOutOfAutoSelect", defaultValue: "Keep out of automatic selection"),
                 isOn: Binding(
-                    get: { model.selection.isExcludedFromAutoSelect(target) },
-                    set: { model.selection.setExcludedFromAutoSelect(target, $0) }
+                    get: { selection.isExcludedFromAutoSelect(target) },
+                    set: { selection.setExcludedFromAutoSelect(target, $0) }
                 )
             )
         }

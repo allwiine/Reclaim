@@ -19,7 +19,7 @@ extension HistoryDetailPanel {
             SectionLabel(localized("history.detail.whatWasRemoved", defaultValue: "What was removed"))
                 .padding(.bottom, 4)
             ForEach(items, id: \.targetID) { item in
-                let target = model.results.targets.first { $0.id == item.targetID }
+                let target = results.targets.first { $0.id == item.targetID }
                 VStack(alignment: .leading, spacing: 8) {
                     HStack(spacing: 10) {
                         if let target {

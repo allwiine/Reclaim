@@ -12,7 +12,7 @@ import SwiftUI
 
 /// A "handled by tool" callout with its terminal command.
 struct AttentionCard: View {
-    @Environment(AppModel.self) private var model
+    @Environment(TargetResultsModel.self) private var results
     let target: CleanupTarget
     let open: () -> Void
     @State private var isHovered = false
@@ -25,7 +25,7 @@ struct AttentionCard: View {
                         .scaledFont(size: 13, weight: .medium)
                         .foregroundStyle(Theme.textPrimary)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                    Text(model.results.bytes(of: target).formattedBytesCompact)
+                    Text(results.bytes(of: target).formattedBytesCompact)
                         .scaledFont(size: 12.5, weight: .medium)
                         .monospacedDigit()
                         .foregroundStyle(Theme.textPrimary)

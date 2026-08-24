@@ -11,7 +11,16 @@ import ReclaimKit
 import SwiftUI
 
 struct ToolbarView: View {
+    /// Kept for `hasCleanableSelection` and `selectedBytes` only —
+    /// cross-model members.
     @Environment(AppModel.self) private var model
+    @Environment(SettingsStore.self) private var settings
+    @Environment(ActivityModel.self) private var activity
+    @Environment(TargetResultsModel.self) private var results
+    @Environment(SelectionModel.self) private var selection
+    @Environment(ProjectsModel.self) private var projects
+    @Environment(ScanCoordinator.self) private var scanner
+    @Environment(HistoryModel.self) private var history
     let destination: Destination
     let phase: ContentPhase
     @Binding var searchText: String
@@ -66,20 +75,20 @@ struct ToolbarView: View {
     /// area, so the disabled state only ever shows on History/Settings.
     private var scanButton: some View {
         Button {
-            model.scanner.scanAll()
+            scanner.scanAll()
         } label: {
             HStack(spacing: 5) {
                 Image(systemName: "arrow.clockwise")
                     .scaledFont(size: 10, weight: .medium)
-                Text(model.activity.isScanning
+                Text(activity.isScanning
                     ? localized("menu.scanning", defaultValue: "Scanning…")
-                    : model.results.lastScan == nil
+                    : results.lastScan == nil
                         ? localized("idle.scanButton", defaultValue: "Scan this Mac")
                         : localized("action.scanAgain", defaultValue: "Scan again"))
             }
         }
         .rcSecondaryCompact()
-        .disabled(model.activity.isScanning || model.activity.isCleaning)
+        .disabled(activity.isScanning || activity.isCleaning)
         .help(localized("toolbar.scanAgainHelp", defaultValue: "Scan again"))
         // ⌘R lives on the File-menu "Scan This Mac" command —
         // registering it here as well would collide.
@@ -129,7 +138,7 @@ struct ToolbarView: View {
                 defaultValue: "Reclaim \(model.selectedBytes.formattedBytesCompact)"
             )
         }
-        return model.selection.ids.isEmpty
+        return selection.ids.isEmpty
             ? localized("toolbar.nothingSelected", defaultValue: "Nothing selected")
             : localized("toolbar.reclaimSelection", defaultValue: "Reclaim selection")
     }
@@ -140,7 +149,7 @@ struct ToolbarView: View {
         switch phase {
         case .idle: localized("app.name", defaultValue: "Reclaim")
         case .scanning: localized("title.scanning", defaultValue: "Scanning")
-        case .cleaning: model.settings.disposal == .trash
+        case .cleaning: settings.disposal == .trash
             ? localized("title.movingToTrash", defaultValue: "Moving to Trash")
             : localized("title.cleaning", defaultValue: "Cleaning")
         case .done: localized("title.finished", defaultValue: "Finished")
@@ -166,9 +175,9 @@ struct ToolbarView: View {
         case .idle:
             return localized("toolbar.noScanYet", defaultValue: "No scan yet")
         case .overview:
-            guard let lastScan = model.results.lastScan else { return "" }
+            guard let lastScan = results.lastScan else { return "" }
             let when = lastScan.formatted(.relative(presentation: .named))
-            let measured = model.results.targets.count { model.results.bytes(of: $0) > 0 }
+            let measured = results.targets.count { results.bytes(of: $0) > 0 }
             return localized(
                 "toolbar.scannedSubtitle",
                 defaultValue: "Scanned \(when) · \(measured) locations"
@@ -177,24 +186,24 @@ struct ToolbarView: View {
             if !searchText.isEmpty { return "" }
             let targets: [CleanupTarget]
             switch destination {
-            case .category(let category): targets = model.results.visibleTargets(in: category)
-            case .allFindings: targets = model.results.allVisibleTargets
+            case .category(let category): targets = results.visibleTargets(in: category)
+            case .allFindings: targets = results.allVisibleTargets
             default: return ""
             }
             // Before the first scan there is no size to report — a
             // formatted zero would read as a (wrong) measurement.
-            guard model.results.lastScan != nil else {
+            guard results.lastScan != nil else {
                 return localized("count.items", defaultValue: "\(targets.count) items")
             }
-            let bytes = targets.reduce(Int64(0)) { $0 + model.results.bytes(of: $1) }
+            let bytes = targets.reduce(Int64(0)) { $0 + results.bytes(of: $1) }
             // "All findings" lists a dev-folder pointer row too — its
             // header must account for those bytes or the rows below
             // would sum past it.
-            if destination == .allFindings, model.projects.projectArtifactBytes > 0 {
-                let total = bytes + model.projects.projectArtifactBytes
+            if destination == .allFindings, projects.projectArtifactBytes > 0 {
+                let total = bytes + projects.projectArtifactBytes
                 return localized(
                     "toolbar.allFindingsSubtitle",
-                    defaultValue: "\(targets.count) items + \(model.projects.projectsWithArtifactsCount) projects · \(total.formattedBytesCompact)"
+                    defaultValue: "\(targets.count) items + \(projects.projectsWithArtifactsCount) projects · \(total.formattedBytesCompact)"
                 )
             }
             return localized(
@@ -202,17 +211,17 @@ struct ToolbarView: View {
                 defaultValue: "\(targets.count) items · \(bytes.formattedBytesCompact)"
             )
         case .history:
-            let recent = model.history.entries.count
+            let recent = history.entries.count
             guard recent > 0 else { return "" }
             return localized(
                 "toolbar.historySubtitle",
                 defaultValue: "\(recent) cleans on record"
             )
         case .projects:
-            guard model.results.lastScan != nil, !model.projects.discovered.isEmpty else { return "" }
+            guard results.lastScan != nil, !projects.discovered.isEmpty else { return "" }
             return localized(
                 "toolbar.projectsSubtitle",
-                defaultValue: "\(model.projects.discovered.count) projects · \(model.projects.projectArtifactBytes.formattedBytesCompact)"
+                defaultValue: "\(projects.discovered.count) projects · \(projects.projectArtifactBytes.formattedBytesCompact)"
             )
         default:
             return ""
@@ -236,7 +245,7 @@ struct ToolbarView: View {
     }
     .frame(width: 1000)
     .background(Theme.background)
-    .environment(PreviewData.scanned())
+    .appEnvironment(PreviewData.scanned())
     .preferredColorScheme(.dark)
 }
 #endif

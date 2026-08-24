@@ -103,7 +103,7 @@ extension HistoryDetailPanel {
                 .monospacedDigit()
                 .foregroundStyle(Color(hex: 0x8E8E95))
             }
-            if let total = model.results.volumeSpace?.totalBytes, total > 0 {
+            if let total = results.volumeSpace?.totalBytes, total > 0 {
                 ProgressBar(fraction: Double(freeAfter) / Double(total), height: 6)
                     .padding(.top, 9)
             }

@@ -14,7 +14,7 @@ extension SidebarView {
     // MARK: - Category rows
 
     func categoryRow(_ category: ToolCategory) -> some View {
-        let bytes = model.results.categoryTotals().first { $0.category == category }?.bytes ?? 0
+        let bytes = results.categoryTotals().first { $0.category == category }?.bytes ?? 0
         let isSelected = destination == .category(category)
 
         return Button {
@@ -49,7 +49,7 @@ extension SidebarView {
     }
 
     var projectsRow: some View {
-        let bytes = model.projects.projectArtifactBytes
+        let bytes = projects.projectArtifactBytes
         let isSelected = destination == .projects
 
         return Button {

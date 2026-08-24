@@ -69,7 +69,7 @@ extension DoneView {
                 switch outcome {
                 case .emptied:
                     trashState = .emptied
-                    model.history.markTrashEmptied()
+                    history.markTrashEmptied()
                 case .failed(let message):
                     trashState = .failed(message)
                 }

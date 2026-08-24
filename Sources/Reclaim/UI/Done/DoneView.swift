@@ -11,7 +11,8 @@ import ReclaimAppCore
 import SwiftUI
 
 struct DoneView: View {
-    @Environment(AppModel.self) var model
+    @Environment(TargetResultsModel.self) var results
+    @Environment(HistoryModel.self) var history
     let summary: CleanSummary
     let dismiss: () -> Void
 
@@ -38,7 +39,7 @@ struct DoneView: View {
             VStack(spacing: 0) {
                 checkmark
                 headline
-                if let space = model.results.volumeSpace {
+                if let space = results.volumeSpace {
                     diskAfter(space)
                         .padding(.top, 36)
                         .entrance(appeared, delay: 0.25)
@@ -100,7 +101,7 @@ struct DoneView: View {
     let model = PreviewData.cleaned()
     return DoneView(summary: model.activity.lastCleanSummary!, dismiss: {})
         .background(Theme.background)
-        .environment(model)
+        .appEnvironment(model)
         .preferredColorScheme(.dark)
 }
 #endif

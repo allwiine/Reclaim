@@ -11,7 +11,7 @@ import SwiftUI
 
 extension ConfirmSheet {
     func trashToggle(toTrash: Bool) -> some View {
-        @Bindable var settings = model.settings
+        @Bindable var settings = settings
         return Toggle(isOn: Binding(
             get: { settings.disposal == .trash },
             set: { settings.disposal = $0 ? .trash : .delete }

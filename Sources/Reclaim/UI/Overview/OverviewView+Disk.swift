@@ -16,9 +16,9 @@ extension OverviewView {
     var diskCard: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
-                SectionLabel(model.volumeDisplayName)
+                SectionLabel(results.volumeDisplayName)
                 Spacer()
-                if let space = model.results.volumeSpace {
+                if let space = results.volumeSpace {
                     Text(localized(
                         "disk.usedOfTotal",
                         defaultValue: "\(space.usedBytes.wholeGB) used of \(space.totalBytes.wholeGB)"
@@ -59,7 +59,7 @@ extension OverviewView {
                 )
                 diskLegendRow(
                     localized("disk.legendFree", defaultValue: "Free"),
-                    (model.results.volumeSpace?.availableBytes ?? 0).wholeGB,
+                    (results.volumeSpace?.availableBytes ?? 0).wholeGB,
                     .white.opacity(0.08)
                 )
             }
@@ -71,17 +71,17 @@ extension OverviewView {
     }
 
     private var freeGBNumber: String {
-        guard let space = model.results.volumeSpace else { return "—" }
+        guard let space = results.volumeSpace else { return "—" }
         return space.availableBytes.wholeGBValue
     }
 
     private var otherUsedBytes: Int64 {
-        guard let space = model.results.volumeSpace else { return 0 }
+        guard let space = results.volumeSpace else { return 0 }
         return max(0, space.usedBytes - model.totalFoundBytes)
     }
 
     private var diskSegments: [MeterSegment] {
-        guard let space = model.results.volumeSpace, space.totalBytes > 0 else { return [] }
+        guard let space = results.volumeSpace, space.totalBytes > 0 else { return [] }
         let total = Double(space.totalBytes)
         return [
             MeterSegment(id: "dev", fraction: Double(model.totalFoundBytes) / total, color: Theme.accent),

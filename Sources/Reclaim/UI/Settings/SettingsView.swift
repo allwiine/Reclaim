@@ -15,7 +15,9 @@ import Sparkle
 import SwiftUI
 
 struct SettingsView: View {
-    @Environment(AppModel.self) var model
+    @Environment(SettingsStore.self) var settings
+    @Environment(ProjectsModel.self) var projects
+    @Environment(TargetResultsModel.self) var results
 
     @State var launchAtLogin = false
     @State var launchAtLoginFailed = false
@@ -27,7 +29,7 @@ struct SettingsView: View {
     @State private var autoUpdateChecks = true
 
     var body: some View {
-        @Bindable var settings = model.settings
+        @Bindable var settings = settings
 
         ScrollView {
             VStack(alignment: .leading, spacing: 26) {
@@ -206,7 +208,7 @@ struct SettingsView: View {
 #Preview(traits: .fixedLayout(width: 1060, height: 810)) {
     SettingsView()
         .background(Theme.background)
-        .environment(PreviewData.scanned())
+        .appEnvironment(PreviewData.scanned())
         .preferredColorScheme(.dark)
 }
 #endif

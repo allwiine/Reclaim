@@ -15,8 +15,8 @@ extension ConfirmSheet {
 
     func title(_ picked: [CleanupTarget]) -> String {
         if let target = singleTarget {
-            let space = model.selection.selectedBytes(of: target).formattedBytesCompact
-            if let counts = model.selection.partialSelectionCounts(of: target) {
+            let space = selection.selectedBytes(of: target).formattedBytesCompact
+            if let counts = selection.partialSelectionCounts(of: target) {
                 let scope = localized(
                     "format.itemsOf",
                     defaultValue: "\(counts.selected) of \(counts.total) items"
@@ -32,8 +32,8 @@ extension ConfirmSheet {
             )
         }
         if let project = singleProject {
-            let space = model.projects.selectedArtifactBytes(of: project).formattedBytesCompact
-            if let counts = model.projects.partialSelectionCounts(of: project) {
+            let space = projects.selectedArtifactBytes(of: project).formattedBytesCompact
+            if let counts = projects.partialSelectionCounts(of: project) {
                 let scope = localized(
                     "format.itemsOf",
                     defaultValue: "\(counts.selected) of \(counts.total) items"
@@ -49,8 +49,8 @@ extension ConfirmSheet {
             )
         }
         let space = model.selectedBytes.formattedBytesCompact
-        let locationCount = picked.count + model.projects.selectedArtifacts.count
-        return model.settings.dryRun
+        let locationCount = picked.count + projects.selectedArtifacts.count
+        return settings.dryRun
             ? localized(
                 "confirm.titleDryRun",
                 defaultValue: "Dry run: reclaim \(space) from \(locationCount) locations?"
@@ -62,14 +62,14 @@ extension ConfirmSheet {
     }
 
     func bodyText(toTrash: Bool) -> String {
-        if model.settings.dryRun {
+        if settings.dryRun {
             return localized(
                 "confirm.bodyDryRun",
                 defaultValue: "Dry run is on — Reclaim will only report what would be removed. Nothing is touched."
             )
         }
         if let target = singleTarget {
-            if model.selection.isPartiallySelected(target) {
+            if selection.isPartiallySelected(target) {
                 return localized(
                     "confirm.bodySinglePartial",
                     defaultValue: "Only the items listed below are affected. The rest of \(target.name) stays where it is."
@@ -85,7 +85,7 @@ extension ConfirmSheet {
                     defaultValue: "This one location is deleted immediately and cannot be recovered."
                 )
         }
-        if let project = singleProject, model.projects.isProjectPartiallySelected(project) {
+        if let project = singleProject, projects.isProjectPartiallySelected(project) {
             return localized(
                 "confirm.bodySinglePartial",
                 defaultValue: "Only the items listed below are affected. The rest of \(project.name) stays where it is."

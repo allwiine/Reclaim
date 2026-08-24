@@ -22,16 +22,16 @@ extension ProjectInspectorPanel {
                 ))
                 .frame(maxWidth: .infinity, alignment: .leading)
                 if project.artifacts.contains(where: { $0.measurement.bytes > 0 }) {
-                    Button(model.projects.isProjectSelected(project)
+                    Button(projects.isProjectSelected(project)
                         ? localized("inspector.deselectAllContents", defaultValue: "Deselect all")
                         : localized("inspector.selectAllContents", defaultValue: "Select all")
                     ) {
-                        model.projects.setProjectSelected(project, !model.projects.isProjectSelected(project))
+                        projects.setProjectSelected(project, !projects.isProjectSelected(project))
                     }
                     .buttonStyle(.plain)
                     .scaledFont(size: 11, weight: .medium)
                     .foregroundStyle(Theme.textSecondary)
-                    .disabled(model.activity.isScanning || model.activity.isCleaning)
+                    .disabled(activity.isScanning || activity.isCleaning)
                 }
             }
             .padding(.top, 24)
@@ -57,14 +57,14 @@ extension ProjectInspectorPanel {
                         defaultValue: "Select \(artifact.kind?.name ?? artifact.kindID)"
                     ),
                     isOn: Binding(
-                        get: { model.projects.isArtifactSelected(artifact) },
-                        set: { model.projects.setArtifactSelected(artifact, $0) }
+                        get: { projects.isArtifactSelected(artifact) },
+                        set: { projects.setArtifactSelected(artifact, $0) }
                     )
                 )
                 .toggleStyle(CheckboxToggleStyle(size: 15))
                 .labelsHidden()
-                .disabled(!model.projects.isArtifactSelectable(artifact))
-                .opacity(model.projects.isArtifactSelectable(artifact) ? 1 : 0.35)
+                .disabled(!projects.isArtifactSelectable(artifact))
+                .opacity(projects.isArtifactSelectable(artifact) ? 1 : 0.35)
                 Text(artifact.kind?.name ?? artifact.kindID)
                     .scaledFont(size: 12)
                     .foregroundStyle(Theme.textPrimary)
@@ -104,14 +104,14 @@ extension ProjectInspectorPanel {
         }
         .rcPrimary()
         .disabled(
-            model.projects.selectedArtifacts(of: project).isEmpty
-                || model.activity.isScanning || model.activity.isCleaning
+            projects.selectedArtifacts(of: project).isEmpty
+                || activity.isScanning || activity.isCleaning
         )
         .padding(.top, 12)
     }
 
     private func scopeLabel(for project: DiscoveredProject) -> String? {
-        guard let counts = model.projects.partialSelectionCounts(of: project) else { return nil }
+        guard let counts = projects.partialSelectionCounts(of: project) else { return nil }
         return localized(
             "format.itemsOf",
             defaultValue: "\(counts.selected) of \(counts.total) items"
@@ -122,15 +122,15 @@ extension ProjectInspectorPanel {
         guard let scope = scopeLabel(for: project) else {
             return localized("inspector.tickHint", defaultValue: "Tick items to clean only those")
         }
-        let size = model.projects.selectedArtifactBytes(of: project).formattedBytesCompact
+        let size = projects.selectedArtifactBytes(of: project).formattedBytesCompact
         return localized("inspector.tickedNote", defaultValue: "\(scope) ticked · \(size)")
     }
 
     private func cleanLabel(for project: DiscoveredProject) -> String {
-        guard !model.projects.selectedArtifacts(of: project).isEmpty else {
+        guard !projects.selectedArtifacts(of: project).isEmpty else {
             return localized("inspector.nothingTicked", defaultValue: "Nothing ticked here")
         }
-        let size = model.projects.selectedArtifactBytes(of: project).formattedBytesCompact
+        let size = projects.selectedArtifactBytes(of: project).formattedBytesCompact
         guard let scope = scopeLabel(for: project) else {
             return localized("inspector.cleanJustThis", defaultValue: "Clean just this · \(size)")
         }

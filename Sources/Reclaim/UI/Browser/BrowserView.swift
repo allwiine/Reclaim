@@ -18,7 +18,9 @@ struct BrowserView: View {
         case search(String)
     }
 
-    @Environment(AppModel.self) var model
+    @Environment(TargetResultsModel.self) var results
+    @Environment(ProjectsModel.self) var projects
+    @Environment(SelectionModel.self) var selection
     let mode: Mode
     /// Row to anchor the inspector on when arriving from a tap on a
     /// specific target elsewhere (overview lists); `nil` falls back to
@@ -77,14 +79,14 @@ struct BrowserView: View {
 #Preview("Category", traits: .fixedLayout(width: 1060, height: 810)) {
     BrowserView(mode: .category(.xcode))
         .background(Theme.background)
-        .environment(PreviewData.scanned())
+        .appEnvironment(PreviewData.scanned())
         .preferredColorScheme(.dark)
 }
 
 #Preview("Search", traits: .fixedLayout(width: 1060, height: 810)) {
     BrowserView(mode: .search("cache"))
         .background(Theme.background)
-        .environment(PreviewData.scanned())
+        .appEnvironment(PreviewData.scanned())
         .preferredColorScheme(.dark)
 }
 #endif

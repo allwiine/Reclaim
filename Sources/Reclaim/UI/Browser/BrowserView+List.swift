@@ -21,15 +21,15 @@ extension BrowserView {
                         TargetRow(
                             target: target,
                             isInspected: inspectedTarget(in: targets)?.id == target.id,
-                            maxBytes: targets.map { model.results.bytes(of: $0) }.max() ?? 0
+                            maxBytes: targets.map { results.bytes(of: $0) }.max() ?? 0
                         ) {
                             inspectedID = target.id
                         }
                     }
                     if showsProjectsRow {
                         ProjectsLinkRow(
-                            count: model.projects.projectsWithArtifactsCount,
-                            bytes: model.projects.projectArtifactBytes,
+                            count: projects.projectsWithArtifactsCount,
+                            bytes: projects.projectArtifactBytes,
                             open: onOpenProjects
                         )
                     }
