@@ -19,8 +19,15 @@ extension Theme {
     static let textCategoryTitle = Color(hex: 0xD5D5DB)
     /// Subtle secondary text (project-row icon, failure list copy).
     static let textSubtle = Color(hex: 0xB8B8BF)
-    /// Category chip label text.
+    /// Category chip label text; also used for compact table-row values
+    /// (history row date column) at the same weight.
     static let textChipLabel = Color(hex: 0xC8C8CF)
+    /// Search field icon glyph color (toolbar).
+    static let textSearchIcon = Color(hex: 0x8B8B92)
+    /// Monospaced current-path text during scan/clean progress.
+    static let textProgressPath = Color(hex: 0x7E7E85)
+    /// Unit label beside the not-yet-measured sidebar placeholder.
+    static let textPlaceholderUnit = Color(hex: 0x5C5C63)
 
     // MARK: - Fills & strokes
 
@@ -32,6 +39,8 @@ extension Theme {
     static let calloutStroke = Color.white.opacity(0.06)
     /// Quieter row-hover fill (biggest-locations rows).
     static let hoverFillQuiet = Color.white.opacity(0.05)
+    /// Faintest row-hover fill (history table rows).
+    static let hoverFillFaint = Color.white.opacity(0.04)
     /// "Other used space" meter fill on disk cards.
     static let usedTrack = Color.white.opacity(0.28)
     /// Used-space fill on the pre-scan idle footer.
@@ -52,4 +61,21 @@ extension Theme {
     static let moreChipStroke = Color.white.opacity(0.04)
     /// Divider between rows in the Done screen's lists.
     static let rowDivider = Color.white.opacity(0.06)
+    /// Faint background wash for toolbar/footer chrome and quiet
+    /// detail panels (history detail pane).
+    static let chromeFill = Color.white.opacity(0.02)
+    /// Divider between a scrollable body and pinned footer/header
+    /// chrome (sidebar footer separator, history table header).
+    static let dividerStrong = Color.white.opacity(0.08)
+    /// Quieter control fill (history detail close button), below
+    /// `controlFill`.
+    static let controlFillQuiet = Color.white.opacity(0.07)
+    /// Quieter selected-row fill (history table), below `selectionFill`.
+    static let selectionFillQuiet = Color.white.opacity(0.06)
+    /// Background fill behind the not-yet-measured striped placeholder.
+    static let placeholderFill = Color.white.opacity(0.025)
+    /// Search field border, resting.
+    static let searchFieldStroke = Color.white.opacity(0.06)
+    /// Search field border, focused.
+    static let searchFieldStrokeFocused = Color.white.opacity(0.2)
 }

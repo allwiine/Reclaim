@@ -19,14 +19,14 @@ extension SidebarView {
     }
 
     var headline: some View {
-        VStack(alignment: .leading, spacing: 0) {
+        VStack(alignment: .leading, spacing: Theme.Space.s0) {
             SectionLabel(localized("sidebar.reclaimable", defaultValue: "Reclaimable"))
 
             if hasMeasurements {
                 // Only what Reclaim itself can clean — tool-managed
                 // items (Docker, Go modules) are found, not reclaimable.
                 let parts = model.cleanableBytes.byteParts
-                HStack(alignment: .firstTextBaseline, spacing: 6) {
+                HStack(alignment: .firstTextBaseline, spacing: Theme.Space.s6) {
                     Text(parts.value)
                         .font(Theme.heroNumber(31))
                         .foregroundStyle(Theme.textPrimary)
@@ -34,27 +34,27 @@ extension SidebarView {
                         .contentTransition(.numericText())
                         .animation(Theme.smooth, value: parts.value)
                     Text(parts.unit)
-                        .scaledFont(size: 15, weight: .medium)
+                        .themeFont(.sidebarUnit)
                         .foregroundStyle(Theme.textSecondary)
                 }
-                .padding(.top, 5)
+                .padding(.top, Theme.Space.s5)
 
                 SegmentedBar(segments: categorySegments, height: 5)
-                    .padding(.top, 12)
+                    .padding(.top, Theme.Space.s12)
             } else {
-                HStack(alignment: .center, spacing: 6) {
+                HStack(alignment: .center, spacing: Theme.Space.s6) {
                     StripedPlaceholder()
                         .frame(width: 62, height: 22)
                     Text(localized("format.unitGigabytes", defaultValue: "GB"))
-                        .scaledFont(size: 15, weight: .medium)
-                        .foregroundStyle(Color(hex: 0x5C5C63))
+                        .themeFont(.sidebarUnit)
+                        .foregroundStyle(Theme.textPlaceholderUnit)
                 }
-                .padding(.top, 6)
+                .padding(.top, Theme.Space.s6)
 
                 Text(localized("sidebar.runScanHint", defaultValue: "Run a scan to measure"))
                     .themeFont(.footnote)
                     .foregroundStyle(Theme.textQuaternary)
-                    .padding(.top, 9)
+                    .padding(.top, Theme.Space.s9)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)

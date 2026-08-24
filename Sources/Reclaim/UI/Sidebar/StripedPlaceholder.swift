@@ -11,7 +11,7 @@ import SwiftUI
 struct StripedPlaceholder: View {
     var body: some View {
         stripes
-            .clipShape(RoundedRectangle(cornerRadius: 6))
+            .clipShape(RoundedRectangle(cornerRadius: Theme.radiusIconChip))
             .accessibilityLabel(localized("accessibility.notMeasuredYet", defaultValue: "Not measured yet"))
     }
 
@@ -26,8 +26,8 @@ struct StripedPlaceholder: View {
                     x += step
                 }
             }
-            .stroke(Color.white.opacity(0.075), lineWidth: 4)
-            .background(Color.white.opacity(0.025))
+            .stroke(Theme.hairline, lineWidth: 4)
+            .background(Theme.placeholderFill)
         }
     }
 }

@@ -20,7 +20,7 @@ extension SidebarView {
         return Button {
             destination = .category(category)
         } label: {
-            HStack(spacing: 10) {
+            HStack(spacing: Theme.Space.s10) {
                 CategoryTile(category: category)
                 Text(category.title)
                     .themeFont(.rowTitle)
@@ -28,14 +28,14 @@ extension SidebarView {
                     .lineLimit(1)
                 Spacer(minLength: 8)
                 Text(hasMeasurements && bytes > 0 ? bytes.formattedBytesCompact : "—")
-                    .scaledFont(size: 12)
+                    .themeFont(.meta)
                     .monospacedDigit()
-                    .foregroundStyle(Color(hex: 0x8E8E95))
+                    .foregroundStyle(Theme.textTertiary)
                     .contentTransition(.numericText())
                     .animation(Theme.smooth, value: bytes)
             }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 7)
+            .padding(.horizontal, Theme.Space.s10)
+            .padding(.vertical, Theme.Space.s7)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(
                 isSelected ? Theme.selectionFill : .clear,
@@ -55,26 +55,26 @@ extension SidebarView {
         return Button {
             destination = .projects
         } label: {
-            HStack(spacing: 10) {
+            HStack(spacing: Theme.Space.s10) {
                 Image(systemName: "folder.badge.gearshape")
-                    .scaledFont(size: 10.5, weight: .medium)
-                    .foregroundStyle(Color(hex: 0xB8B8BF))
+                    .themeFont(.navIcon)
+                    .foregroundStyle(Theme.textSubtle)
                     .frame(width: 22, height: 22)
-                    .background(Theme.controlFill, in: RoundedRectangle(cornerRadius: 6))
+                    .background(Theme.controlFill, in: RoundedRectangle(cornerRadius: Theme.radiusIconChip))
                 Text(localized("sidebar.projects", defaultValue: "Projects"))
                     .themeFont(.rowTitle)
                     .foregroundStyle(Theme.textPrimary)
                     .lineLimit(1)
                 Spacer(minLength: 8)
                 Text(hasMeasurements && bytes > 0 ? bytes.formattedBytesCompact : "—")
-                    .scaledFont(size: 12)
+                    .themeFont(.meta)
                     .monospacedDigit()
-                    .foregroundStyle(Color(hex: 0x8E8E95))
+                    .foregroundStyle(Theme.textTertiary)
                     .contentTransition(.numericText())
                     .animation(Theme.smooth, value: bytes)
             }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 7)
+            .padding(.horizontal, Theme.Space.s10)
+            .padding(.vertical, Theme.Space.s7)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(
                 isSelected ? Theme.selectionFill : .clear,

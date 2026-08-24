@@ -60,6 +60,31 @@ extension Theme {
         case resultHeadline
         /// Unit/caption beside the Done screen's hero byte number.
         case heroUnit
+        /// Content column toolbar title.
+        case toolbarTitle
+        /// Scan/refresh icon glyph (toolbar).
+        case refreshIcon
+        /// Search field icon glyphs (magnifying glass, clear button).
+        case searchIcon
+        /// Full-screen scan/clean phase headline ("Scanning", "Moving
+        /// to Trash").
+        case phaseHeadline
+        /// Unit label beside a hero stat number (scan found-so-far,
+        /// history lifetime total).
+        case statUnit
+        /// Empty-state glyph (history's "No cleans yet").
+        case emptyStateIcon
+        /// Empty-state title text.
+        case emptyStateTitle
+        /// History detail pane's header date title.
+        case detailHeaderTitle
+        /// Unit label beside the history detail hero number
+        /// ("GB freed").
+        case detailHeroUnit
+        /// Sidebar navigation row icon glyph.
+        case navIcon
+        /// Unit label beside the sidebar "Reclaimable" hero number.
+        case sidebarUnit
 
         var size: CGFloat {
             switch self {
@@ -88,6 +113,17 @@ extension Theme {
             case .resultIcon: 24
             case .resultHeadline: 28
             case .heroUnit: 19
+            case .toolbarTitle: 13
+            case .refreshIcon: 10
+            case .searchIcon: 10
+            case .phaseHeadline: 20
+            case .statUnit: 15
+            case .emptyStateIcon: 28
+            case .emptyStateTitle: 14
+            case .detailHeaderTitle: 16
+            case .detailHeroUnit: 14
+            case .navIcon: 10.5
+            case .sidebarUnit: 15
             }
         }
 
@@ -101,6 +137,9 @@ extension Theme {
             case .disclosure, .figure, .ringUnit, .resultIcon, .warningTitle: .semibold
             case .tileValue, .eyebrow, .headline, .resultHeadline: .bold
             case .heroUnit: .medium
+            case .toolbarTitle, .phaseHeadline, .detailHeaderTitle: .semibold
+            case .refreshIcon, .emptyStateTitle, .navIcon, .sidebarUnit: .medium
+            case .searchIcon, .statUnit, .emptyStateIcon, .detailHeroUnit: .regular
             }
         }
     }

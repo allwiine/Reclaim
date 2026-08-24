@@ -19,29 +19,29 @@ struct ScanningView: View {
     @Environment(ScanCoordinator.self) private var scanner
 
     var body: some View {
-        VStack(spacing: 0) {
+        VStack(spacing: Theme.Space.s0) {
             ArcSpinner()
 
             Text(localized("title.scanning", defaultValue: "Scanning"))
-                .scaledFont(size: 20, weight: .semibold)
+                .themeFont(.phaseHeadline)
                 .foregroundStyle(Theme.textPrimary)
-                .padding(.top, 26)
+                .padding(.top, Theme.Space.s26)
 
             Text(activity.scanProgress?.currentPath
                 ?? localized("progress.finishingUp", defaultValue: "Finishing up…"))
                 .font(Theme.mono(11.5))
-                .foregroundStyle(Color(hex: 0x7E7E85))
+                .foregroundStyle(Theme.textProgressPath)
                 .lineLimit(1)
                 .frame(height: 16)
-                .padding(.top, 8)
+                .padding(.top, Theme.Space.s8)
                 .contentTransition(.opacity)
                 .animation(Theme.quick, value: activity.scanProgress?.currentPath)
 
             ProgressBar(fraction: activity.scanProgress?.fraction ?? 0)
                 .frame(width: 420)
-                .padding(.top, 20)
+                .padding(.top, Theme.Space.s20)
 
-            HStack(alignment: .firstTextBaseline, spacing: 6) {
+            HStack(alignment: .firstTextBaseline, spacing: Theme.Space.s6) {
                 Text(model.totalFoundBytes.byteParts.value)
                     .font(Theme.heroNumber(34))
                     .monospacedDigit()
@@ -52,12 +52,12 @@ struct ScanningView: View {
                     "scanning.foundSoFar",
                     defaultValue: "\(model.totalFoundBytes.byteParts.unit) found so far"
                 ))
-                .scaledFont(size: 15)
+                .themeFont(.statUnit)
                 .foregroundStyle(Theme.textSecondary)
             }
-            .padding(.top, 26)
+            .padding(.top, Theme.Space.s26)
 
-            VStack(spacing: 2) {
+            VStack(spacing: Theme.Space.s2) {
                 ForEach(ToolCategory.allCases) { category in
                     categoryRow(category)
                 }
@@ -66,7 +66,7 @@ struct ScanningView: View {
                 }
             }
             .frame(width: 420)
-            .padding(.top, 28)
+            .padding(.top, Theme.Space.s28)
 
             Button(activity.isCancellingScan
                 ? localized("scanning.stoppingButton", defaultValue: "Stopping…")
@@ -76,14 +76,14 @@ struct ScanningView: View {
             }
             .rcSecondary()
             .disabled(activity.isCancellingScan)
-            .padding(.top, 30)
+            .padding(.top, Theme.Space.s30)
             .help(localized(
                 "scanning.stopHelp",
                 defaultValue: "Keep what has been measured so far"
             ))
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .padding(40)
+        .padding(Theme.Space.s40)
     }
 
     private func categoryRow(_ category: ToolCategory) -> some View {
@@ -92,7 +92,7 @@ struct ScanningView: View {
         let bytes = targets.reduce(Int64(0)) { $0 + results.bytes(of: $1) }
         let anyMeasured = targets.contains { results.status(of: $0.id).bytes != nil }
 
-        return HStack(spacing: 9) {
+        return HStack(spacing: Theme.Space.s9) {
             Circle()
                 .fill(category.color)
                 .frame(width: 7, height: 7)
@@ -101,13 +101,13 @@ struct ScanningView: View {
                 .foregroundStyle(Theme.textPrimary)
             Spacer(minLength: 8)
             Text(anyMeasured ? bytes.formattedBytesCompact : "—")
-                .scaledFont(size: 12)
+                .themeFont(.meta)
                 .monospacedDigit()
-                .foregroundStyle(Color(hex: 0x8E8E95))
+                .foregroundStyle(Theme.textTertiary)
                 .contentTransition(.numericText())
                 .animation(Theme.smooth, value: bytes)
         }
-        .padding(.vertical, 6)
+        .padding(.vertical, Theme.Space.s6)
         .opacity(finished ? 1 : 0.4)
         .animation(Theme.quick, value: finished)
     }
@@ -119,7 +119,7 @@ struct ScanningView: View {
         let finished = projects.projectScans.count == projects.devRoots.count
         let anyMeasured = !projects.projectScans.isEmpty
 
-        return HStack(spacing: 9) {
+        return HStack(spacing: Theme.Space.s9) {
             Circle()
                 .fill(Theme.accent)
                 .frame(width: 7, height: 7)
@@ -128,13 +128,13 @@ struct ScanningView: View {
                 .foregroundStyle(Theme.textPrimary)
             Spacer(minLength: 8)
             Text(anyMeasured ? projects.projectArtifactBytes.formattedBytesCompact : "—")
-                .scaledFont(size: 12)
+                .themeFont(.meta)
                 .monospacedDigit()
-                .foregroundStyle(Color(hex: 0x8E8E95))
+                .foregroundStyle(Theme.textTertiary)
                 .contentTransition(.numericText())
                 .animation(Theme.smooth, value: projects.projectArtifactBytes)
         }
-        .padding(.vertical, 6)
+        .padding(.vertical, Theme.Space.s6)
         .opacity(finished ? 1 : 0.4)
         .animation(Theme.quick, value: finished)
     }

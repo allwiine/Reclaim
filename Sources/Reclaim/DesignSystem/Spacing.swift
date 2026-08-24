@@ -62,3 +62,12 @@ extension Theme {
     /// Tier-1 — vertical padding inside a category chip.
     static let chipPaddingVertical: CGFloat = 6
 }
+
+extension Theme {
+    /// Tier-1 — corner radius for compact 22×22pt icon-chip backgrounds
+    /// and close buttons (below `radiusChip`).
+    static let radiusIconChip: CGFloat = 6
+    /// Tier-1 — corner radius for small status badge chips (history
+    /// disposal badge).
+    static let radiusBadge: CGFloat = 5
+}

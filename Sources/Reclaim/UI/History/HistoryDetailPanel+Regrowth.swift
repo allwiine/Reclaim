@@ -16,19 +16,19 @@ extension HistoryDetailPanel {
     @ViewBuilder
     func regrowth(_ items: [CleanedHistoryItem]) -> some View {
         SectionLabel(localized("history.detail.sinceThen", defaultValue: "Since then"))
-            .padding(.top, 24)
-        VStack(alignment: .leading, spacing: 7) {
+            .padding(.top, Theme.Space.s24)
+        VStack(alignment: .leading, spacing: Theme.Space.s7) {
             ForEach(items, id: \.targetID) { item in
-                HStack(alignment: .firstTextBaseline, spacing: 10) {
+                HStack(alignment: .firstTextBaseline, spacing: Theme.Space.s10) {
                     Text(item.name)
-                        .scaledFont(size: 12)
+                        .themeFont(.meta)
                         .foregroundStyle(Theme.textBody)
                         .lineLimit(1)
                         .frame(maxWidth: .infinity, alignment: .leading)
                     Text(regrowthLabel(for: item))
                         .themeFont(.footnote)
                         .monospacedDigit()
-                        .foregroundStyle(Color(hex: 0x8E8E95))
+                        .foregroundStyle(Theme.textTertiary)
                     Text(regrowthShare(for: item))
                         .themeFont(.footnote)
                         .monospacedDigit()
@@ -37,7 +37,7 @@ extension HistoryDetailPanel {
                 }
             }
         }
-        .padding(.top, 10)
+        .padding(.top, Theme.Space.s10)
         Text(localized(
             "history.detail.regrowthFootnote",
             defaultValue: "Caches rebuild as you work. The percentage is today's size measured against what this clean removed."
@@ -45,7 +45,7 @@ extension HistoryDetailPanel {
         .themeFont(.caption)
         .lineSpacing(2.5)
         .foregroundStyle(Theme.textQuaternary)
-        .padding(.top, 12)
+        .padding(.top, Theme.Space.s12)
     }
 
     /// Today's measured size of the target, when a scan can tell.

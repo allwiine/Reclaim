@@ -15,20 +15,20 @@ extension HistoryDetailPanel {
 
     func removedList(_ items: [CleanedHistoryItem]) -> some View {
         let peak = max(items.compactMap(\.bytesFreed).max() ?? 1, 1)
-        return VStack(alignment: .leading, spacing: 0) {
+        return VStack(alignment: .leading, spacing: Theme.Space.s0) {
             SectionLabel(localized("history.detail.whatWasRemoved", defaultValue: "What was removed"))
-                .padding(.bottom, 4)
+                .padding(.bottom, Theme.Space.s4)
             ForEach(items, id: \.targetID) { item in
                 let target = results.targets.first { $0.id == item.targetID }
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack(spacing: 10) {
+                VStack(alignment: .leading, spacing: Theme.Space.s8) {
+                    HStack(spacing: Theme.Space.s10) {
                         if let target {
                             CategoryTile(category: target.category, size: 24)
                         }
-                        VStack(alignment: .leading, spacing: 3) {
-                            HStack(spacing: 7) {
+                        VStack(alignment: .leading, spacing: Theme.Space.s3) {
+                            HStack(spacing: Theme.Space.s7) {
                                 Text(item.name)
-                                    .scaledFont(size: 13, weight: .medium)
+                                    .themeFont(.rowTitle)
                                     .foregroundStyle(Theme.textPrimary)
                                     .lineLimit(1)
                                 if let target {
@@ -45,7 +45,7 @@ extension HistoryDetailPanel {
                         Spacer(minLength: 8)
                         Text(item.bytesFreed.map(\.formattedBytesCompact)
                             ?? localized("confirm.sizeUnknown", defaultValue: "size unknown"))
-                            .scaledFont(size: 12.5, weight: .medium)
+                            .themeFont(.amount)
                             .monospacedDigit()
                             .foregroundStyle(Theme.textPrimary)
                     }
@@ -54,27 +54,27 @@ extension HistoryDetailPanel {
                         color: target?.category.color ?? Theme.accent
                     )
                 }
-                .padding(.vertical, 9)
+                .padding(.vertical, Theme.Space.s9)
                 .overlay(alignment: .bottom) {
                     Rectangle().fill(Theme.separator).frame(height: 1)
                 }
             }
         }
-        .padding(.top, 24)
+        .padding(.top, Theme.Space.s24)
     }
 
     /// Entries recorded by earlier versions carry names only.
     @ViewBuilder
     var legacyNames: some View {
         SectionLabel(localized("history.detail.whatWasRemoved", defaultValue: "What was removed"))
-            .padding(.top, 24)
-        VStack(alignment: .leading, spacing: 7) {
+            .padding(.top, Theme.Space.s24)
+        VStack(alignment: .leading, spacing: Theme.Space.s7) {
             ForEach(entry.targetNames, id: \.self) { name in
                 Text(name)
                     .themeFont(.body)
                     .foregroundStyle(Theme.textBody)
             }
         }
-        .padding(.top, 10)
+        .padding(.top, Theme.Space.s10)
     }
 }

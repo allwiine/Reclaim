@@ -17,11 +17,11 @@ struct HistoryRow: View {
 
     var body: some View {
         Button(action: select) {
-            HStack(spacing: 14) {
+            HStack(spacing: Theme.Space.s14) {
                 Text(entry.date.formatted(date: .abbreviated, time: .shortened))
                     .themeFont(.body)
                     .monospacedDigit()
-                    .foregroundStyle(Color(hex: 0xC8C8CF))
+                    .foregroundStyle(Theme.textChipLabel)
                     .frame(width: 150, alignment: .leading)
                 Text(entry.targetNames.joined(separator: ", "))
                     .themeFont(.body)
@@ -37,16 +37,16 @@ struct HistoryRow: View {
                     .foregroundStyle(Theme.textSecondary)
                     .frame(width: 80, alignment: .trailing)
                 Text(entry.reclaimedBytes.formattedBytesCompact)
-                    .scaledFont(size: 13, weight: .medium)
+                    .themeFont(.rowTitle)
                     .monospacedDigit()
                     .foregroundStyle(Theme.textPrimary)
                     .frame(width: 90, alignment: .trailing)
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
+            .padding(.horizontal, Theme.Space.s16)
+            .padding(.vertical, Theme.Space.s12)
             .background(
-                isSelected ? Color.white.opacity(0.06)
-                    : isHovered ? Color.white.opacity(0.04) : .clear
+                isSelected ? Theme.selectionFillQuiet
+                    : isHovered ? Theme.hoverFillFaint : .clear
             )
             .overlay(alignment: .bottom) {
                 if !isLast {
