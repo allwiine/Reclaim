@@ -20,7 +20,8 @@ extension Theme {
     /// Subtle secondary text (project-row icon, failure list copy).
     static let textSubtle = Color(hex: 0xB8B8BF)
     /// Category chip label text; also used for compact table-row values
-    /// (history row date column) at the same weight.
+    /// (history row date column), Settings path rows, and Confirm trash
+    /// toggle.
     static let textChipLabel = Color(hex: 0xC8C8CF)
     /// Search field icon glyph color (toolbar).
     static let textSearchIcon = Color(hex: 0x8B8B92)
