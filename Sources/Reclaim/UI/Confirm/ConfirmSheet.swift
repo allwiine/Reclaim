@@ -47,7 +47,7 @@ struct ConfirmSheet: View {
                 .onTapGesture { onCancel() }
 
             panel
-                .frame(width: 470)
+                .frame(width: 500)
                 .padding(.top, Theme.Space.s46)
                 .scaleEffect(appeared ? 1 : 0.96, anchor: .top)
                 .opacity(appeared ? 1 : 0)
