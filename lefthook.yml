@@ -1,4 +1,5 @@
-# Pre-commit gate: the 200-code-line file limit (.swiftlint.yml).
+# Pre-commit gate: the 200-code-line file limit plus the design-token
+# boundary rules (.swiftlint.yml's file_length and custom_rules).
 # One-time setup after cloning: `lefthook install`.
 pre-commit:
   commands:

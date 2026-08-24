@@ -52,9 +52,11 @@ lint for each. Those values live in exactly one place,
 `Theme.swift`/`Palette+Views.swift`), named as a token and applied from
 views via `Theme.*`, `.themeFont(_:)`, etc. A further rule,
 `single_environment_root`, keeps model injection funneled through the
-single `appEnvironment(_:)` call in `Sources/Reclaim/App/AppEnvironment.swift`
-instead of ad hoc `.environment(...)` calls in views (keypath environment
-values like `.environment(\.locale, …)` are exempt). All of this runs at
+single `appEnvironment(_:)` helper — defined in
+`Sources/Reclaim/App/AppEnvironment.swift`, called from `ReclaimApp.swift`
+and view previews — instead of ad hoc `.environment(...)` calls in views
+(keypath environment values like `.environment(\.locale, …)` are exempt).
+All of this runs at
 `error` severity through the same pre-commit hook — see
 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the DesignSystem's shape.
 
