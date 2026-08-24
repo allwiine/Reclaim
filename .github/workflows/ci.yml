@@ -41,6 +41,30 @@ jobs:
       - name: Test
         run: swift test
 
+  app:
+    name: Xcode app build
+    runs-on: macos-26
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Select newest Xcode
+        run: sudo xcode-select -s "$(ls -d /Applications/Xcode*.app | grep -vi beta | sort -V | tail -1)/Contents/Developer"
+
+      # The generated app target mirrors Package.swift's Swift settings
+      # by hand (project.yml's "Swift settings mirror" block). Plain
+      # `swift build` cannot see that mirror drift — only building the
+      # xcodegen project can, and release day is the wrong time to
+      # find out. Signing is disabled: this job proves compilation,
+      # release.yml owns the signed archive.
+      - name: Generate project
+        run: |
+          command -v xcodegen >/dev/null || brew install xcodegen
+          xcodegen
+
+      - name: Build app target
+        run: xcodebuild -project Reclaim.xcodeproj -scheme ReclaimApp -configuration Release build CODE_SIGNING_ALLOWED=NO
+
   lint:
     name: SwiftLint
     runs-on: macos-26
