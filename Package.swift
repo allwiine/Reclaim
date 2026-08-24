@@ -26,6 +26,11 @@ import PackageDescription
 /// swift-tools-version 6.2 already enables the Swift 6 language mode
 /// (strict, compile-time data-race safety). The upcoming features below
 /// are safe, forward-looking hygiene flags.
+///
+/// MIRROR: the generated Xcode app target does not inherit these — any
+/// change here must be mirrored into project.yml's "Swift settings
+/// mirror" block, or the xcodegen build (local .app, release archive)
+/// diverges from `swift build`. CI's app-build job catches drift.
 let sharedSwiftSettings: [SwiftSetting] = [
     .enableUpcomingFeature("ExistentialAny"),
     .enableUpcomingFeature("MemberImportVisibility"),

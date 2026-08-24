@@ -71,8 +71,18 @@ targets:
         # purpose is scanning arbitrary cache locations under $HOME).
         ENABLE_HARDENED_RUNTIME: YES
         ENABLE_APP_SANDBOX: NO
+        # ── Swift settings mirror ──────────────────────────────────
+        # These MUST stay in sync with Package.swift's swiftSettings
+        # for the Reclaim target (sharedSwiftSettings + mainActorByDefault).
+        # The SPM flags do not reach this generated target; drift here
+        # breaks only the xcodegen build (local .app builds and the
+        # release archive), which plain CI `swift build` cannot see —
+        # the app-build CI job exists to catch exactly that.
         SWIFT_UPCOMING_FEATURE_EXISTENTIAL_ANY: YES
         SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY: YES
+        SWIFT_APPROACHABLE_CONCURRENCY: YES
+        SWIFT_DEFAULT_ACTOR_ISOLATION: MainActor
+        # ───────────────────────────────────────────────────────────
     entitlements:
       path: Reclaim.entitlements
       properties:
