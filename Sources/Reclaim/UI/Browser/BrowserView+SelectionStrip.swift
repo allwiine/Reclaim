@@ -13,7 +13,7 @@ extension BrowserView {
     // MARK: - Selection strip
 
     var selectionStrip: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: Theme.Space.s10) {
             Button(localized("browser.selectAllSafe", defaultValue: "Select all safe")) {
                 selection.selectAllSafe()
             }
@@ -28,14 +28,14 @@ extension BrowserView {
             Spacer()
 
             Text(selectionSummary)
-                .scaledFont(size: 12)
+                .themeFont(.meta)
                 .monospacedDigit()
                 .foregroundStyle(Theme.textLabel)
                 .contentTransition(.numericText())
                 .animation(Theme.smooth, value: selection.ids.count)
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 9)
+        .padding(.horizontal, Theme.Space.s16)
+        .padding(.vertical, Theme.Space.s9)
     }
 
     /// Scoped to the list it sits above: counting selections the user

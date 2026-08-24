@@ -15,12 +15,12 @@ extension ProjectInspectorPanel {
 
     var projectTile: some View {
         Image(systemName: "folder.badge.gearshape")
-            .scaledFont(size: 15, weight: .semibold)
+            .themeFont(.projectTileIcon)
             .foregroundStyle(Theme.safe)
             .frame(width: 34, height: 34)
-            .background(Theme.safe.opacity(0.16), in: RoundedRectangle(cornerRadius: 9))
+            .background(Theme.safe.opacity(0.16), in: RoundedRectangle(cornerRadius: Theme.radiusInset))
             .overlay {
-                RoundedRectangle(cornerRadius: 9)
+                RoundedRectangle(cornerRadius: Theme.radiusInset)
                     .strokeBorder(Theme.safe.opacity(0.3), lineWidth: 0.5)
             }
     }
@@ -29,7 +29,7 @@ extension ProjectInspectorPanel {
     func sizeHeadline(for project: DiscoveredProject) -> some View {
         if project.artifactBytes > 0 {
             let parts = project.artifactBytes.byteParts
-            HStack(alignment: .firstTextBaseline, spacing: 5) {
+            HStack(alignment: .firstTextBaseline, spacing: Theme.Space.s5) {
                 Text(parts.value)
                     .font(Theme.heroNumber(27))
                     .monospacedDigit()
@@ -37,7 +37,7 @@ extension ProjectInspectorPanel {
                     .contentTransition(.numericText())
                     .animation(Theme.smooth, value: project.artifactBytes)
                 Text(parts.unit)
-                    .scaledFont(size: 13)
+                    .themeFont(.panelHeroUnit)
                     .foregroundStyle(Theme.textSecondary)
             }
         } else {
@@ -49,7 +49,7 @@ extension ProjectInspectorPanel {
 
     @ViewBuilder
     func activityLines(for project: DiscoveredProject) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: Theme.Space.s6) {
             if let edited = project.lastEditDate {
                 Label(
                     localized(
@@ -77,23 +77,23 @@ extension ProjectInspectorPanel {
         Button {
             NSWorkspace.shared.activateFileViewerSelecting([project.url])
         } label: {
-            HStack(spacing: 8) {
+            HStack(spacing: Theme.Space.s8) {
                 Text((project.url.path as NSString).abbreviatingWithTildeInPath)
                     .font(Theme.mono())
-                    .foregroundStyle(Color(hex: 0x8E8E95))
+                    .foregroundStyle(Theme.textTertiary)
                     .multilineTextAlignment(.leading)
                 Spacer(minLength: 4)
                 Image(systemName: "arrow.up.forward.square")
-                    .scaledFont(size: 10)
+                    .themeFont(.revealIcon)
                     .foregroundStyle(Theme.textQuaternary)
             }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 8)
+            .padding(.horizontal, Theme.Space.s10)
+            .padding(.vertical, Theme.Space.s8)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color.white.opacity(0.05), in: RoundedRectangle(cornerRadius: Theme.radiusChip))
+            .background(Theme.pathChipFill, in: RoundedRectangle(cornerRadius: Theme.radiusChip))
             .overlay {
                 RoundedRectangle(cornerRadius: Theme.radiusChip)
-                    .strokeBorder(.white.opacity(0.06), lineWidth: 0.5)
+                    .strokeBorder(Theme.pathChipStroke, lineWidth: 0.5)
             }
             .contentShape(RoundedRectangle(cornerRadius: Theme.radiusChip))
         }

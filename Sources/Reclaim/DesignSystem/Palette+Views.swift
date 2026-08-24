@@ -28,6 +28,14 @@ extension Theme {
     static let textProgressPath = Color(hex: 0x7E7E85)
     /// Unit label beside the not-yet-measured sidebar placeholder.
     static let textPlaceholderUnit = Color(hex: 0x5C5C63)
+    /// Explanatory paragraph copy (confirm sheet body, inspector
+    /// summary).
+    static let textParagraph = Color(hex: 0xA8A8AF)
+    /// Text on the destructive/caution warning banner (confirm sheet).
+    static let textDangerBanner = Color(hex: 0xE8C9C6)
+    /// Command text inside the inline snippet chip (delegated-tool
+    /// card).
+    static let textCommandSnippet = Color(hex: 0xDCDCE2)
 
     // MARK: - Fills & strokes
 
@@ -78,4 +86,27 @@ extension Theme {
     static let searchFieldStroke = Color.white.opacity(0.06)
     /// Search field border, focused.
     static let searchFieldStrokeFocused = Color.white.opacity(0.2)
+    /// Row hover fill for target/project rows (TargetRow,
+    /// ProjectsLinkRow).
+    static let hoverFillRow = Color.white.opacity(0.055)
+    /// Fill for the browser's inspected row (TargetRow).
+    static let selectionFillInspected = Color.white.opacity(0.075)
+    /// Border stroke on floating surfaces and compact controls (confirm
+    /// sheet, checkbox).
+    static let borderFloating = Color.white.opacity(0.14)
+    /// Dimmed backdrop behind a floating sheet (confirm).
+    static let sheetScrim = Color.black.opacity(0.42)
+    /// Drop shadow under the floating confirm sheet.
+    static let sheetShadow = Color.black.opacity(0.6)
+    /// Background for the confirm sheet's scrollable item-list card.
+    static let listCardFill = Color.black.opacity(0.25)
+    /// Border stroke on the confirm sheet's item-list card.
+    static let listCardStroke = Color.white.opacity(0.07)
+    /// Background for the inline command snippet on the delegated-tool
+    /// card.
+    static let codeSnippetFill = Color.black.opacity(0.35)
+    /// Background fill for the path-reveal chip (inspector panels).
+    static let pathChipFill = Color.white.opacity(0.05)
+    /// Border stroke on the path-reveal chip (inspector panels).
+    static let pathChipStroke = Color.white.opacity(0.06)
 }

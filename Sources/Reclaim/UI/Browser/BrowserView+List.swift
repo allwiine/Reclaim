@@ -16,7 +16,7 @@ extension BrowserView {
     func list(_ targets: [CleanupTarget]) -> some View {
         ScrollViewReader { proxy in
             ScrollView {
-                LazyVStack(spacing: 0) {
+                LazyVStack(spacing: Theme.Space.s0) {
                     ForEach(targets) { target in
                         TargetRow(
                             target: target,
@@ -34,9 +34,9 @@ extension BrowserView {
                         )
                     }
                 }
-                .padding(.horizontal, 8)
-                .padding(.top, 6)
-                .padding(.bottom, 20)
+                .padding(.horizontal, Theme.Space.s8)
+                .padding(.top, Theme.Space.s6)
+                .padding(.bottom, Theme.Space.s20)
             }
             // A target tapped elsewhere may sit below the fold in long
             // categories — reveal it. (Rows clicked in this list are
@@ -49,12 +49,12 @@ extension BrowserView {
     }
 
     var emptyState: some View {
-        VStack(spacing: 10) {
+        VStack(spacing: Theme.Space.s10) {
             Image(systemName: emptyIcon)
-                .scaledFont(size: 28)
+                .themeFont(.emptyStateIcon)
                 .foregroundStyle(Theme.textQuaternary)
             Text(emptyTitle)
-                .scaledFont(size: 14, weight: .medium)
+                .themeFont(.emptyStateTitle)
                 .foregroundStyle(Theme.textSecondary)
             Text(emptyDetail)
                 .themeFont(.body)

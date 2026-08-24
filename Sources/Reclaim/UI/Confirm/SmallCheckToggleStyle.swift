@@ -13,20 +13,20 @@ struct SmallCheckToggleStyle: ToggleStyle {
         Button {
             configuration.isOn.toggle()
         } label: {
-            HStack(spacing: 8) {
+            HStack(spacing: Theme.Space.s8) {
                 ZStack {
-                    RoundedRectangle(cornerRadius: 5)
-                        .fill(Color.white.opacity(configuration.isOn ? 0 : 0.07))
+                    RoundedRectangle(cornerRadius: Theme.radiusBadge)
+                        .fill(configuration.isOn ? Color.white.opacity(0) : Theme.hoverFill)
                     if configuration.isOn {
-                        RoundedRectangle(cornerRadius: 5).fill(Theme.accentGradient)
+                        RoundedRectangle(cornerRadius: Theme.radiusBadge).fill(Theme.accentGradient)
                         Image(systemName: "checkmark")
-                            .scaledFont(size: 8.5, weight: .bold)
+                            .themeFont(.checkmarkIcon)
                             .foregroundStyle(Theme.onAccent)
                     }
                 }
                 .overlay {
-                    RoundedRectangle(cornerRadius: 5)
-                        .strokeBorder(.white.opacity(0.14), lineWidth: 0.5)
+                    RoundedRectangle(cornerRadius: Theme.radiusBadge)
+                        .strokeBorder(Theme.borderFloating, lineWidth: 0.5)
                 }
                 .frame(width: 16, height: 16)
                 .animation(Theme.quick, value: configuration.isOn)

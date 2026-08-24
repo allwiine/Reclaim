@@ -17,16 +17,16 @@ struct ProjectsLinkRow: View {
 
     var body: some View {
         Button(action: open) {
-            HStack(spacing: 12) {
+            HStack(spacing: Theme.rowGap) {
                 Image(systemName: "folder.badge.gearshape")
-                    .scaledFont(size: 10.5, weight: .medium)
-                    .foregroundStyle(Color(hex: 0xB8B8BF))
+                    .themeFont(.navIcon)
+                    .foregroundStyle(Theme.textSubtle)
                     .frame(width: 22, height: 22)
-                    .background(Theme.controlFill, in: RoundedRectangle(cornerRadius: 6))
+                    .background(Theme.controlFill, in: RoundedRectangle(cornerRadius: Theme.radiusIconChip))
 
-                VStack(alignment: .leading, spacing: 3) {
+                VStack(alignment: .leading, spacing: Theme.Space.s3) {
                     Text(localized("sidebar.projects", defaultValue: "Projects"))
-                        .scaledFont(size: 13.5, weight: .medium)
+                        .themeFont(.cardTitle)
                         .foregroundStyle(Theme.textPrimary)
                     Text(localized(
                         "browser.projectsRowSubtitle",
@@ -42,19 +42,19 @@ struct ProjectsLinkRow: View {
                     "toolbar.projectsSubtitle",
                     defaultValue: "\(count) projects · \(bytes.formattedBytesCompact)"
                 ))
-                .scaledFont(size: 13, weight: .medium)
+                .themeFont(.rowTitle)
                 .monospacedDigit()
                 .foregroundStyle(Theme.textPrimary)
 
                 Image(systemName: "chevron.right")
-                    .scaledFont(size: 10, weight: .semibold)
+                    .themeFont(.disclosure)
                     .foregroundStyle(Theme.textQuaternary)
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 10)
+            .padding(.horizontal, Theme.Space.s12)
+            .padding(.vertical, Theme.Space.s10)
             .contentShape(RoundedRectangle(cornerRadius: Theme.radiusInset))
         }
         .buttonStyle(.plain)
-        .hoverHighlight(radius: Theme.radiusInset, color: Color.white.opacity(0.055))
+        .hoverHighlight(radius: Theme.radiusInset, color: Theme.hoverFillRow)
     }
 }

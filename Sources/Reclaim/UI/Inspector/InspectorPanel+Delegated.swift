@@ -12,20 +12,20 @@ import SwiftUI
 
 extension InspectorPanel {
     func delegatedCard(for target: CleanupTarget) -> some View {
-        VStack(alignment: .leading, spacing: 5) {
+        VStack(alignment: .leading, spacing: Theme.Space.s5) {
             Text(localized("inspector.wontDeleteTitle", defaultValue: "Reclaim won’t delete this"))
-                .scaledFont(size: 12, weight: .semibold)
+                .themeFont(.warningTitle)
                 .foregroundStyle(Theme.cautionTitle)
             Text(target.manualInstructions ?? "")
-                .scaledFont(size: 12)
+                .themeFont(.meta)
                 .lineSpacing(3)
-                .foregroundStyle(Color(hex: 0xB8B8BF))
+                .foregroundStyle(Theme.textSubtle)
 
             if let command = target.manualCommand {
-                HStack(spacing: 8) {
+                HStack(spacing: Theme.Space.s8) {
                     Text(command)
                         .font(Theme.mono())
-                        .foregroundStyle(Color(hex: 0xDCDCE2))
+                        .foregroundStyle(Theme.textCommandSnippet)
                         .frame(maxWidth: .infinity, alignment: .leading)
                     Button(copied
                         ? localized("action.copied", defaultValue: "Copied")
@@ -40,17 +40,17 @@ extension InspectorPanel {
                         }
                     }
                     .buttonStyle(.plain)
-                    .scaledFont(size: 11, weight: .medium)
+                    .themeFont(.miniButtonLabel)
                     .foregroundStyle(Theme.accentLabel)
                     .contentTransition(.opacity)
                 }
-                .padding(.horizontal, 9)
-                .padding(.vertical, 7)
-                .background(Color.black.opacity(0.35), in: RoundedRectangle(cornerRadius: 6))
-                .padding(.top, 5)
+                .padding(.horizontal, Theme.Space.s9)
+                .padding(.vertical, Theme.Space.s7)
+                .background(Theme.codeSnippetFill, in: RoundedRectangle(cornerRadius: Theme.radiusIconChip))
+                .padding(.top, Theme.Space.s5)
             }
         }
-        .padding(12)
+        .padding(Theme.Space.s12)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Theme.caution.opacity(0.1), in: RoundedRectangle(cornerRadius: Theme.radiusInset))
         .overlay {

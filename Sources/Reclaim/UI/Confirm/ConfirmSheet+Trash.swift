@@ -18,7 +18,7 @@ extension ConfirmSheet {
         )) {
             Text(localized("confirm.trashToggle", defaultValue: "Move to Trash instead of deleting"))
                 .themeFont(.body)
-                .foregroundStyle(Color(hex: 0xC8C8CF))
+                .foregroundStyle(Theme.textChipLabel)
         }
         .toggleStyle(SmallCheckToggleStyle())
         .help(localized(

@@ -17,7 +17,7 @@ extension InspectorPanel {
             let pickable = target.strategy.isCleanable && !cleanupPaths.isEmpty
             let entries = breakdowns.entries[target.id] ?? []
 
-            HStack(alignment: .firstTextBaseline, spacing: 10) {
+            HStack(alignment: .firstTextBaseline, spacing: Theme.Space.s10) {
                 SectionLabel(localized("inspector.largestContents", defaultValue: "Largest contents"))
                     .frame(maxWidth: .infinity, alignment: .leading)
                 if pickable, !entries.isEmpty {
@@ -31,18 +31,18 @@ extension InspectorPanel {
                         )
                     }
                     .buttonStyle(.plain)
-                    .scaledFont(size: 11, weight: .medium)
+                    .themeFont(.miniButtonLabel)
                     .foregroundStyle(Theme.textSecondary)
                     .disabled(activity.isScanning || activity.isCleaning)
                 }
             }
-            .padding(.top, 24)
+            .padding(.top, Theme.Space.s24)
 
             if !entries.isEmpty {
                 let cleanupPathSet = Set(cleanupPaths.map(\.path))
                 let shown = showAllContents ? entries : Array(entries.prefix(5))
                 let peak = entries.map(\.bytes).max() ?? 1
-                VStack(spacing: 1) {
+                VStack(spacing: Theme.Space.s1) {
                     ForEach(shown) { entry in
                         contentRow(
                             entry, for: target, peak: peak,
@@ -50,7 +50,7 @@ extension InspectorPanel {
                         )
                     }
                 }
-                .padding(.top, 9)
+                .padding(.top, Theme.Space.s9)
                 .animation(Theme.smooth, value: entries)
 
                 if entries.count > 5 {
@@ -64,22 +64,22 @@ extension InspectorPanel {
                         withAnimation(Theme.quick) { showAllContents.toggle() }
                     }
                     .buttonStyle(.plain)
-                    .scaledFont(size: 11.5, weight: .medium)
+                    .themeFont(.chipLabel)
                     .foregroundStyle(Theme.accentLabel)
-                    .padding(.top, 10)
+                    .padding(.top, Theme.Space.s10)
                 }
 
                 if pickable {
                     cherryPickFooter(for: target)
                 }
             } else {
-                HStack(spacing: 8) {
+                HStack(spacing: Theme.Space.s8) {
                     ProgressView().controlSize(.small)
                     Text(localized("inspector.measuringContents", defaultValue: "Measuring contents…"))
                         .themeFont(.caption)
                         .foregroundStyle(Theme.textQuaternary)
                 }
-                .padding(.top, 12)
+                .padding(.top, Theme.Space.s12)
             }
         }
     }
@@ -87,8 +87,8 @@ extension InspectorPanel {
     private func contentRow(
         _ entry: BreakdownEntry, for target: CleanupTarget, peak: Int64, pickable: Bool
     ) -> some View {
-        VStack(alignment: .leading, spacing: 5) {
-            HStack(alignment: .center, spacing: 9) {
+        VStack(alignment: .leading, spacing: Theme.Space.s5) {
+            HStack(alignment: .center, spacing: Theme.Space.s9) {
                 if pickable {
                     Toggle(
                         localized("browser.selectAccessibility", defaultValue: "Select \(entry.name)"),
@@ -102,7 +102,7 @@ extension InspectorPanel {
                     .disabled(activity.isScanning || activity.isCleaning)
                 }
                 Text(entry.name)
-                    .scaledFont(size: 12)
+                    .themeFont(.meta)
                     .foregroundStyle(
                         entry.itemCount > 1 ? Theme.textTertiary : Theme.textPrimary
                     )
@@ -111,15 +111,15 @@ extension InspectorPanel {
                 Text(entry.bytes.formattedBytesCompact)
                     .themeFont(.footnote)
                     .monospacedDigit()
-                    .foregroundStyle(Color(hex: 0x8E8E95))
+                    .foregroundStyle(Theme.textTertiary)
             }
             MiniBar(
                 fraction: peak > 0 ? Double(entry.bytes) / Double(peak) : 0,
                 color: target.category.color
             )
-            .padding(.leading, pickable ? 24 : 0)
+            .padding(.leading, pickable ? Theme.Space.s24 : Theme.Space.s0)
         }
-        .padding(.vertical, 7)
+        .padding(.vertical, Theme.Space.s7)
         .transition(.opacity)
     }
 
@@ -129,7 +129,7 @@ extension InspectorPanel {
         Text(pickNote(for: target))
             .themeFont(.caption)
             .foregroundStyle(Theme.textQuaternary)
-            .padding(.top, 9)
+            .padding(.top, Theme.Space.s9)
 
         Button {
             onCleanSingle(target)
@@ -139,7 +139,7 @@ extension InspectorPanel {
         }
         .rcPrimary()
         .disabled(!selection.isSelected(target) || activity.isScanning || activity.isCleaning)
-        .padding(.top, 12)
+        .padding(.top, Theme.Space.s12)
     }
 
     private func scopeLabel(for target: CleanupTarget) -> String? {
