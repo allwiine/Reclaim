@@ -101,6 +101,10 @@ extension Theme {
         case checkmarkIcon
         /// Confirm sheet's headline title.
         case sheetTitle
+        /// Icon above the Projects screen's "add a dev folder" prompt.
+        case emptyPromptIcon
+        /// Headline of the Projects screen's "add a dev folder" prompt.
+        case emptyPromptTitle
 
         var size: CGFloat {
             switch self {
@@ -149,6 +153,8 @@ extension Theme {
             case .projectTileIcon: 15
             case .checkmarkIcon: 8.5
             case .sheetTitle: 15
+            case .emptyPromptIcon: 34
+            case .emptyPromptTitle: 16
             }
         }
 
@@ -169,6 +175,8 @@ extension Theme {
             case .lockIcon, .panelHeroUnit, .revealIcon: .regular
             case .panelTitle, .sheetTitle, .checkmarkIcon: .bold
             case .projectTileIcon: .semibold
+            case .emptyPromptIcon: .light
+            case .emptyPromptTitle: .semibold
             }
         }
     }

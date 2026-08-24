@@ -32,7 +32,7 @@ struct SettingsView: View {
         @Bindable var settings = settings
 
         ScrollView {
-            VStack(alignment: .leading, spacing: 26) {
+            VStack(alignment: .leading, spacing: Theme.Space.s26) {
                 #if canImport(Sparkle)
                 section(localized("settings.sectionUpdates", defaultValue: "Updates")) {
                     SettingRow(
@@ -167,9 +167,9 @@ struct SettingsView: View {
             }
             .frame(maxWidth: 640)
             .frame(maxWidth: .infinity)
-            .padding(.horizontal, 26)
-            .padding(.top, 24)
-            .padding(.bottom, 48)
+            .padding(.horizontal, Theme.Space.s26)
+            .padding(.top, Theme.contentMargin)
+            .padding(.bottom, Theme.Space.s48)
         }
         .task {
             if LoginItemService.isAvailable {
@@ -194,9 +194,9 @@ struct SettingsView: View {
     // MARK: - Sections
 
     private func section(_ title: String, @ViewBuilder rows: () -> some View) -> some View {
-        VStack(alignment: .leading, spacing: 9) {
+        VStack(alignment: .leading, spacing: Theme.Space.s9) {
             SectionLabel(title)
-            VStack(spacing: 0, content: rows)
+            VStack(spacing: Theme.Space.s0, content: rows)
                 .card(radius: Theme.radiusPanel)
         }
     }

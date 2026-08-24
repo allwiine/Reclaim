@@ -20,13 +20,13 @@ struct ProjectRow: View {
 
     var body: some View {
         Button(action: inspect) {
-            HStack(spacing: 12) {
+            HStack(spacing: Theme.rowGap) {
                 checkbox
 
-                VStack(alignment: .leading, spacing: 3) {
-                    HStack(spacing: 7) {
+                VStack(alignment: .leading, spacing: Theme.Space.s3) {
+                    HStack(spacing: Theme.Space.s7) {
                         Text(project.name)
-                            .scaledFont(size: 13.5, weight: .medium)
+                            .themeFont(.cardTitle)
                             .foregroundStyle(Theme.textPrimary)
                             .lineLimit(1)
                         if projects.isProjectStale(project) {
@@ -44,16 +44,16 @@ struct ProjectRow: View {
                 trailing
                     .frame(width: 96, alignment: .trailing)
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 10)
+            .padding(.horizontal, Theme.Space.s12)
+            .padding(.vertical, Theme.Space.s10)
             .background(
-                isInspected ? Color.white.opacity(0.075) : .clear,
+                isInspected ? Theme.selectionFillInspected : .clear,
                 in: RoundedRectangle(cornerRadius: Theme.radiusInset)
             )
             .contentShape(RoundedRectangle(cornerRadius: Theme.radiusInset))
         }
         .buttonStyle(.plain)
-        .hoverHighlight(radius: Theme.radiusInset, color: Color.white.opacity(0.055))
+        .hoverHighlight(radius: Theme.radiusInset, color: Theme.hoverFillRow)
         .animation(Theme.quick, value: isInspected)
         .contextMenu { contextMenu }
     }
@@ -94,9 +94,9 @@ struct ProjectRow: View {
     @ViewBuilder
     private var trailing: some View {
         if project.artifactBytes > 0 {
-            VStack(alignment: .trailing, spacing: 5) {
+            VStack(alignment: .trailing, spacing: Theme.Space.s5) {
                 Text(project.artifactBytes.formattedBytesCompact)
-                    .scaledFont(size: 13, weight: .medium)
+                    .themeFont(.rowTitle)
                     .monospacedDigit()
                     .foregroundStyle(Theme.textPrimary)
                 MiniBar(
@@ -107,7 +107,7 @@ struct ProjectRow: View {
             }
         } else {
             Text(verbatim: "—")
-                .scaledFont(size: 12)
+                .themeFont(.meta)
                 .foregroundStyle(Theme.textTertiary)
         }
     }

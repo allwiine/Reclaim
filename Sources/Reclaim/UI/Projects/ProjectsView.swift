@@ -41,12 +41,12 @@ struct ProjectsView: View {
     // MARK: - Empty state
 
     private var emptyState: some View {
-        VStack(spacing: 14) {
+        VStack(spacing: Theme.Space.s14) {
             Image(systemName: "folder.badge.gearshape")
-                .scaledFont(size: 34, weight: .light)
+                .themeFont(.emptyPromptIcon)
                 .foregroundStyle(Theme.textTertiary)
             Text(localized("projects.empty.title", defaultValue: "Find forgotten projects"))
-                .scaledFont(size: 16, weight: .semibold)
+                .themeFont(.emptyPromptTitle)
                 .foregroundStyle(Theme.textPrimary)
             Text(localized(
                 "projects.empty.body",
@@ -63,7 +63,7 @@ struct ProjectsView: View {
                 }
             }
             .rcPrimary()
-            .padding(.top, 6)
+            .padding(.top, Theme.Space.s6)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -71,12 +71,12 @@ struct ProjectsView: View {
     // MARK: - Browser
 
     private var browser: some View {
-        HStack(spacing: 0) {
-            VStack(spacing: 0) {
+        HStack(spacing: Theme.Space.s0) {
+            VStack(spacing: Theme.Space.s0) {
                 strip
 
                 Rectangle()
-                    .fill(Color.white.opacity(0.07))
+                    .fill(Theme.cardSectionDivider)
                     .frame(height: 1)
 
                 listColumn

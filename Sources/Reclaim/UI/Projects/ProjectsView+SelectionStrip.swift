@@ -13,7 +13,7 @@ extension ProjectsView {
     // MARK: - Strip
 
     var strip: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: Theme.Space.s10) {
             Picker(localized("projects.sortLabel", defaultValue: "Sort"), selection: $sortOrder) {
                 Text(localized("projects.sortBySize", defaultValue: "Largest first"))
                     .tag(SortOrder.bySize)
@@ -38,7 +38,7 @@ extension ProjectsView {
             Spacer()
 
             Text(selectionSummary)
-                .scaledFont(size: 12)
+                .themeFont(.meta)
                 .monospacedDigit()
                 .foregroundStyle(Theme.textLabel)
                 .contentTransition(.numericText())
@@ -51,8 +51,8 @@ extension ProjectsView {
             }
             .rcSecondary()
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 9)
+        .padding(.horizontal, Theme.Space.s16)
+        .padding(.vertical, Theme.Space.s9)
     }
 
     /// Scoped to the artifacts this screen lists — never the registry

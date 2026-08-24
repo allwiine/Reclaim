@@ -44,8 +44,8 @@ extension SettingsView {
             ))
             .themeFont(.caption)
             .foregroundStyle(Theme.dangerWarn)
-            .padding(.horizontal, 16)
-            .padding(.bottom, 12)
+            .padding(.horizontal, Theme.Space.s16)
+            .padding(.bottom, Theme.Space.s12)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
@@ -55,10 +55,10 @@ extension SettingsView {
     @ViewBuilder
     var devFoldersRows: some View {
         ForEach(projects.devRoots, id: \.path) { root in
-            HStack(spacing: 10) {
+            HStack(spacing: Theme.Space.s10) {
                 Text((root.path as NSString).abbreviatingWithTildeInPath)
                     .font(Theme.mono(11.5))
-                    .foregroundStyle(Color(hex: 0xC8C8CF))
+                    .foregroundStyle(Theme.textChipLabel)
                     .lineLimit(1)
                 Spacer(minLength: 8)
                 Button(localized("settings.removeDevFolder", defaultValue: "Remove")) {
@@ -66,8 +66,8 @@ extension SettingsView {
                 }
                 .rcSecondary()
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 10)
+            .padding(.horizontal, Theme.Space.s16)
+            .padding(.vertical, Theme.Space.s10)
             .overlay(alignment: .bottom) {
                 Rectangle().fill(Theme.separator).frame(height: 1)
             }
@@ -77,9 +77,9 @@ extension SettingsView {
                 "settings.devFoldersHelp",
                 defaultValue: "Reclaim looks for projects and regenerable artifacts (node_modules, build folders, virtualenvs) only inside these folders."
             ))
-            .scaledFont(size: 12)
+            .themeFont(.meta)
             .lineSpacing(2.5)
-            .foregroundStyle(Color(hex: 0x8E8E95))
+            .foregroundStyle(Theme.textTertiary)
             Spacer(minLength: 8)
             Button(localized("settings.addDevFolder", defaultValue: "Add folder…")) {
                 for url in DevFolderPicker.pickFolders() {
@@ -88,16 +88,16 @@ extension SettingsView {
             }
             .rcSecondary()
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 13)
+        .padding(.horizontal, Theme.Space.s16)
+        .padding(.vertical, Theme.Space.s13)
     }
 
     /// Shown when the notify toggle is on but macOS blocks the alert —
     /// without this the setting silently does nothing forever.
     var notificationsDeniedRow: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: Theme.Space.s10) {
             Image(systemName: "bell.slash")
-                .scaledFont(size: 12)
+                .themeFont(.meta)
                 .foregroundStyle(Theme.cautionTitle)
             Text(localized(
                 "settings.notificationsDenied",
@@ -111,8 +111,8 @@ extension SettingsView {
             }
             .rcSecondary()
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 10)
+        .padding(.horizontal, Theme.Space.s16)
+        .padding(.vertical, Theme.Space.s10)
         .overlay(alignment: .bottom) {
             Rectangle().fill(Theme.separator).frame(height: 1)
         }
