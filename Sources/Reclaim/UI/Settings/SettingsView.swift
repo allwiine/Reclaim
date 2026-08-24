@@ -206,7 +206,7 @@ struct SettingsView: View {
 #Preview(traits: .fixedLayout(width: 1060, height: 810)) {
     SettingsView()
         .background(Theme.background)
-        .environment(PreviewData.scanned())
+        .appEnvironment(PreviewData.scanned())
         .preferredColorScheme(.dark)
 }
 #endif

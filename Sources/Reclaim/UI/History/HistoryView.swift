@@ -218,14 +218,14 @@ struct HistoryView: View {
 #Preview("With history", traits: .fixedLayout(width: 1060, height: 810)) {
     HistoryView()
         .background(Theme.background)
-        .environment(PreviewData.scanned())
+        .appEnvironment(PreviewData.scanned())
         .preferredColorScheme(.dark)
 }
 
 #Preview("Empty", traits: .fixedLayout(width: 1060, height: 810)) {
     HistoryView()
         .background(Theme.background)
-        .environment(PreviewData.idle())
+        .appEnvironment(PreviewData.idle())
         .preferredColorScheme(.dark)
 }
 #endif

@@ -72,7 +72,7 @@ struct ReclaimApp: App {
         // shared model, so a second main window would just mirror it.
         Window(localized("app.name", defaultValue: "Reclaim"), id: "main") {
             RootView()
-                .environment(model)
+                .appEnvironment(model)
         }
         .defaultSize(width: 1320, height: 856)
         .windowStyle(.hiddenTitleBar)
@@ -88,12 +88,12 @@ struct ReclaimApp: App {
             )
         ) {
             MenuBarSummary()
-                .environment(model)
+                .appEnvironment(model)
         }
 
         Settings {
             SettingsView()
-                .environment(model)
+                .appEnvironment(model)
                 .frame(width: 700, height: 560)
                 .background(Theme.background)
                 .preferredColorScheme(.dark)

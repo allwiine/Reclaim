@@ -300,10 +300,10 @@ struct RootView: View {
 
 #if DEBUG
 #Preview("Scanned", traits: .fixedLayout(width: 1320, height: 856)) {
-    RootView().environment(PreviewData.scanned())
+    RootView().appEnvironment(PreviewData.scanned())
 }
 
 #Preview("First launch", traits: .fixedLayout(width: 1320, height: 856)) {
-    RootView().environment(PreviewData.idle())
+    RootView().appEnvironment(PreviewData.idle())
 }
 #endif

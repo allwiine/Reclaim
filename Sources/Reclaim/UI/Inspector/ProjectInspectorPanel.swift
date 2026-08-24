@@ -80,7 +80,7 @@ struct ProjectInspectorPanel: View {
     let model = PreviewData.scannedWithProjects()
     return ProjectInspectorPanel(project: model.projects.discovered.first)
         .background(Theme.background)
-        .environment(model)
+        .appEnvironment(model)
         .preferredColorScheme(.dark)
 }
 
@@ -88,7 +88,7 @@ struct ProjectInspectorPanel: View {
     let model = PreviewData.scannedWithProjects()
     return ProjectInspectorPanel(project: model.projects.discovered.last)
         .background(Theme.background)
-        .environment(model)
+        .appEnvironment(model)
         .preferredColorScheme(.dark)
 }
 #endif

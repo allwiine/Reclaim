@@ -77,14 +77,14 @@ struct BrowserView: View {
 #Preview("Category", traits: .fixedLayout(width: 1060, height: 810)) {
     BrowserView(mode: .category(.xcode))
         .background(Theme.background)
-        .environment(PreviewData.scanned())
+        .appEnvironment(PreviewData.scanned())
         .preferredColorScheme(.dark)
 }
 
 #Preview("Search", traits: .fixedLayout(width: 1060, height: 810)) {
     BrowserView(mode: .search("cache"))
         .background(Theme.background)
-        .environment(PreviewData.scanned())
+        .appEnvironment(PreviewData.scanned())
         .preferredColorScheme(.dark)
 }
 #endif

@@ -93,7 +93,7 @@ struct FooterBar: View {
     FooterBar()
         .frame(width: 1000)
         .background(Theme.background)
-        .environment(PreviewData.scanned())
+        .appEnvironment(PreviewData.scanned())
         .preferredColorScheme(.dark)
 }
 #endif

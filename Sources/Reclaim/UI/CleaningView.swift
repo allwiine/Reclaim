@@ -74,7 +74,7 @@ struct CleaningView: View {
 #Preview(traits: .fixedLayout(width: 1060, height: 810)) {
     CleaningView()
         .background(Theme.background)
-        .environment(PreviewData.scanned())
+        .appEnvironment(PreviewData.scanned())
         .preferredColorScheme(.dark)
 }
 #endif

@@ -100,7 +100,7 @@ struct DoneView: View {
     let model = PreviewData.cleaned()
     return DoneView(summary: model.activity.lastCleanSummary!, dismiss: {})
         .background(Theme.background)
-        .environment(model)
+        .appEnvironment(model)
         .preferredColorScheme(.dark)
 }
 #endif

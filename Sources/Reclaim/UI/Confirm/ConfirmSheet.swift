@@ -144,7 +144,7 @@ struct ConfirmSheet: View {
 #Preview(traits: .fixedLayout(width: 1320, height: 856)) {
     ConfirmSheet(scope: .selection, onCancel: {}, onConfirm: {})
         .background(Theme.background)
-        .environment(PreviewData.scanned())
+        .appEnvironment(PreviewData.scanned())
         .preferredColorScheme(.dark)
 }
 #endif

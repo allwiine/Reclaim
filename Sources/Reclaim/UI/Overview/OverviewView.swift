@@ -113,7 +113,7 @@ struct OverviewView: View {
         reviewEverything: {}, reclaimSafe: {}, openProjects: {}
     )
         .background(Theme.background)
-        .environment(PreviewData.scanned())
+        .appEnvironment(PreviewData.scanned())
         .preferredColorScheme(.dark)
 }
 #endif

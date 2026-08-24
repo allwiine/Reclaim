@@ -87,14 +87,14 @@ struct SidebarView: View {
 #Preview("Measured", traits: .fixedLayout(width: 258, height: 700)) {
     @Previewable @State var destination = Destination.overview
     SidebarView(destination: $destination)
-        .environment(PreviewData.scanned())
+        .appEnvironment(PreviewData.scanned())
         .preferredColorScheme(.dark)
 }
 
 #Preview("Unmeasured", traits: .fixedLayout(width: 258, height: 700)) {
     @Previewable @State var destination = Destination.overview
     SidebarView(destination: $destination)
-        .environment(PreviewData.idle())
+        .appEnvironment(PreviewData.idle())
         .preferredColorScheme(.dark)
 }
 #endif

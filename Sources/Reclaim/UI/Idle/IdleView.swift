@@ -146,7 +146,7 @@ struct IdleView: View {
 #Preview(traits: .fixedLayout(width: 1060, height: 810)) {
     IdleView()
         .background(Theme.background)
-        .environment(PreviewData.idle())
+        .appEnvironment(PreviewData.idle())
         .preferredColorScheme(.dark)
 }
 #endif

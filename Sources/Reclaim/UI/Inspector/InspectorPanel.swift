@@ -132,7 +132,7 @@ struct InspectorPanel: View {
     let model = PreviewData.scanned()
     return InspectorPanel(target: model.results.targets.first { $0.id == "xcode-derived-data" })
         .background(Theme.background)
-        .environment(model)
+        .appEnvironment(model)
         .preferredColorScheme(.dark)
 }
 
@@ -140,7 +140,7 @@ struct InspectorPanel: View {
     let model = PreviewData.scanned()
     return InspectorPanel(target: model.results.targets.first { $0.id == "docker-vm-disk" })
         .background(Theme.background)
-        .environment(model)
+        .appEnvironment(model)
         .preferredColorScheme(.dark)
 }
 #endif

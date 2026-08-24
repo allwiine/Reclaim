@@ -100,14 +100,14 @@ struct ProjectsView: View {
 #Preview("Empty", traits: .fixedLayout(width: 900, height: 620)) {
     ProjectsView()
         .background(Theme.background)
-        .environment(PreviewData.idle())
+        .appEnvironment(PreviewData.idle())
         .preferredColorScheme(.dark)
 }
 
 #Preview("Browser", traits: .fixedLayout(width: 1060, height: 810)) {
     ProjectsView()
         .background(Theme.background)
-        .environment(PreviewData.scannedWithProjects())
+        .appEnvironment(PreviewData.scannedWithProjects())
         .preferredColorScheme(.dark)
 }
 #endif
