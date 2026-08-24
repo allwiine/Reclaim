@@ -24,36 +24,36 @@ extension IdleView {
     }
 
     func categoryChip(_ category: ToolCategory) -> some View {
-        HStack(spacing: 8) {
+        HStack(spacing: Theme.Space.s8) {
             CategoryTile(category: category, size: 22)
             Text(category.title)
-                .scaledFont(size: 11.5, weight: .medium)
-                .foregroundStyle(Color(hex: 0xC8C8CF))
+                .themeFont(.chipLabel)
+                .foregroundStyle(Theme.textChipLabel)
                 .lineLimit(1)
             Spacer(minLength: 0)
         }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 6)
-        .background(Color.white.opacity(0.03), in: RoundedRectangle(cornerRadius: 8))
+        .padding(.horizontal, Theme.chipPaddingHorizontal)
+        .padding(.vertical, Theme.chipPaddingVertical)
+        .background(Theme.chipFill, in: RoundedRectangle(cornerRadius: Theme.radiusControl))
         .overlay {
-            RoundedRectangle(cornerRadius: 8)
-                .strokeBorder(.white.opacity(0.05), lineWidth: 0.5)
+            RoundedRectangle(cornerRadius: Theme.radiusControl)
+                .strokeBorder(Theme.chipStroke, lineWidth: 0.5)
         }
     }
 
     var moreChip: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: Theme.Space.s8) {
             Text(localized("idle.moreCategories", defaultValue: "\(hiddenChipCount) more"))
-                .scaledFont(size: 11.5, weight: .medium)
+                .themeFont(.chipLabel)
                 .foregroundStyle(Theme.textTertiary)
             Spacer(minLength: 0)
         }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 6)
-        .background(Color.white.opacity(0.02), in: RoundedRectangle(cornerRadius: 8))
+        .padding(.horizontal, Theme.chipPaddingHorizontal)
+        .padding(.vertical, Theme.chipPaddingVertical)
+        .background(Theme.moreChipFill, in: RoundedRectangle(cornerRadius: Theme.radiusControl))
         .overlay {
-            RoundedRectangle(cornerRadius: 8)
-                .strokeBorder(.white.opacity(0.04), lineWidth: 0.5)
+            RoundedRectangle(cornerRadius: Theme.radiusControl)
+                .strokeBorder(Theme.moreChipStroke, lineWidth: 0.5)
         }
     }
 }

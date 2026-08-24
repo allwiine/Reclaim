@@ -12,10 +12,10 @@ import SwiftUI
 
 extension SettingsView {
     var permissions: some View {
-        VStack(alignment: .leading, spacing: 9) {
+        VStack(alignment: .leading, spacing: Theme.Space.s9) {
             SectionLabel(localized("settings.sectionPermissions", defaultValue: "Permissions"))
-            HStack(spacing: 16) {
-                VStack(alignment: .leading, spacing: 3) {
+            HStack(spacing: Theme.Space.s16) {
+                VStack(alignment: .leading, spacing: Theme.Space.s3) {
                     Text(localized("settings.fullDiskAccess", defaultValue: "Full Disk Access"))
                         .themeFont(.rowTitle)
                         .foregroundStyle(Theme.textPrimary)
@@ -23,10 +23,10 @@ extension SettingsView {
                         "settings.fullDiskAccessHelp",
                         defaultValue: "Some locations (for example parts of ~/Library) may require Full Disk Access to scan or clean."
                     ))
-                    .scaledFont(size: 12)
+                    .themeFont(.meta)
                     .lineSpacing(2.5)
-                    .foregroundStyle(Color(hex: 0x8E8E95))
-                    HStack(spacing: 6) {
+                    .foregroundStyle(Theme.textTertiary)
+                    HStack(spacing: Theme.Space.s6) {
                         Circle()
                             .fill(fdaStatusColor)
                             .frame(width: 7, height: 7)
@@ -34,7 +34,7 @@ extension SettingsView {
                             .themeFont(.caption)
                             .foregroundStyle(Theme.textTertiary)
                     }
-                    .padding(.top, 4)
+                    .padding(.top, Theme.Space.s4)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 Button(localized("fda.openSettingsButton", defaultValue: "Open Privacy Settings…")) {
@@ -42,8 +42,8 @@ extension SettingsView {
                 }
                 .rcSecondary()
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 13)
+            .padding(.horizontal, Theme.Space.s16)
+            .padding(.vertical, Theme.Space.s13)
             .card(radius: Theme.radiusPanel)
         }
     }

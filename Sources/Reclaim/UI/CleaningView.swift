@@ -16,37 +16,37 @@ struct CleaningView: View {
     @Environment(CleanCoordinator.self) private var cleaner
 
     var body: some View {
-        VStack(spacing: 0) {
+        VStack(spacing: Theme.Space.s0) {
             Text(settings.disposal == .trash
                 ? localized("title.movingToTrash", defaultValue: "Moving to Trash")
                 : localized("title.deleting", defaultValue: "Deleting"))
-                .scaledFont(size: 20, weight: .semibold)
+                .themeFont(.phaseHeadline)
                 .foregroundStyle(Theme.textPrimary)
 
             Text(activity.cleanProgress?.targetPath
                 ?? activity.cleanProgress?.targetName
                 ?? localized("progress.finishingUp", defaultValue: "Finishing up…"))
                 .font(Theme.mono(11.5))
-                .foregroundStyle(Color(hex: 0x7E7E85))
+                .foregroundStyle(Theme.textProgressPath)
                 .lineLimit(1)
                 .frame(height: 16)
-                .padding(.top, 10)
+                .padding(.top, Theme.Space.s10)
                 .contentTransition(.opacity)
                 .animation(Theme.quick, value: activity.cleanProgress?.targetPath)
 
             ProgressBar(fraction: activity.cleanProgress?.fraction ?? 0, height: 6)
                 .frame(width: 420)
-                .padding(.top, 20)
+                .padding(.top, Theme.Space.s20)
 
             if let progress = activity.cleanProgress {
                 Text(localized(
                     "cleaning.progress",
                     defaultValue: "\(progress.index) of \(progress.total) locations"
                 ))
-                .scaledFont(size: 12.5)
+                .themeFont(.body)
                 .monospacedDigit()
                 .foregroundStyle(Theme.textSecondary)
-                .padding(.top, 14)
+                .padding(.top, Theme.Space.s14)
                 .contentTransition(.numericText())
                 .animation(Theme.smooth, value: progress.index)
             }
@@ -59,14 +59,14 @@ struct CleaningView: View {
             }
             .rcSecondary()
             .disabled(activity.isCancellingClean)
-            .padding(.top, 30)
+            .padding(.top, Theme.Space.s30)
             .help(localized(
                 "cleaning.stopHelp",
                 defaultValue: "The item being cleaned finishes; the rest are skipped"
             ))
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .padding(40)
+        .padding(Theme.Space.s40)
     }
 }
 

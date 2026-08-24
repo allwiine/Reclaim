@@ -20,16 +20,16 @@ struct SidebarView: View {
     @Binding var destination: Destination
 
     var body: some View {
-        VStack(spacing: 0) {
+        VStack(spacing: Theme.Space.s0) {
             // Breathing room for the window's traffic lights.
             Color.clear.frame(height: Theme.toolbarHeight)
 
             headline
-                .padding(.horizontal, 18)
-                .padding(.bottom, 16)
+                .padding(.horizontal, Theme.Space.s18)
+                .padding(.bottom, Theme.Space.s16)
 
             ScrollView {
-                VStack(spacing: 1) {
+                VStack(spacing: Theme.Space.s1) {
                     SidebarRow(
                         title: localized("sidebar.overview", defaultValue: "Overview"),
                         systemImage: "square.grid.2x2",
@@ -39,9 +39,9 @@ struct SidebarView: View {
                     }
 
                     SectionLabel(localized("sidebar.categories", defaultValue: "Categories"))
-                        .padding(.horizontal, 10)
-                        .padding(.top, 14)
-                        .padding(.bottom, 8)
+                        .padding(.horizontal, Theme.Space.s10)
+                        .padding(.top, Theme.Space.s14)
+                        .padding(.bottom, Theme.Space.s8)
                         .frame(maxWidth: .infinity, alignment: .leading)
 
                     ForEach(ToolCategory.allCases) { category in
@@ -49,21 +49,21 @@ struct SidebarView: View {
                     }
 
                     SectionLabel(localized("sidebar.development", defaultValue: "Development"))
-                        .padding(.horizontal, 10)
-                        .padding(.top, 14)
-                        .padding(.bottom, 8)
+                        .padding(.horizontal, Theme.Space.s10)
+                        .padding(.top, Theme.Space.s14)
+                        .padding(.bottom, Theme.Space.s8)
                         .frame(maxWidth: .infinity, alignment: .leading)
 
                     projectsRow
                 }
-                .padding(.horizontal, 8)
+                .padding(.horizontal, Theme.Space.s8)
             }
 
             Rectangle()
-                .fill(Color.white.opacity(0.08))
+                .fill(Theme.dividerStrong)
                 .frame(height: 1)
 
-            VStack(spacing: 1) {
+            VStack(spacing: Theme.Space.s1) {
                 SidebarRow(
                     title: localized("sidebar.history", defaultValue: "History"),
                     systemImage: "clock.arrow.circlepath",
@@ -79,7 +79,7 @@ struct SidebarView: View {
                     destination = .settings
                 }
             }
-            .padding(8)
+            .padding(Theme.Space.s8)
         }
         .background(Theme.cardFillQuiet)
     }

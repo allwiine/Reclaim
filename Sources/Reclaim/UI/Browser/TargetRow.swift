@@ -22,25 +22,25 @@ struct TargetRow: View {
 
     var body: some View {
         Button(action: inspect) {
-            HStack(spacing: 12) {
+            HStack(spacing: Theme.rowGap) {
                 checkbox
 
-                VStack(alignment: .leading, spacing: 3) {
-                    HStack(spacing: 7) {
+                VStack(alignment: .leading, spacing: Theme.Space.s3) {
+                    HStack(spacing: Theme.Space.s7) {
                         Text(target.name)
-                            .scaledFont(size: 13.5, weight: .medium)
+                            .themeFont(.cardTitle)
                             .foregroundStyle(Theme.textPrimary)
                             .lineLimit(1)
                         Badge(for: target)
                     }
-                    HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    HStack(alignment: .firstTextBaseline, spacing: Theme.Space.s8) {
                         Text(target.pathPatterns.first ?? commandDisplay)
                             .font(Theme.mono())
                             .foregroundStyle(Theme.textTertiary)
                             .lineLimit(1)
                         if let note = partialNote {
                             Text(note)
-                                .scaledFont(size: 10.5, weight: .medium)
+                                .themeFont(.partialNote)
                                 .foregroundStyle(Theme.accentLabel)
                                 .lineLimit(1)
                         }
@@ -52,16 +52,16 @@ struct TargetRow: View {
                 trailing
                     .frame(width: 96, alignment: .trailing)
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 10)
+            .padding(.horizontal, Theme.Space.s12)
+            .padding(.vertical, Theme.Space.s10)
             .background(
-                isInspected ? Color.white.opacity(0.075) : .clear,
+                isInspected ? Theme.selectionFillInspected : .clear,
                 in: RoundedRectangle(cornerRadius: Theme.radiusInset)
             )
             .contentShape(RoundedRectangle(cornerRadius: Theme.radiusInset))
         }
         .buttonStyle(.plain)
-        .hoverHighlight(radius: Theme.radiusInset, color: Color.white.opacity(0.055))
+        .hoverHighlight(radius: Theme.radiusInset, color: Theme.hoverFillRow)
         .animation(Theme.quick, value: isInspected)
         .contextMenu { contextMenu }
     }
@@ -103,11 +103,11 @@ struct TargetRow: View {
             if measurement.bytes == 0 && measurement.inaccessibleItems == 0 {
                 statusText(localized("status.empty", defaultValue: "Empty"))
             } else {
-                VStack(alignment: .trailing, spacing: 5) {
-                    HStack(spacing: 4) {
+                VStack(alignment: .trailing, spacing: Theme.Space.s5) {
+                    HStack(spacing: Theme.Space.s4) {
                         if measurement.inaccessibleItems > 0 {
                             Image(systemName: "lock")
-                                .scaledFont(size: 9)
+                                .themeFont(.lockIcon)
                                 .foregroundStyle(Theme.caution)
                                 .help(localized(
                                     "browser.unreadableEntriesHelp",
@@ -115,7 +115,7 @@ struct TargetRow: View {
                                 ))
                         }
                         Text(measurement.bytes.formattedBytesCompact)
-                            .scaledFont(size: 13, weight: .medium)
+                            .themeFont(.rowTitle)
                             .monospacedDigit()
                             .foregroundStyle(Theme.textPrimary)
                             .contentTransition(.numericText())
@@ -152,7 +152,7 @@ struct TargetRow: View {
 
     private func statusText(_ text: String) -> some View {
         Text(text)
-            .scaledFont(size: 12)
+            .themeFont(.meta)
             .foregroundStyle(Theme.textTertiary)
     }
 

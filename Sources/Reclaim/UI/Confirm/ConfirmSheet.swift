@@ -41,14 +41,14 @@ struct ConfirmSheet: View {
     var body: some View {
         ZStack(alignment: .top) {
             // Dimmed, blurred backdrop; clicking it cancels.
-            Color.black.opacity(0.42)
+            Theme.sheetScrim
                 .background(.ultraThinMaterial.opacity(0.4))
                 .ignoresSafeArea()
                 .onTapGesture { onCancel() }
 
             panel
                 .frame(width: 470)
-                .padding(.top, 46)
+                .padding(.top, Theme.Space.s46)
                 .scaleEffect(appeared ? 1 : 0.96, anchor: .top)
                 .opacity(appeared ? 1 : 0)
         }
@@ -65,19 +65,19 @@ struct ConfirmSheet: View {
             else { singleTarget.map { [$0] } ?? selection.selectedTargets }
         let toTrash = settings.disposal == .trash
 
-        return VStack(alignment: .leading, spacing: 0) {
+        return VStack(alignment: .leading, spacing: Theme.Space.s0) {
             Text(title(picked))
-                .scaledFont(size: 15, weight: .bold)
+                .themeFont(.sheetTitle)
                 .foregroundStyle(Theme.textPrimary)
-                .padding(.horizontal, 24)
-                .padding(.top, 22)
+                .padding(.horizontal, Theme.Space.s24)
+                .padding(.top, Theme.Space.s22)
 
             Text(bodyText(toTrash: toTrash))
                 .themeFont(.body)
                 .lineSpacing(3.5)
-                .foregroundStyle(Color(hex: 0xA8A8AF))
-                .padding(.horizontal, 24)
-                .padding(.top, 7)
+                .foregroundStyle(Theme.textParagraph)
+                .padding(.horizontal, Theme.Space.s24)
+                .padding(.top, Theme.Space.s7)
                 .contentTransition(.opacity)
                 .animation(Theme.quick, value: toTrash)
 
@@ -90,15 +90,15 @@ struct ConfirmSheet: View {
                     itemList(picked)
                 }
             }
-            .padding(.horizontal, 24)
-            .padding(.top, 16)
+            .padding(.horizontal, Theme.Space.s24)
+            .padding(.top, Theme.Space.s16)
 
             if let warning = warningText(picked) {
                 Text(warning)
-                    .scaledFont(size: 12)
+                    .themeFont(.meta)
                     .lineSpacing(3)
-                    .foregroundStyle(Color(hex: 0xE8C9C6))
-                    .padding(12)
+                    .foregroundStyle(Theme.textDangerBanner)
+                    .padding(Theme.Space.s12)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .background(
                         Theme.dangerWarn.opacity(0.12),
@@ -108,11 +108,11 @@ struct ConfirmSheet: View {
                         RoundedRectangle(cornerRadius: Theme.radiusInset)
                             .strokeBorder(Theme.dangerWarn.opacity(0.35), lineWidth: 0.5)
                     }
-                    .padding(.horizontal, 24)
-                    .padding(.top, 14)
+                    .padding(.horizontal, Theme.Space.s24)
+                    .padding(.top, Theme.Space.s14)
             }
 
-            HStack(spacing: 10) {
+            HStack(spacing: Theme.Space.s10) {
                 trashToggle(toTrash: toTrash)
                 Spacer()
                 Button(localized("action.cancel", defaultValue: "Cancel"), action: onCancel)
@@ -127,18 +127,18 @@ struct ConfirmSheet: View {
                         .rcDanger()
                 }
             }
-            .padding(.horizontal, 24)
-            .padding(.top, 18)
-            .padding(.bottom, 20)
+            .padding(.horizontal, Theme.Space.s24)
+            .padding(.top, Theme.Space.s18)
+            .padding(.bottom, Theme.Space.s20)
         }
         // Liquid Glass on Tahoe (a floating sheet is the canonical glass
         // surface); the solid raised fill on earlier systems.
         .floatingSurface(cornerRadius: Theme.radiusTile)
         .overlay {
             RoundedRectangle(cornerRadius: Theme.radiusTile)
-                .strokeBorder(.white.opacity(0.14), lineWidth: 0.5)
+                .strokeBorder(Theme.borderFloating, lineWidth: 0.5)
         }
-        .shadow(color: .black.opacity(0.6), radius: 35, y: 20)
+        .shadow(color: Theme.sheetShadow, radius: 35, y: 20)
     }
 
 }

@@ -22,19 +22,19 @@ struct SettingRow: View {
 
     var body: some View {
         Toggle(isOn: $isOn) {
-            VStack(alignment: .leading, spacing: 3) {
+            VStack(alignment: .leading, spacing: Theme.Space.s3) {
                 Text(title)
                     .themeFont(.rowTitle)
                     .foregroundStyle(Theme.textPrimary)
                 Text(help)
-                    .scaledFont(size: 12)
+                    .themeFont(.meta)
                     .lineSpacing(2.5)
-                    .foregroundStyle(Color(hex: 0x8E8E95))
+                    .foregroundStyle(Theme.textTertiary)
             }
         }
         .toggleStyle(.rcSwitch)
-        .padding(.horizontal, 16)
-        .padding(.vertical, 13)
+        .padding(.horizontal, Theme.Space.s16)
+        .padding(.vertical, Theme.Space.s13)
         .overlay(alignment: .bottom) {
             if !isLast {
                 Rectangle().fill(Theme.separator).frame(height: 1)

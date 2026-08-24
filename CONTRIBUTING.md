@@ -38,8 +38,27 @@ swiftlint` currently matches.
 Every Swift file is capped at 200 lines of code — `.swiftlint.yml`'s
 `file_length` rule (`ignore_comment_only_lines: true`), which the hook
 enforces on staged files via `swiftlint lint --strict`. `.swiftlint.yml`
-deliberately sets `only_rules: [file_length]`: the gate's scope is exact
-by design, not a starting point for accumulating unrelated style rules.
+deliberately sets `only_rules: [file_length, custom_rules]`: the gate's
+scope is exact by design, not a starting point for accumulating unrelated
+style rules.
+
+The same gate enforces the design-token boundary. Views under
+`Sources/Reclaim` may not write a raw styling literal — `.padding(N)` /
+`spacing: N`, `cornerRadius: N`, `.font(.system(...))` / `Font.system(...)`,
+`scaledFont(size: N)`, or `Color(hex:)` — a `custom_rules` regex fails the
+lint for each. Those values live in exactly one place,
+`Sources/Reclaim/DesignSystem` (spacing in `Spacing.swift`, typography in
+`Theme.swift`/`TextRoles.swift`/`ScaledFont.swift`, color in
+`Theme.swift`/`Palette+Views.swift`), named as a token and applied from
+views via `Theme.*`, `.themeFont(_:)`, etc. A further rule,
+`single_environment_root`, keeps model injection funneled through the
+single `appEnvironment(_:)` helper — defined in
+`Sources/Reclaim/App/AppEnvironment.swift`, called from `ReclaimApp.swift`
+and view previews — instead of ad hoc `.environment(...)` calls in views
+(keypath environment values like `.environment(\.locale, …)` are exempt).
+All of this runs at
+`error` severity through the same pre-commit hook — see
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the DesignSystem's shape.
 
 ## Architecture ground rules
 

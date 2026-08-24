@@ -11,17 +11,17 @@ import SwiftUI
 
 extension DoneView {
     var failuresCard: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: Theme.Space.s6) {
             Label(
                 localized("done.failuresTitle", defaultValue: "Some items could not be cleaned"),
                 systemImage: "exclamationmark.triangle"
             )
-            .scaledFont(size: 12, weight: .semibold)
+            .themeFont(.warningTitle)
             .foregroundStyle(Theme.cautionTitle)
             ForEach(summary.failures.prefix(4), id: \.self) { failure in
                 Text(failure)
                     .themeFont(.caption)
-                    .foregroundStyle(Color(hex: 0xB8B8BF))
+                    .foregroundStyle(Theme.textSubtle)
                     .lineLimit(2)
             }
             if summary.failures.count > 4 {
@@ -41,7 +41,7 @@ extension DoneView {
                 .foregroundStyle(Theme.textTertiary)
             }
         }
-        .padding(12)
+        .padding(Theme.Space.s12)
         .frame(width: 560, alignment: .leading)
         .background(Theme.caution.opacity(0.1), in: RoundedRectangle(cornerRadius: Theme.radiusInset))
         .overlay {

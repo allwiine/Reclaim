@@ -57,12 +57,12 @@ struct HistoryView: View {
     // MARK: - Empty
 
     private var emptyState: some View {
-        VStack(spacing: 10) {
+        VStack(spacing: Theme.Space.s10) {
             Image(systemName: "clock.arrow.circlepath")
-                .scaledFont(size: 28)
+                .themeFont(.emptyStateIcon)
                 .foregroundStyle(Theme.textQuaternary)
             Text(localized("history.emptyTitle", defaultValue: "No cleans yet"))
-                .scaledFont(size: 14, weight: .medium)
+                .themeFont(.emptyStateTitle)
                 .foregroundStyle(Theme.textSecondary)
             Text(localized(
                 "history.emptyDetail",
@@ -83,7 +83,7 @@ struct HistoryView: View {
     }
 
     private var content: some View {
-        HStack(spacing: 0) {
+        HStack(spacing: Theme.Space.s0) {
             list
                 .frame(maxWidth: .infinity)
 
@@ -102,18 +102,18 @@ struct HistoryView: View {
 
     private var list: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 0) {
-                HStack(alignment: .bottom, spacing: 24) {
-                    VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: Theme.Space.s0) {
+                HStack(alignment: .bottom, spacing: Theme.Space.s24) {
+                    VStack(alignment: .leading, spacing: Theme.Space.s6) {
                         SectionLabel(localized("overview.reclaimedAllTime", defaultValue: "Reclaimed (all time)"))
-                        HStack(alignment: .firstTextBaseline, spacing: 6) {
+                        HStack(alignment: .firstTextBaseline, spacing: Theme.Space.s6) {
                             Text(history.reclaimedAllTimeBytes.byteParts.value)
                                 .font(Theme.heroNumber(34))
                                 .monospacedDigit()
                                 .foregroundStyle(Theme.textPrimary)
                                 .contentTransition(.numericText())
                             Text(history.reclaimedAllTimeBytes.byteParts.unit)
-                                .scaledFont(size: 15)
+                                .themeFont(.statUnit)
                                 .foregroundStyle(Theme.textSecondary)
                         }
                     }
@@ -125,10 +125,10 @@ struct HistoryView: View {
                 .entrance(appeared, delay: 0)
 
                 table
-                    .padding(.top, 28)
+                    .padding(.top, Theme.Space.s28)
                     .entrance(appeared, delay: 0.08)
 
-                HStack(alignment: .firstTextBaseline, spacing: 16) {
+                HStack(alignment: .firstTextBaseline, spacing: Theme.Space.s16) {
                     Text(localized(
                         "history.footnote",
                         defaultValue: "Each entry lists what was cleaned and what the follow-up scan measured as actually freed."
@@ -142,12 +142,12 @@ struct HistoryView: View {
                     }
                     .rcSecondary()
                 }
-                .padding(.top, 14)
+                .padding(.top, Theme.Space.s14)
                 .entrance(appeared, delay: 0.12)
             }
-            .padding(.horizontal, 26)
-            .padding(.top, 22)
-            .padding(.bottom, 40)
+            .padding(.horizontal, Theme.Space.s26)
+            .padding(.top, Theme.Space.s22)
+            .padding(.bottom, Theme.Space.s40)
         }
     }
 
@@ -155,7 +155,7 @@ struct HistoryView: View {
     private var chart: some View {
         let entries = Array(history.entries.reversed().suffix(24))
         let peak = max(1, entries.map(\.reclaimedBytes).max() ?? 1)
-        return HStack(alignment: .bottom, spacing: 6) {
+        return HStack(alignment: .bottom, spacing: Theme.Space.s6) {
             ForEach(Array(entries.enumerated()), id: \.element.id) { index, entry in
                 let share = Double(entry.reclaimedBytes) / Double(peak)
                 UnevenRoundedRectangle(
@@ -175,8 +175,8 @@ struct HistoryView: View {
     }
 
     private var table: some View {
-        VStack(spacing: 0) {
-            HStack(spacing: 14) {
+        VStack(spacing: Theme.Space.s0) {
+            HStack(spacing: Theme.Space.s14) {
                 headerCell(localized("history.columnWhen", defaultValue: "When"), width: 150)
                 Text(localized("history.columnWhat", defaultValue: "What"))
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -187,10 +187,10 @@ struct HistoryView: View {
             .tracking(0.6)
             .textCase(.uppercase)
             .foregroundStyle(Theme.textTertiary)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 9)
+            .padding(.horizontal, Theme.Space.s16)
+            .padding(.vertical, Theme.Space.s9)
             .overlay(alignment: .bottom) {
-                Rectangle().fill(Color.white.opacity(0.08)).frame(height: 1)
+                Rectangle().fill(Theme.dividerStrong).frame(height: 1)
             }
 
             ForEach(history.entries) { entry in

@@ -28,7 +28,7 @@ struct CategoryCard: View {
         let items = results.targets.count { $0.category == category && results.bytes(of: $0) > 0 }
 
         Button(action: open) {
-            VStack(alignment: .leading, spacing: 0) {
+            VStack(alignment: .leading, spacing: Theme.Space.s0) {
                 HStack {
                     CategoryTile(category: category)
                     Spacer()
@@ -41,33 +41,33 @@ struct CategoryCard: View {
                         .foregroundStyle(Theme.textTertiary)
                 }
                 Text(category.title)
-                    .scaledFont(size: 12, weight: .medium)
-                    .foregroundStyle(Color(hex: 0xD5D5DB))
+                    .themeFont(.tileLabel)
+                    .foregroundStyle(Theme.textCategoryTitle)
                     .lineLimit(2)
                     .multilineTextAlignment(.leading)
                     .frame(minHeight: 31, alignment: .topLeading)
-                    .padding(.top, 11)
+                    .padding(.top, Theme.Space.s11)
                 Text(bytes > 0 ? bytes.formattedBytesCompact : "—")
-                    .scaledFont(size: 17, weight: .bold)
+                    .themeFont(.tileValue)
                     .monospacedDigit()
                     .foregroundStyle(Theme.textPrimary)
                     .contentTransition(.numericText())
                     .animation(Theme.smooth, value: bytes)
-                    .padding(.top, 4)
+                    .padding(.top, Theme.Space.s4)
                 MiniBar(
                     fraction: peak > 0 ? Double(bytes) / Double(peak) : 0,
                     color: category.color
                 )
-                .padding(.top, 9)
+                .padding(.top, Theme.Space.s9)
                 Text(localized("count.items", defaultValue: "\(items) items"))
                     .themeFont(.caption)
                     .foregroundStyle(Theme.textTertiary)
-                    .padding(.top, 8)
+                    .padding(.top, Theme.Space.s8)
             }
-            .padding(14)
+            .padding(Theme.Space.s14)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(
-                Color.white.opacity(isHovered ? 0.07 : 0.04),
+                isHovered ? Theme.hoverFill : Theme.cardFill,
                 in: RoundedRectangle(cornerRadius: Theme.radiusTile)
             )
             .overlay {

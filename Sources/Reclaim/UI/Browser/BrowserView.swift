@@ -37,12 +37,12 @@ struct BrowserView: View {
     var body: some View {
         let targets = visibleTargets
 
-        HStack(spacing: 0) {
-            VStack(spacing: 0) {
+        HStack(spacing: Theme.Space.s0) {
+            VStack(spacing: Theme.Space.s0) {
                 selectionStrip
 
                 Rectangle()
-                    .fill(Color.white.opacity(0.07))
+                    .fill(Theme.cardSectionDivider)
                     .frame(height: 1)
 
                 if targets.isEmpty && !showsProjectsRow {

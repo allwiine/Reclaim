@@ -104,6 +104,8 @@ enum Theme {
     /// Outer content margins.
     static let contentMargin: CGFloat = 24
 
+    /// The idle screen's single showcase card (catalogue card).
+    static let radiusHero: CGFloat = 14
     static let radiusCard: CGFloat = 13
     static let radiusTile: CGFloat = 12
     static let radiusPanel: CGFloat = 10

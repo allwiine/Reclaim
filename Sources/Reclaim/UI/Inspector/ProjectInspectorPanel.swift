@@ -29,44 +29,44 @@ struct ProjectInspectorPanel: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
-        .background(Color.white.opacity(0.02))
+        .background(Theme.chromeFill)
     }
 
     private func details(for project: DiscoveredProject) -> some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 0) {
+            VStack(alignment: .leading, spacing: Theme.Space.s0) {
                 projectTile
 
                 Text(project.name)
-                    .scaledFont(size: 17, weight: .bold)
+                    .themeFont(.panelTitle)
                     .foregroundStyle(Theme.textPrimary)
-                    .padding(.top, 14)
+                    .padding(.top, Theme.Space.s14)
 
-                HStack(spacing: 8) {
+                HStack(spacing: Theme.Space.s8) {
                     if projects.isProjectStale(project) {
                         StaleBadge()
                     }
                     Text((project.devRoot.path as NSString).abbreviatingWithTildeInPath)
-                        .scaledFont(size: 12)
-                        .foregroundStyle(Color(hex: 0x8E8E95))
+                        .themeFont(.meta)
+                        .foregroundStyle(Theme.textTertiary)
                         .lineLimit(1)
                 }
-                .padding(.top, 8)
+                .padding(.top, Theme.Space.s8)
 
                 sizeHeadline(for: project)
-                    .padding(.top, 16)
+                    .padding(.top, Theme.Space.s16)
 
                 activityLines(for: project)
-                    .padding(.top, 14)
+                    .padding(.top, Theme.Space.s14)
 
                 pathChip(for: project)
-                    .padding(.top, 14)
+                    .padding(.top, Theme.Space.s14)
 
                 artifactSection(for: project)
             }
-            .padding(.horizontal, 20)
-            .padding(.top, 18)
-            .padding(.bottom, 24)
+            .padding(.horizontal, Theme.Space.s20)
+            .padding(.top, Theme.Space.s18)
+            .padding(.bottom, Theme.Space.s24)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .id(project.id)

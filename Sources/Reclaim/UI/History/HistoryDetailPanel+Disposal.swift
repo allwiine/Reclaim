@@ -18,31 +18,31 @@ extension HistoryDetailPanel {
         let permanent = disposal == .delete
         let color = permanent ? Theme.destructive : Theme.accentSoft
 
-        HStack(spacing: 8) {
+        HStack(spacing: Theme.Space.s8) {
             Text(permanent
                 ? localized("history.detail.deletedPermanently", defaultValue: "Deleted permanently")
                 : localized("history.detail.movedToTrash", defaultValue: "Moved to Trash"))
-                .scaledFont(size: 10.5, weight: .semibold)
+                .themeFont(.ringUnit)
                 .foregroundStyle(color)
-                .padding(.horizontal, 8)
+                .padding(.horizontal, Theme.Space.s8)
                 .frame(height: 18)
-                .background(color.opacity(0.14), in: RoundedRectangle(cornerRadius: 5))
+                .background(color.opacity(0.14), in: RoundedRectangle(cornerRadius: Theme.radiusBadge))
                 .overlay {
-                    RoundedRectangle(cornerRadius: 5)
+                    RoundedRectangle(cornerRadius: Theme.radiusBadge)
                         .strokeBorder(color.opacity(0.3), lineWidth: 0.5)
                 }
             Text(metaLine)
                 .themeFont(.caption)
                 .monospacedDigit()
-                .foregroundStyle(Color(hex: 0x8E8E95))
+                .foregroundStyle(Theme.textTertiary)
         }
-        .padding(.top, 10)
+        .padding(.top, Theme.Space.s10)
 
         Text(trashNote(disposal))
             .themeFont(.caption)
             .lineSpacing(2.5)
             .foregroundStyle(Theme.textLabel)
-            .padding(.top, 9)
+            .padding(.top, Theme.Space.s9)
     }
 
     private var metaLine: String {
@@ -91,7 +91,7 @@ extension HistoryDetailPanel {
     // MARK: Disk after
 
     func diskAfter(_ freeAfter: Int64) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
+        VStack(alignment: .leading, spacing: Theme.Space.s0) {
             HStack(alignment: .firstTextBaseline) {
                 SectionLabel(localized("history.detail.diskAfter", defaultValue: "Disk after"))
                 Spacer(minLength: 8)
@@ -101,17 +101,17 @@ extension HistoryDetailPanel {
                 ))
                 .themeFont(.caption)
                 .monospacedDigit()
-                .foregroundStyle(Color(hex: 0x8E8E95))
+                .foregroundStyle(Theme.textTertiary)
             }
             if let total = results.volumeSpace?.totalBytes, total > 0 {
                 ProgressBar(fraction: Double(freeAfter) / Double(total), height: 6)
-                    .padding(.top, 9)
+                    .padding(.top, Theme.Space.s9)
             }
         }
-        .padding(.top, 20)
+        .padding(.top, Theme.Space.s20)
         .overlay(alignment: .top) {
             Rectangle().fill(Theme.separator).frame(height: 1).offset(y: 10)
         }
-        .padding(.top, 10)
+        .padding(.top, Theme.Space.s10)
     }
 }

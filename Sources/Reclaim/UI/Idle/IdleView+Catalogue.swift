@@ -15,15 +15,15 @@ extension IdleView {
     // MARK: - Right column
 
     var catalogueColumn: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: Theme.Space.s14) {
             catalogueCard
                 .entrance(appeared, delay: 0.12)
 
-            HStack(alignment: .center, spacing: 10) {
+            HStack(alignment: .center, spacing: Theme.Space.s10) {
                 // A trust statement, not a setting: a sealed checkmark in
                 // the accent color, never anything that reads as a checkbox.
                 Image(systemName: "checkmark.seal.fill")
-                    .scaledFont(size: 17)
+                    .themeFont(.trustIcon)
                     .foregroundStyle(Theme.accent)
                 Text(localized(
                     "idle.trustNote",
@@ -33,14 +33,14 @@ extension IdleView {
                 .lineSpacing(2.5)
                 .foregroundStyle(Theme.textTertiary)
             }
-            .padding(.horizontal, 4)
+            .padding(.horizontal, Theme.Space.s4)
             .entrance(appeared, delay: 0.2)
         }
         .frame(maxWidth: 460)
     }
 
     private var catalogueCard: some View {
-        VStack(spacing: 0) {
+        VStack(spacing: Theme.Space.s0) {
             HStack {
                 SectionLabel(localized("idle.catalogueTitle", defaultValue: "What Reclaim looks at"))
                 Spacer()
@@ -48,18 +48,18 @@ extension IdleView {
                     .themeFont(.caption)
                     .foregroundStyle(Theme.textQuaternary)
             }
-            .padding(.horizontal, 18)
-            .padding(.top, 15)
-            .padding(.bottom, 13)
+            .padding(.horizontal, Theme.Space.s18)
+            .padding(.top, Theme.Space.s15)
+            .padding(.bottom, Theme.Space.s13)
             .overlay(alignment: .bottom) {
-                Rectangle().fill(Color.white.opacity(0.07)).frame(height: 1)
+                Rectangle().fill(Theme.cardSectionDivider).frame(height: 1)
             }
 
             // Breadth at a glance, not a row per category: the card's
             // height must stay bounded as the catalogue grows, so the
             // grid caps at `maxVisibleChips` and folds the rest into a
             // "+N more" chip instead of stretching forever.
-            VStack(alignment: .leading, spacing: 13) {
+            VStack(alignment: .leading, spacing: Theme.Space.s13) {
                 Text(localized(
                     "idle.catalogueSummary",
                     defaultValue: "\(TargetRegistry.all.count) known locations across \(ToolCategory.allCases.count) tool categories"
@@ -68,9 +68,9 @@ extension IdleView {
                 .foregroundStyle(Theme.textSecondary)
 
                 LazyVGrid(
-                    columns: [GridItem(.adaptive(minimum: 185), spacing: 8)],
+                    columns: [GridItem(.adaptive(minimum: 185), spacing: Theme.Space.s8)],
                     alignment: .leading,
-                    spacing: 8
+                    spacing: Theme.Space.s8
                 ) {
                     ForEach(visibleChipCategories) { category in
                         categoryChip(category)
@@ -80,43 +80,43 @@ extension IdleView {
                     }
                 }
             }
-            .padding(.horizontal, 18)
-            .padding(.top, 14)
-            .padding(.bottom, 16)
+            .padding(.horizontal, Theme.Space.s18)
+            .padding(.top, Theme.Space.s14)
+            .padding(.bottom, Theme.Space.s16)
             .frame(maxWidth: .infinity, alignment: .leading)
             .overlay(alignment: .bottom) {
-                Rectangle().fill(Color.white.opacity(0.05)).frame(height: 1)
+                Rectangle().fill(Theme.cardSectionDividerFaint).frame(height: 1)
             }
 
             idleProjectsRow
-                .padding(.horizontal, 18)
-                .padding(.vertical, 12)
+                .padding(.horizontal, Theme.Space.s18)
+                .padding(.vertical, Theme.Space.s12)
                 .overlay(alignment: .bottom) {
-                    Rectangle().fill(Color.white.opacity(0.05)).frame(height: 1)
+                    Rectangle().fill(Theme.cardSectionDividerFaint).frame(height: 1)
                 }
 
             diskFooter
-                .padding(.horizontal, 18)
-                .padding(.top, 13)
-                .padding(.bottom, 15)
+                .padding(.horizontal, Theme.Space.s18)
+                .padding(.top, Theme.Space.s13)
+                .padding(.bottom, Theme.Space.s15)
         }
-        .card(radius: 14, fill: Theme.cardFillQuiet)
-        .shadow(color: .black.opacity(0.4), radius: 20, y: 12)
+        .card(radius: Theme.radiusHero, fill: Theme.cardFillQuiet)
+        .shadow(color: Theme.cardShadow, radius: 20, y: 12)
     }
 
     /// The dev-folder feature's slot in the catalogue card: configured
     /// folders when the feature is set up, an inline setup button when
     /// it is not.
     private var idleProjectsRow: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: Theme.Space.s12) {
             Image(systemName: "folder.badge.gearshape")
-                .scaledFont(size: 12, weight: .medium)
-                .foregroundStyle(Color(hex: 0xB8B8BF))
+                .themeFont(.tileLabel)
+                .foregroundStyle(Theme.textSubtle)
                 .frame(width: 26, height: 26)
-                .background(Theme.controlFill, in: RoundedRectangle(cornerRadius: 7))
-            VStack(alignment: .leading, spacing: 2) {
+                .background(Theme.controlFill, in: RoundedRectangle(cornerRadius: Theme.radiusChip))
+            VStack(alignment: .leading, spacing: Theme.Space.s2) {
                 Text(localized("sidebar.projects", defaultValue: "Projects"))
-                    .scaledFont(size: 12.5, weight: .medium)
+                    .themeFont(.amount)
                     .foregroundStyle(Theme.textPrimary)
                 Text(projects.devRoots.isEmpty
                     ? localized(
@@ -146,11 +146,11 @@ extension IdleView {
     }
 
     private var diskFooter: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: Theme.Space.s8) {
             HStack {
                 Text(results.volumeDisplayName)
                     .themeFont(.footnote)
-                    .foregroundStyle(Color(hex: 0x98989F))
+                    .foregroundStyle(Theme.textSecondary)
                 Spacer()
                 Text(diskLabel)
                     .themeFont(.footnote)
@@ -172,6 +172,6 @@ extension IdleView {
     private var diskSegments: [MeterSegment] {
         guard let space = results.volumeSpace, space.totalBytes > 0 else { return [] }
         let used = Double(space.usedBytes) / Double(space.totalBytes)
-        return [MeterSegment(id: "used", fraction: used, color: .white.opacity(0.22))]
+        return [MeterSegment(id: "used", fraction: used, color: Theme.usedTrackIdle)]
     }
 }

@@ -11,9 +11,9 @@ import SwiftUI
 
 extension SettingsView {
     var exclusions: some View {
-        VStack(alignment: .leading, spacing: 9) {
+        VStack(alignment: .leading, spacing: Theme.Space.s9) {
             SectionLabel(localized("settings.sectionExclusions", defaultValue: "Excluded from scans"))
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: Theme.Space.s8) {
                 ForEach(ExclusionGroup.allCases) { group in
                     exclusionGroup(group)
                 }
@@ -25,22 +25,22 @@ extension SettingsView {
                 .themeFont(.footnote)
                 .lineSpacing(2.5)
                 .foregroundStyle(Theme.textQuaternary)
-                .padding(.top, 6)
+                .padding(.top, Theme.Space.s6)
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
+            .padding(.horizontal, Theme.Space.s16)
+            .padding(.vertical, Theme.Space.s12)
             .frame(maxWidth: .infinity, alignment: .leading)
             .card(radius: Theme.radiusPanel)
         }
     }
 
     private func exclusionGroup(_ group: ExclusionGroup) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: Theme.Space.s6) {
             Text(group.displayName)
                 .themeFont(.caption)
                 .textCase(.uppercase)
                 .foregroundStyle(Theme.textTertiary)
-                .padding(.top, 4)
+                .padding(.top, Theme.Space.s4)
             ForEach(ExclusionRegistry.entries(in: group)) { entry in
                 ForEach(entry.paths, id: \.self) { path in
                     exclusionRow(path, entry.reason)
@@ -50,10 +50,10 @@ extension SettingsView {
     }
 
     private func exclusionRow(_ path: String, _ reason: String) -> some View {
-        HStack(spacing: 10) {
+        HStack(spacing: Theme.Space.s10) {
             Text(path)
                 .font(Theme.mono(11.5))
-                .foregroundStyle(Color(hex: 0xC8C8CF))
+                .foregroundStyle(Theme.textChipLabel)
             Spacer(minLength: 8)
             Text(reason)
                 .themeFont(.caption)

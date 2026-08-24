@@ -18,7 +18,7 @@ struct HistoryDetailPanel: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 0) {
+            VStack(alignment: .leading, spacing: Theme.Space.s0) {
                 header
                 hero
                 if let disposal = entry.disposal {
@@ -34,34 +34,34 @@ struct HistoryDetailPanel: View {
                     legacyNames
                 }
             }
-            .padding(.horizontal, 20)
-            .padding(.top, 18)
-            .padding(.bottom, 28)
+            .padding(.horizontal, Theme.Space.s20)
+            .padding(.top, Theme.Space.s18)
+            .padding(.bottom, Theme.Space.s28)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .background(Color.white.opacity(0.02))
+        .background(Theme.chromeFill)
         .id(entry.id)
     }
 
     // MARK: Header & hero
 
     private var header: some View {
-        HStack(alignment: .top, spacing: 12) {
-            VStack(alignment: .leading, spacing: 5) {
+        HStack(alignment: .top, spacing: Theme.Space.s12) {
+            VStack(alignment: .leading, spacing: Theme.Space.s5) {
                 SectionLabel(localized("history.detail.trigger", defaultValue: "Manual clean"))
                 Text(entry.date.formatted(date: .abbreviated, time: .shortened))
-                    .scaledFont(size: 16, weight: .semibold)
+                    .themeFont(.detailHeaderTitle)
                     .foregroundStyle(Theme.textPrimary)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
             Button(action: close) {
                 Image(systemName: "xmark")
-                    .scaledFont(size: 10, weight: .semibold)
+                    .themeFont(.disclosure)
                     .foregroundStyle(Theme.textBody)
                     .frame(width: 22, height: 22)
-                    .background(Color.white.opacity(0.07), in: RoundedRectangle(cornerRadius: 6))
-                    .contentShape(RoundedRectangle(cornerRadius: 6))
+                    .background(Theme.controlFillQuiet, in: RoundedRectangle(cornerRadius: Theme.radiusIconChip))
+                    .contentShape(RoundedRectangle(cornerRadius: Theme.radiusIconChip))
             }
             .buttonStyle(.plain)
             .help(localized("action.close", defaultValue: "Close"))
@@ -70,15 +70,15 @@ struct HistoryDetailPanel: View {
 
     private var hero: some View {
         let parts = entry.reclaimedBytes.byteParts
-        return HStack(alignment: .firstTextBaseline, spacing: 6) {
+        return HStack(alignment: .firstTextBaseline, spacing: Theme.Space.s6) {
             Text(parts.value)
                 .font(Theme.heroNumber(30))
                 .monospacedDigit()
                 .foregroundStyle(Theme.textPrimary)
             Text(localized("history.detail.unitFreed", defaultValue: "\(parts.unit) freed"))
-                .scaledFont(size: 14)
+                .themeFont(.detailHeroUnit)
                 .foregroundStyle(Theme.textSecondary)
         }
-        .padding(.top, 16)
+        .padding(.top, Theme.Space.s16)
     }
 }

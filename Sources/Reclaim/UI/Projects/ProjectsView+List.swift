@@ -16,7 +16,7 @@ extension ProjectsView {
 
     var listColumn: some View {
         ScrollView {
-            LazyVStack(spacing: 0) {
+            LazyVStack(spacing: Theme.Space.s0) {
                 ForEach(failedRoots) { scan in
                     failedRootRow(scan)
                 }
@@ -43,9 +43,9 @@ extension ProjectsView {
                     }
                 }
             }
-            .padding(.horizontal, 8)
-            .padding(.top, 6)
-            .padding(.bottom, 20)
+            .padding(.horizontal, Theme.Space.s8)
+            .padding(.top, Theme.Space.s6)
+            .padding(.bottom, Theme.Space.s20)
         }
     }
 
@@ -53,15 +53,15 @@ extension ProjectsView {
         Text(text)
             .themeFont(.body)
             .foregroundStyle(Theme.textTertiary)
-            .padding(.horizontal, 8)
-            .padding(.top, 12)
+            .padding(.horizontal, Theme.Space.s8)
+            .padding(.top, Theme.Space.s12)
             .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private func failedRootRow(_ scan: DevRootScan) -> some View {
-        HStack(spacing: 10) {
+        HStack(spacing: Theme.Space.s10) {
             Image(systemName: "exclamationmark.triangle")
-                .scaledFont(size: 12)
+                .themeFont(.meta)
                 .foregroundStyle(Theme.cautionTitle)
             Text((scan.root.path as NSString).abbreviatingWithTildeInPath)
                 .font(Theme.mono(11.5))
@@ -71,9 +71,9 @@ extension ProjectsView {
                 .foregroundStyle(Theme.textTertiary)
             Spacer(minLength: 8)
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
+        .padding(.horizontal, Theme.Space.s12)
+        .padding(.vertical, Theme.Space.s10)
         .card(radius: Theme.radiusInset)
-        .padding(.bottom, 6)
+        .padding(.bottom, Theme.Space.s6)
     }
 }

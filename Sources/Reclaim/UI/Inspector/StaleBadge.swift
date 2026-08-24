@@ -13,8 +13,8 @@ struct StaleBadge: View {
         Text(localized("projects.staleBadge", defaultValue: "No recent activity"))
             .themeFont(.caption)
             .foregroundStyle(Theme.cautionTitle)
-            .padding(.horizontal, 6)
-            .padding(.vertical, 2)
+            .padding(.horizontal, Theme.Space.s6)
+            .padding(.vertical, Theme.Space.s2)
             .background(Theme.cautionTitle.opacity(0.12), in: Capsule())
     }
 }

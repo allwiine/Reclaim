@@ -29,15 +29,15 @@ struct ToolbarView: View {
     @FocusState private var searchFocused: Bool
 
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: Theme.Space.s12) {
             Text(title)
-                .scaledFont(size: 13, weight: .semibold)
+                .themeFont(.toolbarTitle)
                 .foregroundStyle(Theme.textPrimary)
                 .contentTransition(.opacity)
 
             if !subtitle.isEmpty {
                 Text(subtitle)
-                    .scaledFont(size: 12)
+                    .themeFont(.meta)
                     .foregroundStyle(Theme.textLabel)
                     .contentTransition(.opacity)
             }
@@ -62,10 +62,10 @@ struct ToolbarView: View {
                 scanButton
             }
         }
-        .padding(.leading, 18)
-        .padding(.trailing, 14)
+        .padding(.leading, Theme.Space.s18)
+        .padding(.trailing, Theme.Space.s14)
         .frame(height: Theme.toolbarHeight)
-        .background(Color.white.opacity(0.02))
+        .background(Theme.chromeFill)
         .animation(Theme.quick, value: showsActions)
     }
 
@@ -77,9 +77,9 @@ struct ToolbarView: View {
         Button {
             scanner.scanAll()
         } label: {
-            HStack(spacing: 5) {
+            HStack(spacing: Theme.Space.s5) {
                 Image(systemName: "arrow.clockwise")
-                    .scaledFont(size: 10, weight: .medium)
+                    .themeFont(.refreshIcon)
                 Text(activity.isScanning
                     ? localized("menu.scanning", defaultValue: "Scanning…")
                     : results.lastScan == nil
@@ -95,13 +95,13 @@ struct ToolbarView: View {
     }
 
     private var searchField: some View {
-        HStack(spacing: 6) {
+        HStack(spacing: Theme.Space.s6) {
             Image(systemName: "magnifyingglass")
-                .scaledFont(size: 10)
-                .foregroundStyle(Color(hex: 0x8B8B92))
+                .themeFont(.searchIcon)
+                .foregroundStyle(Theme.textSearchIcon)
             TextField(localized("toolbar.searchPlaceholder", defaultValue: "Search paths"), text: $searchText)
                 .textFieldStyle(.plain)
-                .scaledFont(size: 12)
+                .themeFont(.meta)
                 .foregroundStyle(Theme.textPrimary)
                 .focused($searchFocused)
                 .frame(width: 110)
@@ -111,18 +111,21 @@ struct ToolbarView: View {
                     searchFocused = false
                 } label: {
                     Image(systemName: "xmark.circle.fill")
-                        .scaledFont(size: 10)
+                        .themeFont(.searchIcon)
                         .foregroundStyle(Theme.textTertiary)
                 }
                 .buttonStyle(.plain)
             }
         }
-        .padding(.horizontal, 9)
+        .padding(.horizontal, Theme.Space.s9)
         .frame(height: 26)
         .background(Theme.controlFill, in: RoundedRectangle(cornerRadius: Theme.radiusChip))
         .overlay {
             RoundedRectangle(cornerRadius: Theme.radiusChip)
-                .strokeBorder(.white.opacity(searchFocused ? 0.2 : 0.06), lineWidth: 0.5)
+                .strokeBorder(
+                    searchFocused ? Theme.searchFieldStrokeFocused : Theme.searchFieldStroke,
+                    lineWidth: 0.5
+                )
         }
         .animation(Theme.quick, value: searchFocused)
     }
@@ -235,7 +238,7 @@ struct ToolbarView: View {
 #if DEBUG
 #Preview("Toolbar", traits: .sizeThatFitsLayout) {
     @Previewable @State var search = ""
-    VStack(spacing: 0) {
+    VStack(spacing: Theme.Space.s0) {
         ToolbarView(
             destination: .overview,
             phase: .overview,

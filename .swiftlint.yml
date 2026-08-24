@@ -1,8 +1,15 @@
-# The 200-line file limit is the whole gate — by design (see
-# docs/superpowers/2026-08-19-app-model-decomposition-design.md).
+# The 200-line file limit is the whole gate, plus the design-token
+# boundary below — by design (see
+# docs/superpowers/2026-08-19-app-model-decomposition-design.md and
+# docs/superpowers/2026-08-24-design-system-centralization-design.md).
 # Broaden the rule set only by explicit decision, never by drift.
+#
+# only_rules disables every rule not listed here, INCLUDING
+# custom_rules — it must be listed explicitly or the rules below are
+# silently inert.
 only_rules:
   - file_length
+  - custom_rules
 file_length:
   warning: 200
   error: 200
@@ -11,3 +18,46 @@ included:
   - Package.swift
   - Sources
   - Tests
+custom_rules:
+  no_raw_padding:
+    regex: '\.padding\((\.[a-zA-Z]+,\s*)?-?\d'
+    included: "Sources/Reclaim/.*"
+    excluded: "Sources/Reclaim/DesignSystem/.*"
+    message: "Use a Theme spacing token."
+    severity: error
+  no_raw_spacing:
+    regex: 'spacing:\s*-?\d'
+    included: "Sources/Reclaim/.*"
+    excluded: "Sources/Reclaim/DesignSystem/.*"
+    message: "Use a Theme spacing token."
+    severity: error
+  no_raw_corner_radius:
+    regex: 'cornerRadius:\s*\d'
+    included: "Sources/Reclaim/.*"
+    excluded: "Sources/Reclaim/DesignSystem/.*"
+    message: "Use a Theme radius token."
+    severity: error
+  no_raw_system_font:
+    regex: '\.font\(\.system|Font\.system\('
+    included: "Sources/Reclaim/.*"
+    excluded: "Sources/Reclaim/DesignSystem/.*"
+    message: "Use a Theme font."
+    severity: error
+  no_raw_hex_color:
+    regex: 'Color\(hex:'
+    included: "Sources/Reclaim/.*"
+    excluded: "Sources/Reclaim/DesignSystem/.*"
+    message: "Name the color in the DesignSystem."
+    severity: error
+  no_raw_scaled_font:
+    regex: 'scaledFont\(size:\s*[0-9]'
+    included: "Sources/Reclaim/.*"
+    excluded: "Sources/Reclaim/DesignSystem/.*"
+    message: "Use a themeFont(_:) text role."
+    severity: error
+  single_environment_root:
+    regex: '\.environment\((?!\s*\\\.)'
+    included: "Sources/Reclaim/.*"
+    excluded: "Sources/Reclaim/App/AppEnvironment\\.swift"
+    message: "Model injection goes through appEnvironment(_:) only."
+    severity: error

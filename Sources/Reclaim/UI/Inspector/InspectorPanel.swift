@@ -38,37 +38,37 @@ struct InspectorPanel: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
-        .background(Color.white.opacity(0.02))
+        .background(Theme.chromeFill)
     }
 
     private func details(for target: CleanupTarget) -> some View {
         let status = results.status(of: target.id)
 
         return ScrollView {
-            VStack(alignment: .leading, spacing: 0) {
+            VStack(alignment: .leading, spacing: Theme.Space.s0) {
                 CategoryTile(category: target.category, size: 34)
 
                 Text(target.name)
-                    .scaledFont(size: 17, weight: .bold)
+                    .themeFont(.panelTitle)
                     .foregroundStyle(Theme.textPrimary)
-                    .padding(.top, 14)
+                    .padding(.top, Theme.Space.s14)
 
-                HStack(spacing: 8) {
+                HStack(spacing: Theme.Space.s8) {
                     Badge(for: target)
                     Text(target.category.title)
-                        .scaledFont(size: 12)
-                        .foregroundStyle(Color(hex: 0x8E8E95))
+                        .themeFont(.meta)
+                        .foregroundStyle(Theme.textTertiary)
                 }
-                .padding(.top, 8)
+                .padding(.top, Theme.Space.s8)
 
                 sizeHeadline(status)
-                    .padding(.top, 16)
+                    .padding(.top, Theme.Space.s16)
 
                 Text(target.summary)
                     .themeFont(.body)
                     .lineSpacing(3.5)
-                    .foregroundStyle(Color(hex: 0xA8A8AF))
-                    .padding(.top, 14)
+                    .foregroundStyle(Theme.textParagraph)
+                    .padding(.top, Theme.Space.s14)
 
                 if let note = target.note {
                     Label(note, systemImage: "info.circle")
@@ -77,7 +77,7 @@ struct InspectorPanel: View {
                         .foregroundStyle(
                             target.safety == .safe ? Theme.textTertiary : Theme.cautionTitle
                         )
-                        .padding(.top, 10)
+                        .padding(.top, Theme.Space.s10)
                 }
 
                 if target.strategy.isCleanable, selection.isExcludedFromAutoSelect(target) {
@@ -91,30 +91,30 @@ struct InspectorPanel: View {
                     .themeFont(.caption)
                     .lineSpacing(2.5)
                     .foregroundStyle(Theme.textTertiary)
-                    .padding(.top, 10)
+                    .padding(.top, Theme.Space.s10)
                 }
 
                 pathChip(for: target, status: status)
-                    .padding(.top, 14)
+                    .padding(.top, Theme.Space.s14)
 
                 if !target.strategy.isCleanable {
                     delegatedCard(for: target)
-                        .padding(.top, 16)
+                        .padding(.top, Theme.Space.s16)
                 }
 
                 if case .command(let spec) = target.strategy {
                     commandInfo(spec)
-                        .padding(.top, 14)
+                        .padding(.top, Theme.Space.s14)
                 }
 
                 breakdown(for: target, status: status)
 
                 footer(status)
-                    .padding(.top, 18)
+                    .padding(.top, Theme.Space.s18)
             }
-            .padding(.horizontal, 20)
-            .padding(.top, 18)
-            .padding(.bottom, 24)
+            .padding(.horizontal, Theme.Space.s20)
+            .padding(.top, Theme.Space.s18)
+            .padding(.bottom, Theme.Space.s24)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .id(target.id)

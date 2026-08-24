@@ -16,7 +16,7 @@ extension ProjectInspectorPanel {
     @ViewBuilder
     func artifactSection(for project: DiscoveredProject) -> some View {
         if !project.artifacts.isEmpty {
-            HStack(alignment: .firstTextBaseline, spacing: 10) {
+            HStack(alignment: .firstTextBaseline, spacing: Theme.Space.s10) {
                 SectionLabel(localized(
                     "projects.artifactsSection", defaultValue: "Regenerable artifacts"
                 ))
@@ -29,28 +29,28 @@ extension ProjectInspectorPanel {
                         projects.setProjectSelected(project, !projects.isProjectSelected(project))
                     }
                     .buttonStyle(.plain)
-                    .scaledFont(size: 11, weight: .medium)
+                    .themeFont(.miniButtonLabel)
                     .foregroundStyle(Theme.textSecondary)
                     .disabled(activity.isScanning || activity.isCleaning)
                 }
             }
-            .padding(.top, 24)
+            .padding(.top, Theme.Space.s24)
 
             let peak = project.artifacts.map(\.measurement.bytes).max() ?? 1
-            VStack(spacing: 1) {
+            VStack(spacing: Theme.Space.s1) {
                 ForEach(project.artifacts) { artifact in
                     artifactRow(artifact, peak: peak)
                 }
             }
-            .padding(.top, 9)
+            .padding(.top, Theme.Space.s9)
 
             cherryPickFooter(for: project)
         }
     }
 
     private func artifactRow(_ artifact: DiscoveredArtifact, peak: Int64) -> some View {
-        VStack(alignment: .leading, spacing: 5) {
-            HStack(alignment: .center, spacing: 9) {
+        VStack(alignment: .leading, spacing: Theme.Space.s5) {
+            HStack(alignment: .center, spacing: Theme.Space.s9) {
                 Toggle(
                     localized(
                         "browser.selectAccessibility",
@@ -66,7 +66,7 @@ extension ProjectInspectorPanel {
                 .disabled(!projects.isArtifactSelectable(artifact))
                 .opacity(projects.isArtifactSelectable(artifact) ? 1 : 0.35)
                 Text(artifact.kind?.name ?? artifact.kindID)
-                    .scaledFont(size: 12)
+                    .themeFont(.meta)
                     .foregroundStyle(Theme.textPrimary)
                     .lineLimit(1)
                 Text(artifact.url.lastPathComponent)
@@ -77,15 +77,15 @@ extension ProjectInspectorPanel {
                 Text(artifact.measurement.bytes.formattedBytesCompact)
                     .themeFont(.footnote)
                     .monospacedDigit()
-                    .foregroundStyle(Color(hex: 0x8E8E95))
+                    .foregroundStyle(Theme.textTertiary)
             }
             MiniBar(
                 fraction: peak > 0 ? Double(artifact.measurement.bytes) / Double(peak) : 0,
                 color: Theme.safe
             )
-            .padding(.leading, 24)
+            .padding(.leading, Theme.Space.s24)
         }
-        .padding(.vertical, 7)
+        .padding(.vertical, Theme.Space.s7)
     }
 
     /// Cherry-pick status line plus the "Clean just this" button.
@@ -94,7 +94,7 @@ extension ProjectInspectorPanel {
         Text(pickNote(for: project))
             .themeFont(.caption)
             .foregroundStyle(Theme.textQuaternary)
-            .padding(.top, 9)
+            .padding(.top, Theme.Space.s9)
 
         Button {
             onCleanProject(project)
@@ -107,7 +107,7 @@ extension ProjectInspectorPanel {
             projects.selectedArtifacts(of: project).isEmpty
                 || activity.isScanning || activity.isCleaning
         )
-        .padding(.top, 12)
+        .padding(.top, Theme.Space.s12)
     }
 
     private func scopeLabel(for project: DiscoveredProject) -> String? {

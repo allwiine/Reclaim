@@ -19,7 +19,7 @@ struct FooterBar: View {
     @Environment(ScanCoordinator.self) private var scanner
 
     var body: some View {
-        HStack(spacing: 0) {
+        HStack(spacing: Theme.Space.s0) {
             item(
                 label: localized("overview.reclaimedAllTime", defaultValue: "Reclaimed (all time)"),
                 value: history.reclaimedAllTimeBytes > 0
@@ -43,18 +43,18 @@ struct FooterBar: View {
                     : localized("overview.backgroundScansOff", defaultValue: "background scans are off")
             )
         }
-        .padding(.horizontal, 18)
+        .padding(.horizontal, Theme.Space.s18)
         .frame(height: 30)
-        .background(Color.white.opacity(0.02))
+        .background(Theme.chromeFill)
     }
 
     private func item(label: String, value: String, help: String) -> some View {
-        HStack(spacing: 7) {
+        HStack(spacing: Theme.Space.s7) {
             Text(label)
                 .themeFont(.caption)
                 .foregroundStyle(Theme.textTertiary)
             Text(value)
-                .scaledFont(size: 11.5, weight: .medium)
+                .themeFont(.chipLabel)
                 .monospacedDigit()
                 .foregroundStyle(Theme.textSecondary)
                 .contentTransition(.numericText())

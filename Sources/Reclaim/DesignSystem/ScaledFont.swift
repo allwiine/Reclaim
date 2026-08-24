@@ -12,35 +12,11 @@
 //  `.scaledFont(size:weight:)` (ad-hoc sizes) instead of a static
 //  `Font`, because a `Font` value cannot read the environment.
 //
+//  `Theme.TextRole` itself lives in TextRoles.swift (moved out to stay
+//  under this file's line budget).
+//
 
 import SwiftUI
-
-extension Theme {
-    /// The app's named text roles, mirroring the static `Theme` font
-    /// tokens so their sizes stay single-sourced here.
-    enum TextRole {
-        case label, rowTitle, cardTitle, body, footnote, caption
-
-        var size: CGFloat {
-            switch self {
-            case .label: 11
-            case .rowTitle: 13
-            case .cardTitle: 13.5
-            case .body: 12.5
-            case .footnote: 11.5
-            case .caption: 11
-            }
-        }
-
-        var weight: Font.Weight {
-            switch self {
-            case .label: .semibold
-            case .rowTitle, .cardTitle: .medium
-            case .body, .footnote, .caption: .regular
-            }
-        }
-    }
-}
 
 private struct ThemeFontModifier: ViewModifier {
     let role: Theme.TextRole

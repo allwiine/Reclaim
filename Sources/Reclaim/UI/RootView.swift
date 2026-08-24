@@ -55,7 +55,7 @@ struct RootView: View {
     @State private var inspectedTargetID: CleanupTarget.ID?
 
     var body: some View {
-        HStack(spacing: 0) {
+        HStack(spacing: Theme.Space.s0) {
             SidebarView(destination: sidebarDestination)
                 .frame(width: Theme.sidebarWidth)
 
@@ -179,7 +179,7 @@ struct RootView: View {
     // MARK: - Content column
 
     private var content: some View {
-        VStack(spacing: 0) {
+        VStack(spacing: Theme.Space.s0) {
             ToolbarView(
                 destination: destination,
                 phase: phase,

@@ -18,7 +18,7 @@ extension InspectorPanel {
         switch status {
         case .measured(let measurement, _, _):
             let parts = measurement.bytes.byteParts
-            HStack(alignment: .firstTextBaseline, spacing: 5) {
+            HStack(alignment: .firstTextBaseline, spacing: Theme.Space.s5) {
                 Text(parts.value)
                     .font(Theme.heroNumber(27))
                     .monospacedDigit()
@@ -26,7 +26,7 @@ extension InspectorPanel {
                     .contentTransition(.numericText())
                     .animation(Theme.smooth, value: measurement.bytes)
                 Text(parts.unit)
-                    .scaledFont(size: 13)
+                    .themeFont(.panelHeroUnit)
                     .foregroundStyle(Theme.textSecondary)
             }
         case .unmeasurable:
@@ -62,27 +62,27 @@ extension InspectorPanel {
                 NSWorkspace.shared.activateFileViewerSelecting([url])
             }
         } label: {
-            HStack(spacing: 8) {
+            HStack(spacing: Theme.Space.s8) {
                 Text(path.isEmpty
                     ? localized("inspector.noFixedLocation", defaultValue: "No fixed location")
                     : path)
                     .font(Theme.mono())
-                    .foregroundStyle(Color(hex: 0x8E8E95))
+                    .foregroundStyle(Theme.textTertiary)
                     .multilineTextAlignment(.leading)
                 if !status.resolvedPaths.isEmpty {
                     Spacer(minLength: 4)
                     Image(systemName: "arrow.up.forward.square")
-                        .scaledFont(size: 10)
+                        .themeFont(.revealIcon)
                         .foregroundStyle(Theme.textQuaternary)
                 }
             }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 8)
+            .padding(.horizontal, Theme.Space.s10)
+            .padding(.vertical, Theme.Space.s8)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color.white.opacity(0.05), in: RoundedRectangle(cornerRadius: Theme.radiusChip))
+            .background(Theme.pathChipFill, in: RoundedRectangle(cornerRadius: Theme.radiusChip))
             .overlay {
                 RoundedRectangle(cornerRadius: Theme.radiusChip)
-                    .strokeBorder(.white.opacity(0.06), lineWidth: 0.5)
+                    .strokeBorder(Theme.pathChipStroke, lineWidth: 0.5)
             }
             .contentShape(RoundedRectangle(cornerRadius: Theme.radiusChip))
         }

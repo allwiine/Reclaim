@@ -16,22 +16,22 @@ struct SidebarRow: View {
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 10) {
+            HStack(spacing: Theme.Space.s10) {
                 Image(systemName: systemImage)
-                    .scaledFont(size: 10.5, weight: .medium)
-                    .foregroundStyle(Color(hex: 0xB8B8BF))
+                    .themeFont(.navIcon)
+                    .foregroundStyle(Theme.textSubtle)
                     .frame(width: 22, height: 22)
                     .background(
                         Theme.controlFill,
-                        in: RoundedRectangle(cornerRadius: 6)
+                        in: RoundedRectangle(cornerRadius: Theme.radiusIconChip)
                     )
                 Text(title)
                     .themeFont(.rowTitle)
                     .foregroundStyle(Theme.textPrimary)
                 Spacer(minLength: 0)
             }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 7)
+            .padding(.horizontal, Theme.Space.s10)
+            .padding(.vertical, Theme.Space.s7)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(
                 isSelected ? Theme.selectionFill : .clear,

@@ -15,7 +15,7 @@ extension ConfirmSheet {
     func itemList(_ picked: [CleanupTarget]) -> some View {
         listCard {
             ForEach(picked) { target in
-                HStack(spacing: 10) {
+                HStack(spacing: Theme.Space.s10) {
                     Circle()
                         .fill(BadgeKind(for: target).color)
                         .frame(width: 7, height: 7)
@@ -31,12 +31,12 @@ extension ConfirmSheet {
                     }
                     Spacer(minLength: 8)
                     Text(sizeLabel(for: target))
-                        .scaledFont(size: 12)
+                        .themeFont(.meta)
                         .monospacedDigit()
-                        .foregroundStyle(Color(hex: 0x8E8E95))
+                        .foregroundStyle(Theme.textTertiary)
                 }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 9)
+                .padding(.horizontal, Theme.Space.s12)
+                .padding(.vertical, Theme.Space.s9)
                 .overlay(alignment: .bottom) {
                     if target.id != picked.last?.id || !projects.selectedArtifacts.isEmpty {
                         Rectangle().fill(Theme.separator).frame(height: 1)
@@ -44,7 +44,7 @@ extension ConfirmSheet {
                 }
             }
             ForEach(projects.selectedArtifacts) { artifact in
-                HStack(spacing: 10) {
+                HStack(spacing: Theme.Space.s10) {
                     Circle()
                         .fill(Theme.safe)
                         .frame(width: 7, height: 7)
@@ -54,12 +54,12 @@ extension ConfirmSheet {
                         .lineLimit(1)
                     Spacer(minLength: 8)
                     Text(artifact.measurement.bytes.formattedBytesCompact)
-                        .scaledFont(size: 12)
+                        .themeFont(.meta)
                         .monospacedDigit()
-                        .foregroundStyle(Color(hex: 0x8E8E95))
+                        .foregroundStyle(Theme.textTertiary)
                 }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 9)
+                .padding(.horizontal, Theme.Space.s12)
+                .padding(.vertical, Theme.Space.s9)
                 .overlay(alignment: .bottom) {
                     if artifact.id != projects.selectedArtifacts.last?.id {
                         Rectangle().fill(Theme.separator).frame(height: 1)
@@ -81,7 +81,7 @@ extension ConfirmSheet {
         let paths = selection.selectedCleanupPaths(of: target)
         return listCard {
             ForEach(paths, id: \.path) { url in
-                HStack(spacing: 10) {
+                HStack(spacing: Theme.Space.s10) {
                     Circle()
                         .fill(BadgeKind(for: target).color)
                         .frame(width: 7, height: 7)
@@ -93,12 +93,12 @@ extension ConfirmSheet {
                     Text(selection.breakdownBytes(of: target, path: url.path)
                         .map(\.formattedBytesCompact)
                         ?? localized("confirm.sizeUnknown", defaultValue: "size unknown"))
-                        .scaledFont(size: 12)
+                        .themeFont(.meta)
                         .monospacedDigit()
-                        .foregroundStyle(Color(hex: 0x8E8E95))
+                        .foregroundStyle(Theme.textTertiary)
                 }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 9)
+                .padding(.horizontal, Theme.Space.s12)
+                .padding(.vertical, Theme.Space.s9)
                 .overlay(alignment: .bottom) {
                     if url.path != paths.last?.path {
                         Rectangle().fill(Theme.separator).frame(height: 1)
@@ -113,7 +113,7 @@ extension ConfirmSheet {
         let picked = projects.selectedArtifacts(of: project)
         return listCard {
             ForEach(picked) { artifact in
-                HStack(spacing: 10) {
+                HStack(spacing: Theme.Space.s10) {
                     Circle()
                         .fill(Theme.safe)
                         .frame(width: 7, height: 7)
@@ -127,12 +127,12 @@ extension ConfirmSheet {
                         .lineLimit(1)
                     Spacer(minLength: 8)
                     Text(artifact.measurement.bytes.formattedBytesCompact)
-                        .scaledFont(size: 12)
+                        .themeFont(.meta)
                         .monospacedDigit()
-                        .foregroundStyle(Color(hex: 0x8E8E95))
+                        .foregroundStyle(Theme.textTertiary)
                 }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 9)
+                .padding(.horizontal, Theme.Space.s12)
+                .padding(.vertical, Theme.Space.s9)
                 .overlay(alignment: .bottom) {
                     if artifact.id != picked.last?.id {
                         Rectangle().fill(Theme.separator).frame(height: 1)
@@ -144,13 +144,13 @@ extension ConfirmSheet {
 
     private func listCard(@ViewBuilder rows: () -> some View) -> some View {
         ScrollView {
-            VStack(spacing: 0, content: rows)
+            VStack(spacing: Theme.Space.s0, content: rows)
         }
         .frame(maxHeight: 210)
-        .background(Color.black.opacity(0.25), in: RoundedRectangle(cornerRadius: Theme.radiusInset))
+        .background(Theme.listCardFill, in: RoundedRectangle(cornerRadius: Theme.radiusInset))
         .overlay {
             RoundedRectangle(cornerRadius: Theme.radiusInset)
-                .strokeBorder(.white.opacity(0.07), lineWidth: 0.5)
+                .strokeBorder(Theme.listCardStroke, lineWidth: 0.5)
         }
     }
 
