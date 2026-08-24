@@ -52,3 +52,13 @@ extension Theme {
         static let s64: CGFloat = 64
     }
 }
+
+extension Theme {
+    /// Tier-1 — gap between elements in a ranked list row
+    /// (BiggestRow, ProjectFindingRow).
+    static let rowGap: CGFloat = 12
+    /// Tier-1 — horizontal padding inside a category chip.
+    static let chipPaddingHorizontal: CGFloat = 8
+    /// Tier-1 — vertical padding inside a category chip.
+    static let chipPaddingVertical: CGFloat = 6
+}

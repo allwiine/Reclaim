@@ -19,16 +19,16 @@ struct BiggestRow: View {
 
     var body: some View {
         Button(action: open) {
-            HStack(spacing: 12) {
+            HStack(spacing: Theme.rowGap) {
                 Text(rank.formatted())
                     .themeFont(.caption)
                     .monospacedDigit()
                     .foregroundStyle(Theme.textQuaternary)
                     .frame(width: 14, alignment: .leading)
-                VStack(alignment: .leading, spacing: 2) {
-                    HStack(spacing: 7) {
+                VStack(alignment: .leading, spacing: Theme.Space.s2) {
+                    HStack(spacing: Theme.Space.s7) {
                         Text(target.name)
-                            .scaledFont(size: 13, weight: .medium)
+                            .themeFont(.rowTitle)
                             .foregroundStyle(Theme.textPrimary)
                             .lineLimit(1)
                         Badge(for: target)
@@ -38,20 +38,20 @@ struct BiggestRow: View {
                         .foregroundStyle(Theme.textTertiary)
                 }
                 Spacer(minLength: 10)
-                VStack(alignment: .trailing, spacing: 5) {
+                VStack(alignment: .trailing, spacing: Theme.Space.s5) {
                     Text(results.bytes(of: target).formattedBytesCompact)
-                        .scaledFont(size: 12.5, weight: .medium)
+                        .themeFont(.amount)
                         .monospacedDigit()
                         .foregroundStyle(Theme.textPrimary)
                     MiniBar(fraction: fraction, color: BadgeKind(for: target).color)
                 }
                 .frame(width: 110)
             }
-            .padding(.vertical, 10)
-            .padding(.horizontal, 8)
+            .padding(.vertical, Theme.Space.s10)
+            .padding(.horizontal, Theme.Space.s8)
             .contentShape(RoundedRectangle(cornerRadius: Theme.radiusControl))
         }
         .buttonStyle(.plain)
-        .hoverHighlight(color: Color.white.opacity(0.05))
+        .hoverHighlight(color: Theme.hoverFillQuiet)
     }
 }

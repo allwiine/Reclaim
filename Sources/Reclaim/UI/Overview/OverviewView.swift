@@ -65,7 +65,7 @@ struct OverviewView: View {
                     // Lifetime/last/next stats live in the global footer;
                     // the column only appears when it has cards to show.
                     if !projects.devRoots.isEmpty || !results.manualTargets.isEmpty {
-                        VStack(spacing: 12) {
+                        VStack(spacing: Theme.Space.s12) {
                             if !projects.devRoots.isEmpty {
                                 projectsCard
                             }
@@ -79,8 +79,8 @@ struct OverviewView: View {
                 }
             }
             .padding(.horizontal, Theme.contentMargin)
-            .padding(.top, 20)
-            .padding(.bottom, 32)
+            .padding(.top, Theme.Space.s20)
+            .padding(.bottom, Theme.Space.s32)
         }
         .onAppear { withAnimation(Theme.springy) { appeared = true } }
     }
@@ -97,8 +97,8 @@ struct OverviewView: View {
         )
         .themeFont(.body)
         .foregroundStyle(Theme.cautionTitle)
-        .padding(.horizontal, 14)
-        .padding(.vertical, 10)
+        .padding(.horizontal, Theme.Space.s14)
+        .padding(.vertical, Theme.Space.s10)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Theme.caution.opacity(0.1), in: RoundedRectangle(cornerRadius: Theme.radiusInset))
         .overlay {

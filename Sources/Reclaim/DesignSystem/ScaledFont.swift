@@ -20,6 +20,46 @@ extension Theme {
     /// tokens so their sizes stay single-sourced here.
     enum TextRole {
         case label, rowTitle, cardTitle, body, footnote, caption
+        /// Numeric byte-amount figures in list rows.
+        case amount
+        /// Small muted label/value text in compact rows (disk legend,
+        /// project rows).
+        case meta
+        /// Full Disk Access warning glyph.
+        case warningIcon
+        /// Disclosure chevron glyph.
+        case disclosure
+        /// Emphasized inline stat, e.g. project count and size.
+        case figure
+        /// Small inline icon glyph (project-row folder icon).
+        case miniIcon
+        /// Emphasized 12pt text/icon (category tile title, catalogue
+        /// projects-row icon).
+        case tileLabel
+        /// Prominent value on a category tile (byte total).
+        case tileValue
+        /// Unit label beside the reclaimable ring's hero number.
+        case ringUnit
+        /// Small bold eyebrow label above a headline (version badge).
+        case eyebrow
+        /// Idle screen's hero headline.
+        case headline
+        /// Idle screen's lead paragraph.
+        case lead
+        /// Trust-statement checkmark glyph.
+        case trustIcon
+        /// Category chip / "more" chip label text.
+        case chipLabel
+        /// Failures/warning card title.
+        case warningTitle
+        /// Cleaned-item name in the Done screen's lists.
+        case itemName
+        /// Done screen's result glyph (checkmark/eye/triangle).
+        case resultIcon
+        /// Done screen's "nothing cleaned" fallback headline.
+        case resultHeadline
+        /// Unit/caption beside the Done screen's hero byte number.
+        case heroUnit
 
         var size: CGFloat {
             switch self {
@@ -29,6 +69,25 @@ extension Theme {
             case .body: 12.5
             case .footnote: 11.5
             case .caption: 11
+            case .amount: 12.5
+            case .meta: 12
+            case .warningIcon: 16
+            case .disclosure: 10
+            case .figure: 14
+            case .miniIcon: 10.5
+            case .tileLabel: 12
+            case .tileValue: 17
+            case .ringUnit: 10.5
+            case .eyebrow: 11
+            case .headline: 40
+            case .lead: 14.5
+            case .trustIcon: 17
+            case .chipLabel: 11.5
+            case .warningTitle: 12
+            case .itemName: 13
+            case .resultIcon: 24
+            case .resultHeadline: 28
+            case .heroUnit: 19
             }
         }
 
@@ -37,6 +96,11 @@ extension Theme {
             case .label: .semibold
             case .rowTitle, .cardTitle: .medium
             case .body, .footnote, .caption: .regular
+            case .amount, .tileLabel, .chipLabel: .medium
+            case .meta, .warningIcon, .miniIcon, .lead, .trustIcon, .itemName: .regular
+            case .disclosure, .figure, .ringUnit, .resultIcon, .warningTitle: .semibold
+            case .tileValue, .eyebrow, .headline, .resultHeadline: .bold
+            case .heroUnit: .medium
             }
         }
     }

@@ -18,7 +18,7 @@ extension DoneView {
         return Image(systemName: summary.isDryRun
             ? "eye"
             : (nothingCleaned ? "exclamationmark.triangle" : "checkmark"))
-            .scaledFont(size: 24, weight: .semibold)
+            .themeFont(.resultIcon)
             .foregroundStyle(nothingCleaned ? Theme.cautionTitle : Theme.accentSoft)
             .frame(width: 58, height: 58)
             .background(tint.opacity(0.16), in: Circle())
@@ -32,13 +32,13 @@ extension DoneView {
     }
 
     var headline: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: Theme.Space.s8) {
             if nothingCleaned {
                 Text(localized("done.nothingCleanedTitle", defaultValue: "Nothing was cleaned"))
-                    .scaledFont(size: 28, weight: .bold)
+                    .themeFont(.resultHeadline)
                     .foregroundStyle(Theme.textPrimary)
             } else {
-                HStack(alignment: .firstTextBaseline, spacing: 7) {
+                HStack(alignment: .firstTextBaseline, spacing: Theme.Space.s7) {
                     Text(shownBytes.byteParts.value)
                         .font(Theme.heroNumber(44))
                         .monospacedDigit()
@@ -53,7 +53,7 @@ extension DoneView {
                             "done.unitReclaimed",
                             defaultValue: "\(summary.reclaimedBytes.byteParts.unit) reclaimed"
                         ))
-                        .scaledFont(size: 19, weight: .medium)
+                        .themeFont(.heroUnit)
                         .foregroundStyle(Theme.textSecondary)
                 }
             }
@@ -64,7 +64,7 @@ extension DoneView {
                 .contentTransition(.opacity)
                 .animation(Theme.quick, value: note)
         }
-        .padding(.top, 22)
+        .padding(.top, Theme.Space.s22)
         .entrance(appeared, delay: 0.1)
     }
 

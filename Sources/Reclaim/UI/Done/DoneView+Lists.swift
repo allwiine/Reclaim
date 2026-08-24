@@ -11,27 +11,27 @@ import SwiftUI
 
 extension DoneView {
     var cleanedList: some View {
-        VStack(spacing: 0) {
+        VStack(spacing: Theme.Space.s0) {
             ForEach(summary.cleaned) { item in
-                HStack(spacing: 10) {
+                HStack(spacing: Theme.Space.s10) {
                     Circle()
                         .fill(item.category.color)
                         .frame(width: 7, height: 7)
                     Text(item.name)
-                        .scaledFont(size: 13)
+                        .themeFont(.itemName)
                         .foregroundStyle(Theme.textPrimary)
                     Spacer(minLength: 10)
                     Text(item.bytesFreed.map(\.formattedBytesCompact)
                         ?? localized("confirm.sizeUnknown", defaultValue: "size unknown"))
-                        .scaledFont(size: 12.5)
+                        .themeFont(.body)
                         .monospacedDigit()
-                        .foregroundStyle(Color(hex: 0x8E8E95))
+                        .foregroundStyle(Theme.textTertiary)
                 }
-                .padding(.horizontal, 14)
-                .padding(.vertical, 10)
+                .padding(.horizontal, Theme.Space.s14)
+                .padding(.vertical, Theme.Space.s10)
                 .overlay(alignment: .bottom) {
                     if item.id != summary.cleaned.last?.id {
-                        Rectangle().fill(Color.white.opacity(0.06)).frame(height: 1)
+                        Rectangle().fill(Theme.rowDivider).frame(height: 1)
                     }
                 }
             }
@@ -42,26 +42,26 @@ extension DoneView {
 
     /// Dev-folder artifacts removed by this pass.
     var artifactsList: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: Theme.Space.s8) {
             SectionLabel(localized("done.artifactsHeader", defaultValue: "Project artifacts"))
-            VStack(spacing: 0) {
+            VStack(spacing: Theme.Space.s0) {
                 ForEach(summary.cleanedArtifacts) { item in
-                    HStack(spacing: 10) {
+                    HStack(spacing: Theme.Space.s10) {
                         Text(item.name)
-                            .scaledFont(size: 13)
+                            .themeFont(.itemName)
                             .foregroundStyle(Theme.textPrimary)
                         Spacer(minLength: 10)
                         Text(item.bytesFreed.map(\.formattedBytesCompact)
                             ?? localized("confirm.sizeUnknown", defaultValue: "size unknown"))
-                            .scaledFont(size: 12.5)
+                            .themeFont(.body)
                             .monospacedDigit()
-                            .foregroundStyle(Color(hex: 0x8E8E95))
+                            .foregroundStyle(Theme.textTertiary)
                     }
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 10)
+                    .padding(.horizontal, Theme.Space.s14)
+                    .padding(.vertical, Theme.Space.s10)
                     .overlay(alignment: .bottom) {
                         if item.id != summary.cleanedArtifacts.last?.id {
-                            Rectangle().fill(Color.white.opacity(0.06)).frame(height: 1)
+                            Rectangle().fill(Theme.rowDivider).frame(height: 1)
                         }
                     }
                 }

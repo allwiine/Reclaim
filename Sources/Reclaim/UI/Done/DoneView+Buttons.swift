@@ -11,7 +11,7 @@ import SwiftUI
 
 extension DoneView {
     var buttons: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: Theme.Space.s10) {
             Button(localized("done.backToOverview", defaultValue: "Back to overview"), action: dismiss)
                 .rcSecondary()
                 .keyboardShortcut(.cancelAction)
@@ -20,7 +20,7 @@ extension DoneView {
                 Button {
                     isConfirmingEmptyTrash = true
                 } label: {
-                    HStack(spacing: 6) {
+                    HStack(spacing: Theme.Space.s6) {
                         if isEmptyingTrash {
                             ProgressView().controlSize(.small)
                         }
@@ -33,7 +33,7 @@ extension DoneView {
         }
         .overlay(alignment: .bottom) {
             if case .failed(let message) = trashState {
-                VStack(spacing: 3) {
+                VStack(spacing: Theme.Space.s3) {
                     Text(localized(
                         "done.emptyTrashFailed",
                         defaultValue: "Couldn't empty the Trash: \(message)"

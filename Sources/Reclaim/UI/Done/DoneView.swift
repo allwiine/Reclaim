@@ -36,37 +36,37 @@ struct DoneView: View {
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 0) {
+            VStack(spacing: Theme.Space.s0) {
                 checkmark
                 headline
                 if let space = results.volumeSpace {
                     diskAfter(space)
-                        .padding(.top, 36)
+                        .padding(.top, Theme.Space.s36)
                         .entrance(appeared, delay: 0.25)
                 }
                 if !summary.cleaned.isEmpty {
                     cleanedList
-                        .padding(.top, 30)
+                        .padding(.top, Theme.Space.s30)
                         .entrance(appeared, delay: 0.32)
                 }
                 if !summary.cleanedArtifacts.isEmpty {
                     artifactsList
-                        .padding(.top, summary.cleaned.isEmpty ? 30 : 10)
+                        .padding(.top, summary.cleaned.isEmpty ? Theme.Space.s30 : Theme.Space.s10)
                         .entrance(appeared, delay: 0.34)
                 }
                 if !summary.failures.isEmpty {
                     failuresCard
-                        .padding(.top, 14)
+                        .padding(.top, Theme.Space.s14)
                         .entrance(appeared, delay: 0.36)
                 }
                 buttons
-                    .padding(.top, 26)
+                    .padding(.top, Theme.Space.s26)
                     .entrance(appeared, delay: 0.4)
             }
             .frame(maxWidth: .infinity)
-            .padding(.top, 64)
-            .padding(.bottom, 40)
-            .padding(.horizontal, 60)
+            .padding(.top, Theme.Space.s64)
+            .padding(.bottom, Theme.Space.s40)
+            .padding(.horizontal, Theme.Space.s60)
         }
         .onAppear {
             withAnimation(Theme.springy) { appeared = true }

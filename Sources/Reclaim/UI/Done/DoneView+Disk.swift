@@ -11,7 +11,7 @@ import SwiftUI
 
 extension DoneView {
     func diskAfter(_ space: VolumeSpace) -> some View {
-        VStack(spacing: 7) {
+        VStack(spacing: Theme.Space.s7) {
             HStack {
                 Text(results.volumeDisplayName)
                     .themeFont(.caption)
@@ -29,7 +29,7 @@ extension DoneView {
                 MeterSegment(
                     id: "used",
                     fraction: Double(space.usedBytes) / Double(max(1, space.totalBytes)),
-                    color: .white.opacity(0.28)
+                    color: Theme.usedTrack
                 ),
             ], height: 8)
         }

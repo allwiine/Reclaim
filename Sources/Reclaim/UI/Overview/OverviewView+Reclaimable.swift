@@ -14,15 +14,15 @@ extension OverviewView {
     // MARK: - Reclaimable card
 
     var reclaimableCard: some View {
-        HStack(spacing: 22) {
+        HStack(spacing: Theme.Space.s22) {
             ring
 
-            VStack(alignment: .leading, spacing: 0) {
+            VStack(alignment: .leading, spacing: Theme.Space.s0) {
                 // "Found", not "reclaimable": the ring's total includes
                 // tool-managed items Reclaim measures but never deletes.
                 SectionLabel(localized("overview.foundOnThisMac", defaultValue: "Found on this Mac"))
 
-                VStack(alignment: .leading, spacing: 9) {
+                VStack(alignment: .leading, spacing: Theme.Space.s9) {
                     // After a clean pass the safe bucket is often empty;
                     // saying so beats formatting 0 bytes as "< 1 MB" and
                     // offering a button that cannot do anything.
@@ -78,9 +78,9 @@ extension OverviewView {
                         )
                     }
                 }
-                .padding(.top, 13)
+                .padding(.top, Theme.Space.s13)
 
-                HStack(spacing: 9) {
+                HStack(spacing: Theme.Space.s9) {
                     if results.safeReclaimableBytes > 0 {
                         Button(
                             localized("overview.reclaimSafeButton", defaultValue: "Reclaim safe space"),
@@ -98,7 +98,7 @@ extension OverviewView {
                     }
                     .rcSecondary()
                 }
-                .padding(.top, 18)
+                .padding(.top, Theme.Space.s18)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
@@ -110,7 +110,7 @@ extension OverviewView {
         SegmentedRing(segments: ringSegments)
             .frame(width: 136, height: 136)
             .overlay {
-                VStack(spacing: 1) {
+                VStack(spacing: Theme.Space.s1) {
                     Text(model.totalFoundBytes.byteParts.value)
                         .font(Theme.heroNumber(25))
                         .monospacedDigit()
@@ -118,7 +118,7 @@ extension OverviewView {
                         .contentTransition(.numericText())
                         .animation(Theme.smooth, value: model.totalFoundBytes)
                     Text(model.totalFoundBytes.byteParts.unit)
-                        .scaledFont(size: 10.5, weight: .semibold)
+                        .themeFont(.ringUnit)
                         .tracking(0.7)
                         .foregroundStyle(Theme.textLabel)
                 }
@@ -150,12 +150,12 @@ extension OverviewView {
     }
 
     private func breakdownRow(color: Color, title: String, subtitle: String) -> some View {
-        HStack(alignment: .top, spacing: 9) {
+        HStack(alignment: .top, spacing: Theme.Space.s9) {
             Circle()
                 .fill(color)
                 .frame(width: 7, height: 7)
-                .padding(.top, 5)
-            VStack(alignment: .leading, spacing: 2) {
+                .padding(.top, Theme.Space.s5)
+            VStack(alignment: .leading, spacing: Theme.Space.s2) {
                 Text(title)
                     .themeFont(.cardTitle)
                     .foregroundStyle(Theme.textPrimary)

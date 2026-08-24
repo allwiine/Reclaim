@@ -19,14 +19,14 @@ struct AttentionCard: View {
 
     var body: some View {
         Button(action: open) {
-            VStack(alignment: .leading, spacing: 4) {
-                HStack(alignment: .firstTextBaseline, spacing: 10) {
+            VStack(alignment: .leading, spacing: Theme.Space.s4) {
+                HStack(alignment: .firstTextBaseline, spacing: Theme.Space.s10) {
                     Text(target.name)
-                        .scaledFont(size: 13, weight: .medium)
+                        .themeFont(.rowTitle)
                         .foregroundStyle(Theme.textPrimary)
                         .frame(maxWidth: .infinity, alignment: .leading)
                     Text(results.bytes(of: target).formattedBytesCompact)
-                        .scaledFont(size: 12.5, weight: .medium)
+                        .themeFont(.amount)
                         .monospacedDigit()
                         .foregroundStyle(Theme.textPrimary)
                 }
@@ -40,18 +40,18 @@ struct AttentionCard: View {
                     Text(command)
                         .font(Theme.mono())
                         .foregroundStyle(Theme.accentSoft)
-                        .padding(.top, 3)
+                        .padding(.top, Theme.Space.s3)
                 }
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 11)
+            .padding(.horizontal, Theme.Space.s12)
+            .padding(.vertical, Theme.Space.s11)
             .background(
-                Color.black.opacity(isHovered ? 0.32 : 0.22),
+                isHovered ? Theme.calloutFillHovered : Theme.calloutFill,
                 in: RoundedRectangle(cornerRadius: Theme.radiusInset)
             )
             .overlay {
                 RoundedRectangle(cornerRadius: Theme.radiusInset)
-                    .strokeBorder(.white.opacity(0.06), lineWidth: 0.5)
+                    .strokeBorder(Theme.calloutStroke, lineWidth: 0.5)
             }
             .contentShape(RoundedRectangle(cornerRadius: Theme.radiusInset))
         }

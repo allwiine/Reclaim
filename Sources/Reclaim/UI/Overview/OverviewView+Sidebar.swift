@@ -18,12 +18,12 @@ extension OverviewView {
     /// opens the Projects screen. Shown only once dev folders exist.
     var projectsCard: some View {
         Button(action: openProjects) {
-            VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: Theme.Space.s10) {
                 HStack {
                     SectionLabel(localized("sidebar.projects", defaultValue: "Projects"))
                     Spacer()
                     Image(systemName: "chevron.right")
-                        .scaledFont(size: 10, weight: .semibold)
+                        .themeFont(.disclosure)
                         .foregroundStyle(Theme.textQuaternary)
                 }
                 if projects.discovered.isEmpty {
@@ -38,34 +38,34 @@ extension OverviewView {
                         "toolbar.projectsSubtitle",
                         defaultValue: "\(projects.discovered.count) projects · \(projects.projectArtifactBytes.formattedBytesCompact)"
                     ))
-                    .scaledFont(size: 14, weight: .semibold)
+                    .themeFont(.figure)
                     .monospacedDigit()
                     .foregroundStyle(Theme.textPrimary)
                     .contentTransition(.numericText())
                     .animation(Theme.smooth, value: projects.projectArtifactBytes)
 
-                    VStack(spacing: 6) {
+                    VStack(spacing: Theme.Space.s6) {
                         ForEach(projects.largestProjects(limit: 2)) { project in
-                            HStack(spacing: 8) {
+                            HStack(spacing: Theme.Space.s8) {
                                 Image(systemName: "folder.badge.gearshape")
-                                    .scaledFont(size: 10.5)
+                                    .themeFont(.miniIcon)
                                     .foregroundStyle(Theme.textTertiary)
                                 Text(project.name)
-                                    .scaledFont(size: 12)
-                                    .foregroundStyle(Color(hex: 0xB4B4BB))
+                                    .themeFont(.meta)
+                                    .foregroundStyle(Theme.textRowLabel)
                                     .lineLimit(1)
                                 Spacer(minLength: 8)
                                 Text(project.artifactBytes.formattedBytesCompact)
-                                    .scaledFont(size: 12)
+                                    .themeFont(.meta)
                                     .monospacedDigit()
-                                    .foregroundStyle(Color(hex: 0x8E8E95))
+                                    .foregroundStyle(Theme.textTertiary)
                             }
                         }
                     }
                 }
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 13)
+            .padding(.horizontal, Theme.Space.s16)
+            .padding(.vertical, Theme.Space.s13)
             .frame(maxWidth: .infinity, alignment: .leading)
             .contentShape(RoundedRectangle(cornerRadius: Theme.radiusTile))
         }
@@ -77,9 +77,9 @@ extension OverviewView {
     // MARK: - Attention & stats
 
     var attentionCard: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: Theme.Space.s12) {
             SectionLabel(localized("overview.needsAttention", defaultValue: "Needs your attention"))
-            VStack(spacing: 10) {
+            VStack(spacing: Theme.Space.s10) {
                 ForEach(results.manualTargets) { target in
                     AttentionCard(target: target) {
                         openTarget(target)
@@ -87,7 +87,7 @@ extension OverviewView {
                 }
             }
         }
-        .padding(18)
+        .padding(Theme.Space.s18)
         .frame(maxWidth: .infinity, alignment: .leading)
         .card()
     }

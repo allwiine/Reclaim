@@ -14,7 +14,7 @@ extension OverviewView {
     // MARK: - Disk card
 
     var diskCard: some View {
-        VStack(alignment: .leading, spacing: 0) {
+        VStack(alignment: .leading, spacing: Theme.Space.s0) {
             HStack {
                 SectionLabel(results.volumeDisplayName)
                 Spacer()
@@ -29,7 +29,7 @@ extension OverviewView {
                 }
             }
 
-            HStack(alignment: .firstTextBaseline, spacing: 6) {
+            HStack(alignment: .firstTextBaseline, spacing: Theme.Space.s6) {
                 Text(freeGBNumber)
                     .font(Theme.heroNumber(30))
                     .monospacedDigit()
@@ -41,12 +41,12 @@ extension OverviewView {
                     .fontWeight(.regular)
                     .foregroundStyle(Theme.textSecondary)
             }
-            .padding(.top, 10)
+            .padding(.top, Theme.Space.s10)
 
             SegmentedBar(segments: diskSegments, height: 9)
-                .padding(.top, 12)
+                .padding(.top, Theme.Space.s12)
 
-            VStack(spacing: 6) {
+            VStack(spacing: Theme.Space.s6) {
                 diskLegendRow(
                     localized("disk.legendDeveloperCaches", defaultValue: "Developer caches"),
                     model.totalFoundBytes.formattedBytesCompact,
@@ -55,15 +55,15 @@ extension OverviewView {
                 diskLegendRow(
                     localized("disk.legendOtherUsed", defaultValue: "Other used space"),
                     otherUsedBytes.wholeGB,
-                    .white.opacity(0.28)
+                    Theme.usedTrack
                 )
                 diskLegendRow(
                     localized("disk.legendFree", defaultValue: "Free"),
                     (results.volumeSpace?.availableBytes ?? 0).wholeGB,
-                    .white.opacity(0.08)
+                    Theme.barTrack
                 )
             }
-            .padding(.top, 14)
+            .padding(.top, Theme.Space.s14)
         }
         .padding(Theme.cardPadding)
         .frame(maxHeight: .infinity, alignment: .top)
@@ -85,21 +85,21 @@ extension OverviewView {
         let total = Double(space.totalBytes)
         return [
             MeterSegment(id: "dev", fraction: Double(model.totalFoundBytes) / total, color: Theme.accent),
-            MeterSegment(id: "other", fraction: Double(otherUsedBytes) / total, color: .white.opacity(0.28)),
+            MeterSegment(id: "other", fraction: Double(otherUsedBytes) / total, color: Theme.usedTrack),
         ]
     }
 
     private func diskLegendRow(_ name: String, _ value: String, _ color: Color) -> some View {
-        HStack(spacing: 8) {
+        HStack(spacing: Theme.Space.s8) {
             Circle().fill(color).frame(width: 7, height: 7)
             Text(name)
-                .scaledFont(size: 12)
-                .foregroundStyle(Color(hex: 0xB4B4BB))
+                .themeFont(.meta)
+                .foregroundStyle(Theme.textRowLabel)
             Spacer(minLength: 8)
             Text(value)
-                .scaledFont(size: 12)
+                .themeFont(.meta)
                 .monospacedDigit()
-                .foregroundStyle(Color(hex: 0x8E8E95))
+                .foregroundStyle(Theme.textTertiary)
         }
     }
 }

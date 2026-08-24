@@ -11,13 +11,13 @@ import SwiftUI
 /// Full Disk Access warning, restyled for the dark shell.
 struct FullDiskAccessBanner: View {
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: Theme.Space.s12) {
             Image(systemName: "lock.shield")
-                .scaledFont(size: 16)
+                .themeFont(.warningIcon)
                 .foregroundStyle(Theme.cautionBright)
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: Theme.Space.s2) {
                 Text(localized("fda.title", defaultValue: "Full Disk Access is not granted"))
-                    .scaledFont(size: 13, weight: .medium)
+                    .themeFont(.rowTitle)
                     .foregroundStyle(Theme.textPrimary)
                 Text(localized(
                     "fda.body",
@@ -32,8 +32,8 @@ struct FullDiskAccessBanner: View {
             }
             .rcSecondary()
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 10)
+        .padding(.horizontal, Theme.Space.s14)
+        .padding(.vertical, Theme.Space.s10)
         .background(Theme.caution.opacity(0.1), in: RoundedRectangle(cornerRadius: Theme.radiusInset))
         .overlay {
             RoundedRectangle(cornerRadius: Theme.radiusInset)
