@@ -28,7 +28,7 @@ enum TrashService {
     /// How long to wait for Finder before giving up. Emptying a large
     /// Trash is legitimately slow, but a locked-file prompt or an
     /// unanswered Automation-consent dialog would otherwise never return.
-    private static let timeout: TimeInterval = 120
+    private nonisolated static let timeout: TimeInterval = 120
 
     /// Empty the Trash via Finder. Safe to call from the main actor.
     static func emptyTrash() async -> Outcome {
@@ -42,7 +42,9 @@ enum TrashService {
         }
     }
 
-    private static func runBlocking() -> Outcome {
+    /// Off the main actor by design (see the file header): the caller
+    /// hands this to a raw GCD thread, not the concurrent-executor pool.
+    private nonisolated static func runBlocking() -> Outcome {
         let process = Process()
         process.executableURL = URL(filePath: "/usr/bin/osascript")
         process.arguments = ["-e", "tell application \"Finder\" to empty trash"]

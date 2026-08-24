@@ -11,7 +11,6 @@ import ReclaimKit
 import Testing
 @testable import ReclaimAppCore
 
-@MainActor
 @Suite("App model")
 struct AppModelTests {
     @Test("Selected bytes and totals include artifacts")

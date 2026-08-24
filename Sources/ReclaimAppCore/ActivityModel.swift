@@ -11,7 +11,6 @@ import Observation
 /// model and the UI read it. Owning these here breaks the dependency
 /// cycle between selection (which must know a pass is running) and
 /// the coordinators (which must know the selection).
-@MainActor
 @Observable
 public final class ActivityModel {
     public internal(set) var isScanning = false
@@ -37,7 +36,7 @@ public final class ActivityModel {
 }
 
 /// Live progress of the running scan pass, for the scanning screen.
-public struct ScanProgress: Equatable, Sendable {
+public nonisolated struct ScanProgress: Equatable, Sendable {
     /// Targets fully measured so far.
     public let completed: Int
     public let total: Int
@@ -52,7 +51,7 @@ public struct ScanProgress: Equatable, Sendable {
 }
 
 /// The target currently being cleaned, for progress UI.
-public struct CleanProgress: Equatable, Sendable {
+public nonisolated struct CleanProgress: Equatable, Sendable {
     public let targetName: String
     /// Tilde-form location being cleaned, when known.
     public let targetPath: String?

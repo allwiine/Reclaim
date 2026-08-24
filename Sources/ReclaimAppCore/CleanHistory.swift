@@ -12,7 +12,7 @@ import os
 import ReclaimKit
 
 /// One target cleaned in a pass, for the history detail pane.
-public struct CleanedHistoryItem: Sendable, Equatable, Codable {
+public nonisolated struct CleanedHistoryItem: Sendable, Equatable, Codable {
     /// Registry id — resolved against the live registry at display time
     /// for the icon, badge, path and "since then" regrowth.
     public let targetID: String
@@ -36,7 +36,7 @@ public struct CleanedHistoryItem: Sendable, Equatable, Codable {
 }
 
 /// One completed clean pass.
-public struct CleanHistoryEntry: Sendable, Equatable, Codable, Identifiable {
+public nonisolated struct CleanHistoryEntry: Sendable, Equatable, Codable, Identifiable {
     public let id: UUID
     public let date: Date
     /// Names of the targets that actually had removals, display order.
@@ -89,7 +89,7 @@ public struct CleanHistoryEntry: Sendable, Equatable, Codable, Identifiable {
 /// Loads and saves the history file. Synchronous by design — the file
 /// is tiny. `AppModel` loads it once at init (on the main actor) and
 /// saves off the main actor after each pass.
-public struct CleanHistoryStore: Sendable {
+public nonisolated struct CleanHistoryStore: Sendable {
     public let fileURL: URL
 
     /// `~/Library/Application Support/Reclaim/history.json`.
@@ -156,7 +156,7 @@ public struct CleanHistoryStore: Sendable {
 
 /// Decodes to `nil` instead of throwing when the wrapped value can't be
 /// decoded, so one bad element never fails the whole array.
-private struct Lenient<Wrapped: Decodable>: Decodable {
+private nonisolated struct Lenient<Wrapped: Decodable>: Decodable {
     let value: Wrapped?
     init(from decoder: any Decoder) throws {
         value = try? Wrapped(from: decoder)

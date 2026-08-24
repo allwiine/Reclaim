@@ -12,7 +12,6 @@ import Synchronization
 import Testing
 @testable import ReclaimAppCore
 
-@MainActor
 @Suite("Projects — cleaning artifacts")
 struct ProjectCleanTests {
     @Test("Cleaning selected artifacts disposes, verifies, and rescans")

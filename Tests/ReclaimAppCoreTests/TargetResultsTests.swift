@@ -12,7 +12,6 @@ import Synchronization
 import Testing
 @testable import ReclaimAppCore
 
-@MainActor
 @Suite("Target results")
 struct TargetResultsTests {
     @Test("The Full Disk Access verdict is refreshed when scanning")

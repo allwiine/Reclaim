@@ -14,7 +14,6 @@ import Synchronization
 import Testing
 @testable import ReclaimAppCore
 
-@MainActor
 @Suite("Clean — dry run and freed-space honesty")
 struct CleanDryRunTests {
     @Test("A dry run reports projections and touches nothing")

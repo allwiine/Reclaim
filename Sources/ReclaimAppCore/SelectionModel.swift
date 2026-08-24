@@ -15,7 +15,6 @@ import Foundation
 import Observation
 import ReclaimKit
 
-@MainActor
 @Observable
 public final class SelectionModel {
     // MARK: - Session state

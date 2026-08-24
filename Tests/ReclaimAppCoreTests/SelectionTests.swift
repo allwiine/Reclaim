@@ -12,7 +12,6 @@ import Synchronization
 import Testing
 @testable import ReclaimAppCore
 
-@MainActor
 @Suite("Selection")
 struct SelectionTests {
     @Test("Only measured non-empty cleanable targets are selectable")

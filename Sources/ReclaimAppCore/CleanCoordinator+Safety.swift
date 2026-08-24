@@ -5,7 +5,8 @@
 //  The scan-time symlink pins the clean pass consults before disposing
 //  of anything. Split out of CleanCoordinator.swift for file size only.
 //  Both helpers are `nonisolated static` pure functions, called through
-//  `offMain` so the path resolution stays off the main thread.
+//  the `@concurrent` workers in CleanCoordinator+Workers.swift so the
+//  path resolution stays off the main thread.
 //
 
 import Foundation

@@ -12,7 +12,6 @@ import Synchronization
 import Testing
 @testable import ReclaimAppCore
 
-@MainActor
 @Suite("Projects — dev roots")
 struct ProjectsTests {
     @Test("Dev roots persist across model instances")

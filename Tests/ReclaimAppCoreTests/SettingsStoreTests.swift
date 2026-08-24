@@ -12,7 +12,6 @@ import Synchronization
 import Testing
 @testable import ReclaimAppCore
 
-@MainActor
 @Suite("Settings")
 struct SettingsStoreTests {
     @Test("The disposal chosen in Settings reaches the clean executor")

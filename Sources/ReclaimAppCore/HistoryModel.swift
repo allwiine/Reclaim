@@ -10,7 +10,6 @@ import Foundation
 import Observation
 import ReclaimKit
 
-@MainActor
 @Observable
 public final class HistoryModel {
     /// Past clean passes, newest first.
@@ -90,8 +89,15 @@ public final class HistoryModel {
         let previous = historyPersistTask
         historyPersistTask = Task {
             await previous?.value
-            await offMain { store.save(snapshot) }
+            await Self.persist(store, snapshot)
         }
+    }
+
+    /// Writes the history snapshot on the concurrent executor — the
+    /// blocking filesystem boundary of a save.
+    @concurrent
+    private static func persist(_ store: CleanHistoryStore, _ snapshot: [CleanHistoryEntry]) async {
+        store.save(snapshot)
     }
 
     /// Await the persist chain — called at app termination so the on-disk

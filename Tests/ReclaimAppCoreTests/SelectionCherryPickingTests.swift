@@ -12,7 +12,6 @@ import Synchronization
 import Testing
 @testable import ReclaimAppCore
 
-@MainActor
 @Suite("Selection — cherry-picking")
 struct SelectionCherryPickingTests {
     @Test("Cherry-picking paths drives partial selection state")

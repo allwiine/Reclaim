@@ -13,7 +13,7 @@ import ReclaimKit
 
 // MARK: - Registry target fixtures
 
-func target(
+nonisolated func target(
     _ id: String,
     safety: SafetyLevel = .safe,
     strategy: CleanupStrategy = .removeContents
@@ -29,7 +29,7 @@ func target(
     )
 }
 
-func commandTarget(_ id: String) -> CleanupTarget {
+nonisolated func commandTarget(_ id: String) -> CleanupTarget {
     CleanupTarget(
         id: id,
         name: id,
@@ -43,7 +43,7 @@ func commandTarget(_ id: String) -> CleanupTarget {
     )
 }
 
-func measured(
+nonisolated func measured(
     _ bytes: Int64, cleanupPaths: [URL] = [URL(filePath: "/fixture/a")]
 ) -> TargetStatus {
     .measured(
@@ -55,7 +55,7 @@ func measured(
 
 // MARK: - Dev-folder fixtures
 
-func artifact(_ path: String, bytes: Int64) -> DiscoveredArtifact {
+nonisolated func artifact(_ path: String, bytes: Int64) -> DiscoveredArtifact {
     DiscoveredArtifact(
         kindID: "node-modules",
         url: URL(filePath: path),
@@ -63,7 +63,7 @@ func artifact(_ path: String, bytes: Int64) -> DiscoveredArtifact {
     )
 }
 
-func project(
+nonisolated func project(
     _ path: String, devRoot: String, artifacts: [DiscoveredArtifact]
 ) -> DiscoveredProject {
     DiscoveredProject(
@@ -74,7 +74,7 @@ func project(
 }
 
 /// A fresh temporary directory, removed by the caller when done.
-func makeTemporaryDirectory() throws -> URL {
+nonisolated func makeTemporaryDirectory() throws -> URL {
     let root = FileManager.default.temporaryDirectory
         .appending(path: "ReclaimAppCoreTests-\(UUID().uuidString)")
     try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
@@ -85,13 +85,13 @@ func makeTemporaryDirectory() throws -> URL {
 
 /// History store pointed at a throwaway file so tests never touch the
 /// real Application Support state.
-func temporaryHistoryStore() -> CleanHistoryStore {
+nonisolated func temporaryHistoryStore() -> CleanHistoryStore {
     CleanHistoryStore(fileURL: FileManager.default.temporaryDirectory
         .appending(path: "reclaim-history-\(UUID().uuidString).json"))
 }
 
 /// UserDefaults suite that cleans up after itself.
-final class TemporaryDefaults {
+nonisolated final class TemporaryDefaults {
     let name = "ReclaimAppCoreTests-\(UUID().uuidString)"
     let defaults: UserDefaults
 

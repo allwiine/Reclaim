@@ -11,18 +11,18 @@
 //
 //  Concurrency model
 //  ─────────────────
-//  The coordinator is @MainActor: every property the UI reads is
-//  main-actor state. Blocking filesystem work (sizing, discovery) runs
-//  through `offMain`, which executes on the global concurrent executor,
-//  off the main thread. Scans fan out through a task group with bounded
-//  width so disk I/O never saturates the cooperative thread pool.
+//  The coordinator is MainActor-isolated (the module default): every
+//  property the UI reads is main-actor state. Blocking filesystem work
+//  (sizing, discovery) runs through named `@concurrent` workers, which
+//  execute on the global concurrent executor, off the main thread. Scans
+//  fan out through a task group with bounded width so disk I/O never
+//  saturates the cooperative thread pool.
 //
 
 import Foundation
 import Observation
 import ReclaimKit
 
-@MainActor
 @Observable
 public final class ScanCoordinator {
     // MARK: - Constants
@@ -150,7 +150,7 @@ public final class ScanCoordinator {
                 options: [.userInitiated], reason: "Scanning for reclaimable storage"
             )
             defer { ProcessInfo.processInfo.endActivity(processActivity) }
-            self.results.hasFullDiskAccess = await offMain { probe() }
+            self.results.hasFullDiskAccess = await Self.probeAccess(probe)
             await self.runScan(of: targets)
             // Any rows still marked scanning were cancelled mid-flight.
             for target in targets where self.results.statuses[target.id] == .scanning {
@@ -173,6 +173,13 @@ public final class ScanCoordinator {
             self.applyPostScanSelection()
             self.results.refreshVolumeSpace()
         }
+    }
+
+    /// Checks TCC access on the concurrent executor — the blocking
+    /// filesystem boundary of the pre-scan probe.
+    @concurrent
+    private static func probeAccess(_ probe: @Sendable () -> Bool?) async -> Bool? {
+        probe()
     }
 
     /// Mirrors the design's post-scan behavior: Safe items come ticked

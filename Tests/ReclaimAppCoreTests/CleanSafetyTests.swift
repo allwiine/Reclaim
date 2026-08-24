@@ -13,7 +13,6 @@ import Synchronization
 import Testing
 @testable import ReclaimAppCore
 
-@MainActor
 @Suite("Clean — safety pins and stopping")
 struct CleanSafetyTests {
     @Test("Cleaning refuses a cleanup path whose root was swapped for a symlink after the scan")

@@ -14,7 +14,6 @@ import Synchronization
 import Testing
 @testable import ReclaimAppCore
 
-@MainActor
 @Suite("Projects — discovery")
 struct ProjectDiscoveryTests {
     @Test("Scanning includes configured dev roots")

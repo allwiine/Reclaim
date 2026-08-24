@@ -22,7 +22,6 @@ import Foundation
 import Observation
 import ReclaimKit
 
-@MainActor
 @Observable
 public final class AppModel {
     // MARK: - Sub-models
