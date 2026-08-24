@@ -27,6 +27,12 @@ struct GlassButton: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .scaledFont(size: fontSize, weight: .semibold)
+            // A button label never wraps: the button takes its ideal
+            // width and neighbouring text absorbs the squeeze instead.
+            // Without this, a tight row (the confirm footer in longer
+            // locales) compresses the label onto two lines.
+            .lineLimit(1)
+            .fixedSize(horizontal: true, vertical: false)
             .foregroundStyle(labelColor)
             .padding(.horizontal, height * 0.62)
             .frame(height: height)
